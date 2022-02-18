@@ -7,32 +7,27 @@ def dist(p1, p2):
     return math.sqrt((p2[0] - p1[0]) ** 2 +
                      (p2[1] - p1[1]) ** 2)
 
-def minimum_distance(x, y, y_order=None):
-    n = len(x)
+def minimum_distance(x, y):
+    p = list(zip(x, y))
+    return _minimum_distance(p)
+
+
+def _minimum_distance(p):
+    n = len(p)
     if n <= 1:
+        # Base case: Rooted out by the mins.
         return math.inf
 
-    i = list(range(n))
-    p = list(zip(i, x, y))
-
-    if y_order is None:
-        x_order = list(zip(*sorted(p, key=lambda x: x[1])))[0]
-        y_order = list(zip(*sorted(p, key=lambda x: x[2])))[0]
-    else:
-        x_order = list(range(n))
-    p = list(zip(*list(zip(*p))[1:]))
+    p = sorted(p, key=lambda p_i: p_i[0])
 
     mid = n // 2
-    S1, S2 = ([p[i] for i in x_order[:mid]],
-              [p[i] for i in x_order[mid:]])
-    S1_y_ord, S2_y_ord = tuple(map(lambda i: rezero(i, n),
-        ([y_order[i] for i in x_order[:mid]],
-         [y_order[i] for i in x_order[mid:]])))
-    d = min(minimum_distance(*zip(*S1), S1_y_ord),
-            minimum_distance(*zip(*S2), S2_y_ord))
+    S1, S2 = p[:mid], p[mid:]
+    d = min(_minimum_distance(S1),
+            _minimum_distance(S2))
 
-    x_split = (x[mid] + x[mid - 1]) / 2
-    p = [p[i] for i in y_order]
+    p = sorted(p, key=lambda p_i: p_i[1])
+    # Filter out points that are gaurenteed out of range.
+    x_split = (p[mid][0] + p[mid - 1][0]) / 2
     p_filt = list(filter(lambda p_i: (p_i[0] - x_split) < d, p))
 
     d_prime = math.inf
@@ -42,19 +37,6 @@ def minimum_distance(x, y, y_order=None):
             d_prime = min(d_prime,
                           dist(p_filt[j], p_filt[k]))
     return min(d, d_prime)
-
-
-
-def rezero(indexes, max_i):
-    counts = {i: 0 for i in range(max_i)}
-    for i in indexes:
-        counts[i] += 1
-    sorted_ = [i for i in range(max_i) if counts[i] != 0]
-    new_indexes = {x: i for i, x in enumerate(sorted_)}
-    return [new_indexes[x] for x in indexes]
-
-
-
 
 
 
