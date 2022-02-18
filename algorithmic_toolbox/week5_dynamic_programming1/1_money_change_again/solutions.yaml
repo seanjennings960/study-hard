@@ -1,0 +1,9 @@
+test_cases:
+  - in: 2
+    ans: 2
+  - in: 10
+    ans: 3
+  - in: 34
+    ans: 9
+  - in: 100
+    ans: 25
