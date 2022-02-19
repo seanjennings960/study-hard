@@ -1,0 +1,13 @@
+test_cases:
+  - in: |
+      ab
+      ab
+    ans: 0
+  - in: |
+      short
+      ports
+    ans: 3
+  - in: |
+      editing
+      distance
+    ans: 5

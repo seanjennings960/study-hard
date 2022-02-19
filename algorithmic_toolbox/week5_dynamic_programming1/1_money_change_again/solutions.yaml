@@ -7,3 +7,9 @@ test_cases:
     ans: 9
   - in: 100
     ans: 25
+  - in: 1
+    ans: 1
+  - in: 99
+    ans: 25
+  - in: 1010
+    ans: 253
