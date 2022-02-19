@@ -36,10 +36,11 @@ def main(test_dir):
         p.stdin.close()
         computed = b''
         for line in p.stdout:
-            computed += line.strip() # + b'\n'
-        computed = computed.decode()
+            computed += line.strip() + b'\n'
+        # Remove just the final new line, keep those in the middle.
+        computed = computed.decode().strip()
 
-        if computed != case['ans']:
+        if computed != case['ans'].strip():
             click.echo(f'Test case {i} failed: computed ({computed}) '
                        f'!= ans ({case["ans"]})', err=True)
             return
