@@ -28,7 +28,7 @@ def parse_dir(test_dir: Path, lang: str) -> Tuple[Dict, Path]:
     # Load solutions from yaml
     sol_file =test_dir / 'solutions.yaml'
     if not (sol_file).exists():
-        raise click.FileError(sol_file, f'Initialize solutions.txt in {test_dir}')
+        raise click.FileError(sol_file, f'Initialize solutions.yaml in {test_dir}')
         # raise ValueError
     with open(sol_file, 'rb') as f:
         solutions = yaml.load(f, Loader=yaml.loader.BaseLoader)
