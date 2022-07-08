@@ -41,7 +41,7 @@ def parse_dir(test_dir: Path, lang: str) -> Tuple[Dict, Path]:
     # Load solutions from yaml
     sol_dir = test_dir / 'tests'
     if not (sol_dir).exists():
-        raise click.FileError(sol_file, f'Initialize tests in {test_dir}')
+        raise click.FileError(str(sol_dir), f'Initialize tests in {test_dir}')
 
     solutions = parse_test_dir(sol_dir)
 
