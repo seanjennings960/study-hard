@@ -67,7 +67,8 @@ def run_code(code, lang):
                 required=True)
 @click.option('--lang', type=click.Choice(['py', 'rs']), default='py')
 @click.option('--test-case', type=int, default=None)
-def main(test_dir, lang, test_case):
+@click.option('--suppress-output', is_flag=True, default=False)
+def main(test_dir, lang, test_case, suppress_output):
     test_dir = Path(test_dir)
     solutions, code = parse_dir(test_dir, lang)
 
@@ -87,8 +88,11 @@ def main(test_dir, lang, test_case):
         computed = computed.decode().strip()
 
         if computed != case['ans'].strip():
-            click.echo(f'Test case {i + 1} failed: computed ({computed}) '
-                       f'!= ans ({case["ans"]})', err=True)
+            output = f'Test case {i + 1} failed'
+            if not suppress_output:
+                output += (f': computed ({computed}) '
+                           f'!= ans ({case["ans"]})')
+            click.echo(output, err=True)
             return
     click.echo('All test cases passed!')
 
