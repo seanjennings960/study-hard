@@ -1,64 +1,89 @@
-# python3
 
 class Query:
-
-    def __init__(self, query):
-        self.type = query[0]
+    def __init__(self, q):
+        self.type = q[0]
         if self.type == 'check':
-            self.ind = int(query[1])
+            self.index = int(q[1])
         else:
-            self.s = query[1]
+            self.name = q[1]
 
 
-class QueryProcessor:
-    _multiplier = 263
-    _prime = 1000000007
+class HashMap:
+    _PRIME = 1_000_000_007
+    _MULTIPLIER = 263
 
-    def __init__(self, bucket_count):
-        self.bucket_count = bucket_count
-        # store all strings in one list
-        self.elems = []
+    def __init__(self, n_buckets):
+        self.chains = [[] for _ in range(n_buckets)]
+        self.n_buckets = n_buckets
 
     def _hash_func(self, s):
-        ans = 0
-        for c in reversed(s):
-            ans = (ans * self._multiplier + ord(c)) % self._prime
-        return ans % self.bucket_count
+        # Polynomial hash function taking in a string.
+        out = 0
+        for i in range(len(s) - 1, -1, -1):
+            out = (out * self._MULTIPLIER + ord(s[i])) % self._PRIME
+        return out % self.n_buckets
 
-    def write_search_result(self, was_found):
-        print('yes' if was_found else 'no')
+    def add(self, name):
+        chain = self.chains[self._hash_func(name)]
+        if name not in chain:
+            # We insert at the beginning of the chain for some reason?
+            # Perhaps related to a single linked list implementation...
+            chain.insert(0, name)
 
-    def write_chain(self, chain):
-        print(' '.join(chain))
+    def del_(self, name):
+        chain = self.chains[self._hash_func(name)]
+        try:
+            chain.remove(name)
+        except ValueError:
+            pass
 
-    def read_query(self):
-        return Query(input().split())
+    def find(self, name):
+        return name in self.chains[self._hash_func(name)]
 
-    def process_query(self, query):
-        if query.type == "check":
-            # use reverse order, because we append strings to the end
-            self.write_chain(cur for cur in reversed(self.elems)
-                        if self._hash_func(cur) == query.ind)
-        else:
-            try:
-                ind = self.elems.index(query.s)
-            except ValueError:
-                ind = -1
-            if query.type == 'find':
-                self.write_search_result(ind != -1)
-            elif query.type == 'add':
-                if ind == -1:
-                    self.elems.append(query.s)
+    def check(self, i):
+        return self.chains[i]
+
+
+
+
+
+
+
+
+
+def read_queries(n):
+    queries = [input().split() for _ in range(n)]
+    return [Query(q) for q in queries]
+
+
+def process(m, queries):
+    hash_map = HashMap(m)
+    results = []
+    for q in queries:
+        if q.type == 'add':
+            hash_map.add(q.name)
+        elif q.type == 'del':
+            hash_map.del_(q.name)
+        elif q.type == 'find':
+            found = 'yes' if hash_map.find(q.name) else 'no'
+            results.append(found)
+        elif q.type == 'check':
+            chain = hash_map.check(q.index)
+            if chain:
+                results.append(' '.join(chain) + ' ')
             else:
-                if ind != -1:
-                    self.elems.pop(ind)
+                results.append('')
+    return results
 
-    def process_queries(self):
-        n = int(input())
-        for i in range(n):
-            self.process_query(self.read_query())
+
+
+
 
 if __name__ == '__main__':
-    bucket_count = int(input())
-    proc = QueryProcessor(bucket_count)
-    proc.process_queries()
+    m = int(input())
+    n_queries = int(input())
+    queries = read_queries(n_queries)
+    responses = process(m, queries)
+    for resp in responses:
+        print(resp)
+
