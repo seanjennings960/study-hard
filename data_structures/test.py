@@ -68,7 +68,8 @@ def run_code(code, lang):
 @click.option('--lang', type=click.Choice(['py', 'rs']), default='py')
 @click.option('--test-case', type=int, default=None)
 @click.option('--suppress-output', is_flag=True, default=False)
-def main(test_dir, lang, test_case, suppress_output):
+@click.option('--output-file', type=click.Path(exists=False), default=None)
+def main(test_dir, lang, test_case, suppress_output, output_file):
     test_dir = Path(test_dir)
     solutions, code = parse_dir(test_dir, lang)
 
@@ -93,6 +94,11 @@ def main(test_dir, lang, test_case, suppress_output):
                 output += (f': computed ({computed}) '
                            f'!= ans ({case["ans"]})')
             click.echo(output, err=True)
+            if output_file is not None:
+                with open(output_file, 'w') as f:
+                    f.write(computed)
+                click.echo(f'Wrote to output file: {output_file}')
+
             return
     click.echo('All test cases passed!')
 
