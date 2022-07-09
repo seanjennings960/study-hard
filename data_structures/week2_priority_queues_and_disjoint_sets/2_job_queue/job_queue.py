@@ -1,19 +1,64 @@
 # python3
 
 from collections import namedtuple
+import heapq
 
 AssignedJob = namedtuple("AssignedJob", ["worker", "started_at"])
+
+
+class ThreadWorker:
+    def __init__(self, id_, free_at):
+        self.id_ = id_
+        self.free_at = free_at
+
+    def start_new_job(self, job):
+        self.free_at += job
+
+    def __lt__(self, other):
+        if self.free_at < other.free_at:
+            return True
+        return self.free_at == other.free_at and self.id_ < other.id_
+
+    def __le__(self, other):
+        if self.free_at < other.free_at:
+            return True
+        return self.free_at == other.free_at and self.id_ <= other.id_
+
+    def __gt__(self, other):
+        if self.free_at > other.free_at:
+            return True
+        return self.free_at == other.free_at and self.id_ > other.id_
+
+    def __ge__(self, other):
+        if self.free_at > other.free_at:
+            return True
+        return self.free_at == other.free_at and self.id_ >= other.id_
+
+
+    def __eq__(self, other):
+        return self.free_at == other.free_at and self.id_ == other.id_
+
+    def __str__(self):
+        return f'Worker(id_={self.id_}, free_at={self.free_at})'
+
+    def __repr__(self):
+        return f'Worker(id_={self.id_}, free_at={self.free_at})'
 
 
 def assign_jobs(n_workers, jobs):
     # TODO: replace this code with a faster algorithm.
     result = []
-    next_free_time = [0] * n_workers
+    workers = [ThreadWorker(i, 0) for i in range(n_workers)]
+    heapq.heapify(workers)  # We should already be a heap...
     for job in jobs:
-        next_worker = min(range(n_workers), key=lambda w: next_free_time[w])
-        result.append(AssignedJob(next_worker, next_free_time[next_worker]))
-        next_free_time[next_worker] += job
-
+        # Get who's ready next.
+        next_worker = workers[0]
+        # Record job.
+        result.append(AssignedJob(
+            next_worker.id_, next_worker.free_at))
+        # Update free time and add back to the queue.
+        next_worker = ThreadWorker(next_worker.id_, next_worker.free_at + job)
+        heapq.heappushpop(workers, next_worker)
     return result
 
 
