@@ -17,7 +17,8 @@ def hash_prefixes(s, x, p):
 
 
 class SubstringHash:
-    PRIMES = [1_000_000_007, 1_000_000_009]
+    # PRIMES = [1_000_000_007, 1_000_000_009]
+    PRIMES = [1_000_000_007]
     MULTIPLIER = 12452
 
     def __init__(self, s):
@@ -26,14 +27,18 @@ class SubstringHash:
         self.s = s
         self.l_s = len(s)
 
-    def _hash_array(self, k, p):
-        H = self._prefixes[p]
-        x_k = 1
+    def generate_map(self, k):
+        H = self._prefixes
+        x_k = {p: 1 for p in self.PRIMES}
         for _ in range(k):
-            x_k = (x_k * self.MULTIPLIER) % p
+            for p in self.PRIMES:
+                x_k[p] = (x_k[p] * self.MULTIPLIER) % p
 
-        return [(H[i + k] - x_k * H[i]) % p
-                for i in range(self.l_s - k + 1)]
+        for i in range(self.l_s - k + 1):
+            hash_ = tuple(
+                (H[p][i + k] - x_k[p] * H[p][i]) % p
+                for p in self.PRIMES)
+            yield (hash_, i)
 
     def map(self, k):
         """
@@ -45,8 +50,14 @@ class SubstringHash:
         NOTE: a tuple of indexes should make it very improbable that
         we have collisions and avoid chaining.
         """
-        arrays = [self._hash_array(k, p) for p in self.PRIMES]
-        return {hash_tup: i for (i, hash_tup) in enumerate(zip(*arrays))}
+        return {hash_tup: i for hash_tup, i in self.generate_map(k)}
+
+        # return [(H[i + k] - x_k * H[i]) % p
+        #         for i in range(self.l_s - k + 1)]
+
+
+        # arrays = [self._hash_array(k, p) for p in self.PRIMES]
+        # return {hash_tup: i for (i, hash_tup) in enumerate(zip(*arrays))}
 
 
 def longest_common_substring(s, t):
@@ -54,20 +65,18 @@ def longest_common_substring(s, t):
     t_hashes = SubstringHash(t)
     # Initialize substring length k to be in the middle
     # of the shorter length, to start binary search.
-    matches = []
+    best_match = None
 
     lower = 0
     upper = min(len(s), len(t))
     k = upper // 2
     while upper >= lower and k > 0:
         new_matches = False
-        s_k = s_hashes.map(k)
         t_k = t_hashes.map(k)
 
-        for hash_tup in s_k.keys():
+        for hash_tup, i in s_hashes.generate_map(k):
             if hash_tup in t_k:
-                matches.append(
-                    Answer(s_k[hash_tup], t_k[hash_tup], k))
+                best_match = Answer(i, t_k[hash_tup], k)
                 new_matches = True
 
         if new_matches:
@@ -79,8 +88,8 @@ def longest_common_substring(s, t):
         k = (lower + upper) // 2
     # Since k can only increase after finding a new match, we can just return
     # the value at the end of the list.
-    if matches:
-        return matches[-1]
+    if best_match:
+        return best_match
     else:
         return Answer(0, 0, 0)
 
