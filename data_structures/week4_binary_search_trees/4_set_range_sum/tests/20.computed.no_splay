@@ -1,0 +1,196 @@
+Step 0
+sum(40279559, 89162572)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+0
+Step 1
+del(774613289)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+Step 2
+sum(869592654, 915517087)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+0
+Step 3
+del(165280355)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+Step 4
+del(776346290)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+Step 5
+del(221187096)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+Step 6
+sum(421986248, 742826969)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+0
+Step 7
+sum(83228103, 852190011)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+0
+Step 8
+del(640319482)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+Step 9
+find(528689193)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+Not found
+Step 10
+find(75245219)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+Not found
+Step 11
+del(617070033)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+[Empty tree]
+Step 12
+add(66257759)
+Tree before
+[Empty tree]
+tree root None
+Checksum: 0
+
+Tree after
+66257759
+Step 13
+sum(25751289, 70170547)
+Tree before
+66257759
+tree sum: 66257759
+Checksum: 66257759
+
+Tree after
+66257759
+66257759
+Step 14
+sum(94506006, 684106853)
+Tree before
+66257759
+tree sum: 66257759
+Checksum: 66257759
+
+Tree after
+66257759
+0
+Step 15
+del(954357244)
+Tree before
+66257759
+tree sum: 66257759
+Checksum: 66257759
+
+Tree after
+66257759
+Step 16
+add(477444954)
+Tree before
+66257759
+tree sum: 66257759
+Checksum: 66257759
+
+Tree after
+477444954
+66257759
+Step 17
+find(608389416)
+Tree before
+477444954
+66257759
+tree sum: 543702713
+Checksum: 543702713
+
+Tree after
+477444954
+66257759
+Not found
+Step 18
+sum(400483980, 423330836)
+Tree before
+477444954
+66257759
+tree sum: 543702713
+Checksum: 543702713
+
+Tree after
+66257759
+477444954
+0
+Step 19
+del(477444954)
+Tree before
+66257759
+477444954
+tree sum: 543702713
+Checksum: 543702713
+
+right ancest: Node(key=477444954, parent=Node(key=66257759), left=None, right=None, sum=477444954)
+right ancestor: Node(key=66257759)
