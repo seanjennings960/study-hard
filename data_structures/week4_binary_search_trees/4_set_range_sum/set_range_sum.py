@@ -1,7 +1,5 @@
 import math
 
-M = 1_000_000_001
-
 
 def left_descendent(n):
     if n is None:
@@ -371,6 +369,8 @@ class SplayTree:
 
 class Sum:
 
+    M = 1_000_000_001
+
     """"Keep track of sum dependence."""
 
     def __init__(self):
@@ -380,7 +380,7 @@ class Sum:
         self.total = total
 
     def transform(self, v):
-        return (v + self.total) % M
+        return (v + self.total) % self.M
 
 
 OP_MAP = {
