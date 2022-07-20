@@ -15,7 +15,6 @@ def find_mismatch(text):
         if char in "([{":
             stack.append(Bracket(char, i))
 
-
         if char in ")]}":
             if not stack:
                 return i
@@ -31,7 +30,6 @@ def find_mismatch(text):
     if first is not None:
         return first.position
     return first
-
 
 
 def main():
