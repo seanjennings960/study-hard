@@ -2,7 +2,6 @@ import os
 from typing import Dict, Tuple
 from subprocess import Popen, PIPE
 from pathlib import Path
-import yaml
 import click
 
 
@@ -12,17 +11,20 @@ def verify_unique(files, test_dir, msg):
     if len(files) != 1:
         raise click.UsageError(f'Found multiple {msg}s in dir {test_dir}.')
 
+
 def detect_py(test_dir):
     files = [f for f in test_dir.iterdir() if f.is_file()]
     files = list(filter(lambda f: f.suffix == '.py', files))
     verify_unique(files, test_dir, 'python files')
     return files[0]
 
+
 def detect_rs(test_dir):
     dirs = [d for d in test_dir.iterdir() if d.is_dir()]
     dirs = list(filter(lambda d: (d / 'Cargo.toml').exists(), dirs))
     verify_unique(dirs, test_dir, 'rust project')
     return dirs[0]
+
 
 def parse_test_dir(sol_dir):
     solutions = {}
@@ -53,12 +55,16 @@ def parse_dir(test_dir: Path, lang: str) -> Tuple[Dict, Path]:
     # Autoparse for python file.
     return solutions, code
 
-def run_code(code, lang):
+
+def run_code(code, lang, **kwargs):
     kwargs = {'stdin': PIPE, 'stdout': PIPE}
     if lang == 'py':
         return Popen(['python3', code], **kwargs)
     elif lang == 'rs':
-        return Popen(['cargo', 'run'], **kwargs)
+        cmd = 'cargo run --quiet'.split()
+        if kwargs.get('release'):
+            cmd.append('--release')
+        return Popen(cmd, **kwargs)
     raise ValueError
 
 
@@ -69,7 +75,10 @@ def run_code(code, lang):
 @click.option('--test-case', type=int, default=None)
 @click.option('--suppress-output', is_flag=True, default=False)
 @click.option('--output-file', type=click.Path(exists=False), default=None)
-def main(test_dir, lang, test_case, suppress_output, output_file):
+@click.option('--show-computed', is_flag=True, default=False)
+@click.option('--release', is_flag=True, default=False)
+def main(test_dir, lang, test_case, suppress_output, output_file,
+         show_computed, release):
     test_dir = Path(test_dir)
     solutions, code = parse_dir(test_dir, lang)
 
@@ -100,6 +109,9 @@ def main(test_dir, lang, test_case, suppress_output, output_file):
                 click.echo(f'Wrote to output file: {output_file}')
 
             return
+        if show_computed:
+            click.echo(f"Successfully computed ans for test case {i + 1}: "
+                       f"{computed}")
     click.echo('All test cases passed!')
 
 
