@@ -24,7 +24,9 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+  "numpy>=1.24,<1.25"
+]
 
 [project.urls]
 Documentation = "https://github.com/unknown/rope#readme"

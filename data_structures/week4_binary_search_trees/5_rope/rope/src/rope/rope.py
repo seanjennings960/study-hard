@@ -36,9 +36,9 @@ class Node:
         return f"""
             NODE:
                 key: {self.key}
-                left: {repr(self.left)}
-                right: {repr(self.right)}
-        """  # noqa
+                left: {self.left!r}
+                right: {self.right!r}
+        """
 
 
 
@@ -58,17 +58,20 @@ class Rope:
     def concat(self, r: "Rope") -> "Rope":
         return Rope.from_node(self._concat(self.root, r.root))
 
-    def process(self, i, j, k):
+    def cut(self, i, j):
         left, right = self._split(self.root, i)
         cut, right = self._split(right, j - i + 1)
         merged = self._concat(left, right)
-        left, right = self._split(merged, k)
-        print("Left:", str(left))
-        print("Right:", str(right))
-        print("Cut:", str(cut))
+        return (cut, merged)
+
+    def paste(self, s, cut, k):
+        left, right = self._split(s, k)
         left = self._concat(left, cut)
-        print("New Left:", str(left))
-        self.root = self._concat(left, right)
+        return self._concat(left, right)
+
+    def process(self, i, j, k):
+        cut, merged = self.cut(i, j)
+        self.root = self.paste(merged, cut, k)
 
     def set_left(self, p: Node, left: Child):
         p.left = left
@@ -227,16 +230,15 @@ class Rope:
             # We are now root, our work here is done.
             return
         op = self.choose_zig(n)
-        print(f"Node before {op.__name__}: {n!r}")
         op(n)
-        print(f"Node after {op.__name__}: {n!r}")
         # Continue to splay until n is root!
         self.splay(n)
 
 
     def insert_split(self, n: Optional[Node], x: int):
         if n is None:
-            raise IndexError(f"x {x} is out of range")  # noqa
+            msg = f"x {x} is out of range"
+            raise IndexError(msg)
         if x == n.key:
             # We already have a split!
             self.splay(n)
@@ -248,9 +250,7 @@ class Rope:
                 right = n.right[diff:]
                 new_node = Node(left, right, n, len(left))
                 n.right = new_node
-                print(f"Node after split before splay: {n!r}")
                 self.splay(new_node)
-                print(f"Root node after split after splay: {new_node!r}")
                 return new_node
             return self.insert_split(n.right, diff)
         elif x < n.key:
@@ -259,12 +259,11 @@ class Rope:
                 right = n.left[x:]
                 new_node = Node(left, right, n, len(left))
                 n.left = new_node
-                print(f"Node after split: {n!r}")
                 self.splay(new_node)
-                print(f"Root node after split after splay: {new_node!r}")
                 return new_node
             return self.insert_split(n.left, x)
-        raise RuntimeError("huh???")  # noqa
+        msg = "huh???"
+        raise RuntimeError(msg)
 
 
     def _split(self, n: Node, x: int):
@@ -282,7 +281,6 @@ class Rope:
 
 
     def find(self, n: Node, x: int):
-        print(f"finding in node {n!s}, index: {x}")
         if x == n.key:
             self.splay(n)
             return n
@@ -299,8 +297,8 @@ class Rope:
     def _concat(self, a: Node, b: Node):
         r = self.find(a, math.inf)
         if r.right is not None:
-            raise RuntimeError(
-                'What? string got inserted greater than rope length...') # noqa
+            msg = "What? string got inserted greater than rope length..."
+            raise RuntimeError(msg)
         r.right = b
         b.parent = r
         return r
