@@ -1,6 +1,9 @@
 mod naive;
+pub mod linked_list;
+// mod rope;
 
 use pyo3::prelude::*;
+// use rope::Rope;
 
 #[pyfunction]
 fn process_rust_naive(
@@ -18,6 +21,13 @@ fn process_rust_naive(
     Ok(s_out)
 }
 
+// #[allow(dead_code)]
+// fn process_rust_rope(s: &str, _ops: Vec<(usize, usize, usize)>)
+// -> PyResult<String> {
+//     let _r = Rope::new(s);
+//     Ok("Hello".to_string())
+// }
+
 /// Formats the sum of two numbers as string.
 #[pyfunction]
 fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
@@ -31,20 +41,4 @@ fn rusty_rope(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
     m.add_function(wrap_pyfunction!(process_rust_naive, m)?)?;
     Ok(())
-}
-
-
-#[cfg(test)]
-mod tests {
-    use crate::naive;
-    #[test]
-    fn test_cut_and_paste() {
-        let mut s = "helloworld".to_string();
-        let result = "ohellworld";
-        let s_out = naive::cut_and_paste(&s, 0, 3, 1);
-        assert_eq!(s_out, result);
-
-        naive::cut_and_paste_mut(&mut s, 0, 3, 1);
-        assert_eq!(s, result);
-    }
 }

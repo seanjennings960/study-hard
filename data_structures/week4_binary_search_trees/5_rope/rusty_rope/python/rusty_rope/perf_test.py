@@ -34,11 +34,11 @@ def process_naive(s, ops):
         s = cut_and_paste(s, i, j, k)
     return s
 
-def time_function(f):
+def time_function(f, *args):
     start_time = time.monotonic()
-    result = f()
+    result = f(*args)
     duration = time.monotonic() - start_time
-    logging.info(f"Naive took {duration} seconds")
+    logging.info(f"{f.__name__} took {duration} seconds")
     return duration, result
 
 
@@ -51,13 +51,13 @@ def run_test(test_cases):
                      f"{len(s)} | n_ops: {len(ops)}")
 
         naive_times[(len(s), len(ops))], res_naive = time_function(
-            lambda: process_naive(s, ops)
+            process_naive, s, ops
         )
         rope_times[(len(s), len(ops))], res_rope = time_function(
-            lambda: process_rope(s, ops)
+            process_rope, s, ops
         )
         rust_times[(len(s), len(ops))], res_rust = time_function(
-            lambda: process_rust_naive(s, ops, False)
+            process_rust_naive, s, ops, False
         )
 
         logging.info("Naive and rope equalivalent: "
@@ -70,7 +70,7 @@ def main():
     np.random.seed(1)
     # n_ops = [10, 100, 1000, int(1e4), int(1e5)]
     n_ops = [int(3e3)]
-    string_lengths = [1e5]
+    string_lengths = [1e6]
     string_base = "hellosup!!"
 
     test_cases = [
