@@ -111,6 +111,39 @@ Node ({:#x})
     }
 }
 
+#[derive(Debug)]
+pub struct NonLeafNode<'a> {
+    parent: Option<NodePtr<'a>>,
+    pub left: Option<NodePtr<'a>>,
+    pub right: Option<NodePtr<'a>>,
+    key: usize,
+}
+
+
+impl<'a> NonLeafNode<'a> {
+    pub fn right_node(&self, ) -> Option<&Node<'a>>{
+        self.right.map(|ptr| {
+            Node::from_ptr(ptr)
+        })
+    }
+
+    pub fn left_node(&self, ) -> Option<&Node<'a>>{
+        self.left.map(|ptr| {
+            Node::from_ptr(ptr)
+        })
+    }
+}
+
+impl<'a> PartialEq for NonLeafNode<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        if self.key != other.key { return false }
+        if self.left_node() != other.left_node() { return false }
+        return self.right_node() == other.right_node()
+    }
+}
+
+
+// Node Ptr magic!!
 fn insert_split(ptr: NodePtr, x: usize) -> NodePtr {
     let node = Node::from_ptr_mut(ptr);
     match node {
@@ -210,7 +243,7 @@ fn swap_parents<'a>(old_child: NodePtr<'a>, new_child: NodePtr<'a>) {
 }
 
 
-#[allow(dead_code)]
+// Splay Tree functionality
 fn zig<'a>(n_ptr: NodePtr<'a>) {
     let n = Node::expect_non_leaf(n_ptr);
     // Nothing to do if we are already root.
@@ -237,7 +270,6 @@ fn zig<'a>(n_ptr: NodePtr<'a>) {
     } else {panic!("Child/parent relation broken")}
 }
 
-#[allow(dead_code)]
 fn zig_zig<'a>(n_ptr: NodePtr<'a>) {
     // TODO: clean this up so we don't have to go around messing around with
     // both pointers and nonleaf nodes...
@@ -272,7 +304,6 @@ fn zig_zig<'a>(n_ptr: NodePtr<'a>) {
     } else {panic!("Parent/child relation broken")}
 }
 
-#[allow(dead_code)]
 fn zig_zag<'a>(n_ptr: NodePtr<'a>) {
     // TODO: clean this up so we don't have to go around messing around with
     // both pointers and nonleaf nodes...
@@ -349,40 +380,7 @@ fn splay<'a>(n_ptr: NodePtr<'a>) {
 }
 
 
-#[allow(dead_code)]
-#[derive(Debug)]
-pub struct NonLeafNode<'a> {
-    parent: Option<NodePtr<'a>>,
-    pub left: Option<NodePtr<'a>>,
-    pub right: Option<NodePtr<'a>>,
-    key: usize,
-}
-
-
-
-impl<'a> NonLeafNode<'a> {
-    pub fn right_node(&self, ) -> Option<&Node<'a>>{
-        self.right.map(|ptr| {
-            Node::from_ptr(ptr)
-        })
-    }
-
-    pub fn left_node(&self, ) -> Option<&Node<'a>>{
-        self.left.map(|ptr| {
-            Node::from_ptr(ptr)
-        })
-    }
-}
-
-impl<'a> PartialEq for NonLeafNode<'a> {
-    fn eq(&self, other: &Self) -> bool {
-        if self.key != other.key { return false }
-        if !(self.left_node() == other.left_node()) { return false }
-        return self.right_node() == other.right_node()
-    }
-}
-
-
+// The rope that ties it all together
 pub struct Rope<'a> {
     root: NodePtr<'a>,
 }
@@ -447,7 +445,6 @@ pub mod tests {
     #[test]
     fn test_splay<'a>() {
         let mut r: Rope<'a> = Rope::new("helloworld");
-
 
         let pre_zig_zig = Node::update_parents(
             Node::nl_data(
