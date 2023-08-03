@@ -6,7 +6,6 @@ use std::mem;
 type NodePtr<'a> = NonNull<Node<'a>>;
 
 #[derive(PartialEq)]
-// #[derive(Debug)]
 pub enum Node<'a> {
     Leaf(&'a str),
     NonLeaf(NonLeafNode<'a>),
@@ -38,7 +37,6 @@ impl<'a> Node<'a> {
 
     fn drop(ptr: NodePtr<'a>) {
         unsafe {
-            // let b = Box::from_raw(ptr.as_ptr());
             drop(Box::from_raw(ptr.as_ptr()))
         }
     }
@@ -178,7 +176,6 @@ fn set_left<'a>(parent: NodePtr<'a>, left: Option<NodePtr<'a>>) {
     let l = left.map(|l| {
         Node::from_ptr_mut(l)
     });
-    // (**parent)
     p.left = left;
     if let Some(Node::NonLeaf(non_leaf_left)) = l {
         non_leaf_left.parent = Some(parent);
@@ -190,7 +187,6 @@ fn set_right<'a>(parent: NodePtr<'a>, right: Option<NodePtr<'a>>) {
     let l = right.map(|r| {
         Node::from_ptr_mut(r)
     });
-    // (**parent)
     p.right = right;
     if let Some(Node::NonLeaf(non_leaf_right)) = l {
         non_leaf_right.parent = Some(parent);
@@ -204,16 +200,11 @@ fn swap_parents<'a>(old_child: NodePtr<'a>, new_child: NodePtr<'a>) {
                 Node::expect_non_leaf(p)
         });
     Node::expect_non_leaf(new_child).parent = p_ptr;
-    println!("Parent before swap: {:?}", p_ptr.map(|p| Node::from_ptr(p)));
     if let Some(p) = p {
         if p.left == Some(old_child) {
-            println!("Setting p left");
             p.left = Some(new_child);
-            println!("Parent after swap: {:?}", p_ptr.map(|p| Node::from_ptr(p)));
         } else if p.right == Some(old_child) {
-            println!("Setting p right");
             p.right = Some(new_child);
-            println!("Parent after swap: {:?}", p_ptr.map(|p| Node::from_ptr(p)));
         } else {panic!("Parent/child relationship broken!")}
     }
 }
@@ -230,7 +221,6 @@ fn zig<'a>(n_ptr: NodePtr<'a>) {
     assert!(p.parent.is_none(), "Can't zig with grandparent");
 
     if p.left == Some(n_ptr) {
-        println!("Zigging left");
         // We zig left.
         let c = n.right;
         set_left(p_ptr, c);
@@ -238,7 +228,6 @@ fn zig<'a>(n_ptr: NodePtr<'a>) {
         p.key -= n.key;
         n.parent = None;
     } else if p.right == Some(n_ptr) {
-        println!("Zigging right");
         // We zig right
         let c_ptr = n.left;
         set_right(p_ptr, c_ptr);
@@ -326,7 +315,6 @@ fn choose_zig<'a>(n_ptr: NodePtr<'a>) -> SplayOperation {
     let p_ptr = n.parent.expect("n must have parent!");
     let p = Node::expect_non_leaf(p_ptr);
     let maybe_gp_ptr = p.parent;
-    println!("n_ptr: {:?}\np_ptr{:?}\ngp_ptr{:?}", n_ptr, p_ptr, maybe_gp_ptr);
 
     match maybe_gp_ptr {
         None => SplayOperation::Zig,
@@ -346,24 +334,16 @@ fn choose_zig<'a>(n_ptr: NodePtr<'a>) -> SplayOperation {
 }
 
 fn splay<'a>(n_ptr: NodePtr<'a>) {
-    // let node = Node::from_ptr(n_ptr);
-    // println!("Beginning splay at Node:\n{:?}", node);
     if Node::expect_non_leaf(n_ptr).parent.is_none() {
         // Our work here is done.
         return
     }
-    println!("Beginning splay at Node:{:#x}", n_ptr.as_ptr() as usize);
-    println!("Node:\n{:?}", Node::from_ptr(Node::root(n_ptr)));
-    // println!("parent node is:{:?}", Node::expect_non_leaf(n_ptr).parent);
     let op = choose_zig(n_ptr);
-    println!("Running op: {:?}", op);
     match op {
         SplayOperation::Zig => zig(n_ptr),
         SplayOperation::ZigZig => zig_zig(n_ptr),
         SplayOperation::ZigZag => zig_zag(n_ptr),
     }
-    println!("Completed splay:\n{:?}", Node::from_ptr(Node::root(n_ptr)));
-    // println!("Completed splay op now with Node:\n{:?}", node);
     // Continue to splay until n is root!
     splay(n_ptr)
 }
@@ -459,19 +439,14 @@ impl<'a> fmt::Debug for Rope<'a> {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use crate::rope::Rope;
     use crate::rope::{Node, NodePtr};
     use std::ptr::NonNull;
 
-    // struct Process (FnOnce(Option<NodePtr>) -> NodePtr);
-    // trait Processor {
-    //     fn process(f: F2)
-    // }
     #[test]
     fn test_splay<'a>() {
-        let a = "helloworld";
-        let mut r: Rope<'a> = Rope::new(a);
+        let mut r: Rope<'a> = Rope::new("helloworld");
 
 
         let pre_zig_zig = Node::update_parents(
@@ -489,7 +464,8 @@ mod tests {
                 None,
             ), None);
 
-        let ops: Vec<(Box<dyn FnOnce(&mut Rope<'a>, NodePtr<'a>) -> NodePtr<'a>>, &Node)> = vec![
+        let ops: Vec<(Box<dyn FnOnce(&mut Rope<'a>, NodePtr<'a>) -> NodePtr<'a>>,
+                      &Node)> = vec![
             // Zig left -> right
             (Box::new(|r, _| r.insert_split(5)),
             Node::update_parents(
