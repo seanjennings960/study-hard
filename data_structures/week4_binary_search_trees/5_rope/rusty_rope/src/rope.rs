@@ -38,11 +38,6 @@ impl<'a> Node<'a> {
 
     fn drop(ptr: NodePtr<'a>) {
         unsafe {
-            let a = ptr.as_ref();
-            println!("{:?}", a);
-        }
-        println!("Ptr: {:#x}", ptr.as_ptr() as usize);
-        unsafe {
             // let b = Box::from_raw(ptr.as_ptr());
             drop(Box::from_raw(ptr.as_ptr()))
         }
@@ -72,6 +67,10 @@ impl<'a> Node<'a> {
         unsafe {n_ptr.as_ref()}
     }
 
+    pub fn from_ptr_mut(mut n_ptr: NodePtr<'a>) -> &mut Node<'a> {
+        unsafe {n_ptr.as_mut()}
+    }
+
     pub fn root(mut n_ptr: NodePtr<'a>) -> NodePtr<'a> {
         while let Some(p) = Node::expect_non_leaf(n_ptr).parent {
             n_ptr = p;
@@ -80,11 +79,6 @@ impl<'a> Node<'a> {
     }
 
 }
-
-// impl Eq for Node {
-
-
-// }
 
 impl<'a> fmt::Debug for Node<'a> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
@@ -109,18 +103,9 @@ Node ({:#x})
                     self as *const Node as usize,
                     node.key,
                     node.parent,
-                    // "", ""
                     left_node_s,
                     right_node_s,
                 );
-                // let mut s: String = match &node.left {
-                //     None => "".to_string(),
-                //     Some(n) => n.borrow().to_string()
-                // };
-                // if let Some(n) = &node.right {
-                //     let right_str = n.borrow().to_string();
-                //     s.push_str(&right_str);
-                // };
                 fmt.write_str(&s)?;
             }
         };
@@ -128,8 +113,8 @@ Node ({:#x})
     }
 }
 
-fn insert_split(mut ptr: NodePtr, x: usize) -> NodePtr {
-    let node = unsafe {ptr.as_mut()};
+fn insert_split(ptr: NodePtr, x: usize) -> NodePtr {
+    let node = Node::from_ptr_mut(ptr);
     match node {
         Node::Leaf(_) => {
             panic!("Called insert split on leaf node!");
@@ -190,8 +175,8 @@ fn insert_split(mut ptr: NodePtr, x: usize) -> NodePtr {
 
 fn set_left<'a>(parent: NodePtr<'a>, left: Option<NodePtr<'a>>) {
     let p = Node::expect_non_leaf(parent);
-    let l = left.map(|mut l| {
-        unsafe {l.as_mut()}
+    let l = left.map(|l| {
+        Node::from_ptr_mut(l)
     });
     // (**parent)
     p.left = left;
@@ -202,8 +187,8 @@ fn set_left<'a>(parent: NodePtr<'a>, left: Option<NodePtr<'a>>) {
 
 fn set_right<'a>(parent: NodePtr<'a>, right: Option<NodePtr<'a>>) {
     let p = Node::expect_non_leaf(parent);
-    let l = right.map(|mut r| {
-        unsafe {r.as_mut()}
+    let l = right.map(|r| {
+        Node::from_ptr_mut(r)
     });
     // (**parent)
     p.right = right;
@@ -398,13 +383,13 @@ pub struct NonLeafNode<'a> {
 impl<'a> NonLeafNode<'a> {
     pub fn right_node(&self, ) -> Option<&Node<'a>>{
         self.right.map(|ptr| {
-            unsafe {ptr.as_ref()}
+            Node::from_ptr(ptr)
         })
     }
 
     pub fn left_node(&self, ) -> Option<&Node<'a>>{
         self.left.map(|ptr| {
-            unsafe {ptr.as_ref()}
+            Node::from_ptr(ptr)
         })
     }
 }
@@ -414,21 +399,6 @@ impl<'a> PartialEq for NonLeafNode<'a> {
         if self.key != other.key { return false }
         if !(self.left_node() == other.left_node()) { return false }
         return self.right_node() == other.right_node()
-
-
-        // let left_equal = match self.left_node() {
-        //     None => other_left.is_none(),
-        //     Some(Node::Leaf(s)) => {
-        //         if let Some(Node::Leaf(s_other)) = other_left {
-        //             s == s_other
-        //         } else { false }
-        //     },
-        //     Some(Node::NonLeaf(non_leaf)) => {
-        //         if let Some(Node::NonLeaf(non_leaf_other)) = other_left {
-        //             non_leaf_other ==
-        //         }
-        //     }
-        // }
     }
 }
 
@@ -491,46 +461,19 @@ impl<'a> fmt::Debug for Rope<'a> {
 #[cfg(test)]
 mod tests {
     use crate::rope::Rope;
-    use crate::rope::Node;
+    use crate::rope::{Node, NodePtr};
+    use std::ptr::NonNull;
 
+    // struct Process (FnOnce(Option<NodePtr>) -> NodePtr);
+    // trait Processor {
+    //     fn process(f: F2)
+    // }
     #[test]
-    fn test_splay() {
+    fn test_splay<'a>() {
         let a = "helloworld";
-        let mut r = Rope::new(a);
+        let mut r: Rope<'a> = Rope::new(a);
 
-        // Zig left -> right
-        let n = r.insert_split(5);
-        let exp = Node::update_parents(
-            Node::nl_data(
-                5,
-                Some(Node::leaf("hello")),
-                Some(Node::nl_data(
-                    5,
-                    Some(Node::leaf("world")),
-                    None)),
-            ), None);
-        assert_eq!(Node::from_ptr(n), exp);
 
-        let n = r.insert_split(7);
-        let exp = Node::update_parents(
-            Node::nl_data(
-                7,
-                Some(Node::nl_data(
-                    5,
-                    Some(Node::leaf("hello")),
-                    Some(Node::leaf("wo")),
-                )),
-                Some(Node::nl_data(
-                    3,
-                    Some(Node::leaf("rld")),
-                    None)),
-            ), None);
-        assert_eq!(Node::from_ptr(n), exp);
-
-        let n = Node::expect_non_leaf(n).right.expect(
-            "Missing right node");
-        r.splay(n);
-        // Zig right -> left
         let pre_zig_zig = Node::update_parents(
             Node::nl_data(
                 10,
@@ -546,14 +489,47 @@ mod tests {
                 None,
             ), None);
 
-        assert_eq!(Node::from_ptr(n), pre_zig_zig);
-        let n = Node::expect_non_leaf(n
-            ).left.expect("missing left");
-        let n = Node::expect_non_leaf(n
-            ).left.expect("missing left");
-        r.splay(n);
-
-        let exp = Node::update_parents(
+        let ops: Vec<(Box<dyn FnOnce(&mut Rope<'a>, NodePtr<'a>) -> NodePtr<'a>>, &Node)> = vec![
+            // Zig left -> right
+            (Box::new(|r, _| r.insert_split(5)),
+            Node::update_parents(
+                Node::nl_data(
+                    5,
+                    Some(Node::leaf("hello")),
+                    Some(Node::nl_data(
+                        5,
+                        Some(Node::leaf("world")),
+                        None)),
+                ), None)),
+            (Box::new(|r, _| r.insert_split(7)),
+            Node::update_parents(
+                Node::nl_data(
+                    7,
+                    Some(Node::nl_data(
+                        5,
+                        Some(Node::leaf("hello")),
+                        Some(Node::leaf("wo")),
+                    )),
+                    Some(Node::nl_data(
+                        3,
+                        Some(Node::leaf("rld")),
+                        None)),
+                ), None)),
+            // Zig right -> left
+            (Box::new(|r, mut n| {
+                n = Node::expect_non_leaf(n).right.expect(
+                    "Missing right node");
+                r.splay(n);
+                n
+            }), pre_zig_zig),
+            (Box::new(|r, n| {
+                let n = Node::expect_non_leaf(n
+                    ).left.expect("missing left");
+                let n = Node::expect_non_leaf(n
+                    ).left.expect("missing left");
+                r.splay(n);
+                n
+            }), Node::update_parents(
             Node::nl_data(
                 5,
                 Some(Node::leaf("hello")),
@@ -566,69 +542,69 @@ mod tests {
                         None
                     ))
                 )),
-            ), None);
-        assert_eq!(Node::from_ptr(n), exp);
-
-        let n = Node::expect_non_leaf(n
-            ).right.expect("missing right");
-        let n = Node::expect_non_leaf(n
-            ).right.expect("missing right");
-        r.splay(n);
-        assert_eq!(Node::from_ptr(n), pre_zig_zig);
-
-        let n = r.insert_split(6);
-        let exp = Node::update_parents(
-            Node::nl_data(
-                6,
-                Some(Node::nl_data(
-                    5,
-                    Some(Node::leaf("hello")),
-                    Some(Node::leaf("w"))
-                )),
-                Some(Node::nl_data(
-                    4,
-                    Some(Node::nl_data(
-                        1,
-                        Some(Node::leaf("o")),
-                        Some(Node::leaf("rld")),
-                    )),
-                    None,
-                ))
-            ), None);
-        assert_eq!(Node::from_ptr(n), exp);
-
-        let n = r.insert_split(8);
-        let exp = Node::update_parents(
-            Node::nl_data(
-                8,
-                Some(Node::nl_data(
+            ), None)),
+            (Box::new(|r, n| {
+                let n = Node::expect_non_leaf(n
+                    ).right.expect("missing right");
+                let n = Node::expect_non_leaf(n
+                    ).right.expect("missing right");
+                r.splay(n);
+                n
+            }), pre_zig_zig),
+            (Box::new(|r, _| r.insert_split(6)),
+            Node::update_parents(
+                Node::nl_data(
                     6,
                     Some(Node::nl_data(
                         5,
                         Some(Node::leaf("hello")),
-                        Some(Node::leaf("w")),
+                        Some(Node::leaf("w"))
                     )),
                     Some(Node::nl_data(
-                        1,
-                        Some(Node::leaf("o")),
-                        Some(Node::leaf("r")),
+                        4,
+                        Some(Node::nl_data(
+                            1,
+                            Some(Node::leaf("o")),
+                            Some(Node::leaf("rld")),
+                        )),
+                        None,
                     ))
-                )),
-                Some(Node::nl_data(
-                    2,
-                    Some(Node::leaf("ld")),
-                    None,
-                ))
-            ), None);
-        assert_eq!(Node::from_ptr(n), exp);
+                ), None)),
 
-
-
-
-
-
-
-
-
+            (Box::new(|r, _| r.insert_split(8)),
+            Node::update_parents(
+                Node::nl_data(
+                    8,
+                    Some(Node::nl_data(
+                        6,
+                        Some(Node::nl_data(
+                            5,
+                            Some(Node::leaf("hello")),
+                            Some(Node::leaf("w")),
+                        )),
+                        Some(Node::nl_data(
+                            1,
+                            Some(Node::leaf("o")),
+                            Some(Node::leaf("r")),
+                        ))
+                    )),
+                    Some(Node::nl_data(
+                        2,
+                        Some(Node::leaf("ld")),
+                        None,
+                    ))
+                ), None))
+        ];
+        let mut n = NonNull::dangling();
+        for (op, exp) in ops {
+            n = op(&mut r, n);
+            assert_eq!(Node::from_ptr(n), exp);
+        }
     }
 }
+
+// TODO:
+// 1. Implement Tree Iter
+// 2. Drop rope
+// 3. Remaining split + merge functionality
+// 4. Test performance.
