@@ -1,9 +1,8 @@
 mod naive;
 pub mod linked_list;
-// mod rope;
+pub mod rope;
 
 use pyo3::prelude::*;
-// use rope::Rope;
 
 #[pyfunction]
 fn process_rust_naive(
