@@ -114,8 +114,8 @@ Node ({:#x})
 #[derive(Debug)]
 pub struct NonLeafNode<'a> {
     parent: Option<NodePtr<'a>>,
-    pub left: Option<NodePtr<'a>>,
-    pub right: Option<NodePtr<'a>>,
+    left: Option<NodePtr<'a>>,
+    right: Option<NodePtr<'a>>,
     key: usize,
 }
 
@@ -437,7 +437,7 @@ impl<'a> fmt::Debug for Rope<'a> {
 }
 
 #[cfg(test)]
-pub mod tests {
+mod tests {
     use crate::rope::Rope;
     use crate::rope::{Node, NodePtr};
     use std::ptr::NonNull;
