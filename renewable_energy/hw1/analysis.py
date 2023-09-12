@@ -2,6 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
+
+####################################################
+# Problem 1
+####################################################
+
+
 NE_LOAD_DATA = [
     14986.78,
     14433.29,
@@ -29,12 +35,6 @@ NE_LOAD_DATA = [
     14207.33
 ]
 
-
-SIMPLE_LOAD_DATA = (
-    [0, 4, 6, 8, 12, 14, 16, 18, 20, 22, 24],
-    [50, 50, 75, 150, 150, 175, 175, 200, 200, 0, 0]
-)
-
 SAVE_DIR = Path("/home/sean/code/study-hard/renewable_energy/hw1/")
 
 def plot_ne_load_data():
@@ -55,6 +55,15 @@ def plot_ne_load_data():
     print(f"Average load: {av_load} GW")
     # plt.show()
     # fig.savefig(SAVE_DIR / "ne_load_plot.png")
+
+####################################################
+# Problem 2
+####################################################
+
+SIMPLE_LOAD_DATA = (
+    [0, 4, 6, 8, 12, 14, 16, 18, 20, 22, 24],
+    [50, 50, 75, 150, 150, 175, 175, 200, 200, 0, 0]
+)
 
 def trapezoid_area(t0, t1, p0, p1):
     return (p0 + p1) / 2 * (t1 - t0)
@@ -96,6 +105,10 @@ def daily_capacity_factor():
     print(f"Average generation power: {average_p}")
     print(f"Capacity factor: {100 * average_p / capacity} %")
 
+####################################################
+# Problem 4
+####################################################
+
 def wind_power():
     rho = 1.225
     D = 50
@@ -108,8 +121,16 @@ def wind_power():
     print(f"Total wind power: {P}")
 
 
+def main():
+    for i, f in [
+        (1, plot_ne_load_data),
+        (2, average_load),
+        (4, daily_capacity_factor),
+        (5, wind_power)
+    ]:
+        print(f"Problem {i}")
+        f()
+
+
 if __name__ == '__main__':
-    # plot_ne_load_data()
-    # average_load()
-    # daily_capacity_factor()
-    wind_power()
+    main()
