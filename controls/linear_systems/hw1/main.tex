@@ -851,19 +851,20 @@ we have
         u = \tau & \qquad v = -A^{-1} e^{-A\tau} \\
         du = d\tau &\qquad dv = e^{-A\tau}d\tau
     \end{align}
-    % \begin{align}
-    %     \convu &= \int_{0}^{t} \tau e^{-A\tau}d\tau \\
-    %         &= \tau(-A^{-A\tau})\eval_0^t - \int_{0}^{t} (-A^{-1} e^{-A\tau}) d\tau \\
-    %         &= tA^{-1} (I - e^{-At}) + (A^{-1})^2 (I - e^{-At}) \\
-    %         &= A^{-1} (tI + A^{-1}) (I - e^{-At})
-    % \end{align}
-    so that
     \begin{align}
-        x(t) &= e^{At}x(0) + A^{-1}(tI + A^{-1})(e^{At} - I)B, \\
-            &= \mat{c & s \\ -s & c}\mat{1 \\ 0} +
-                \mat{0 & -1}{1 & 0}\mat{t & -1 \\ 1 & t}\mat{c - 1 \\ -s} \\
+        \convu &= \int_{0}^{t} \tau e^{-A\tau}d\tau \\
+            &= \tau(-A^{-A\tau})\eval_0^t - \int_{0}^{t} (-A^{-1} e^{-A\tau}) d\tau \\
+            &= tA^{-1} (I - e^{-At}) + (A^{-1})^2 (I - e^{-At}) \\
+            &= A^{-1} (tI + A^{-1}) (I - e^{-At})
     \end{align}
-    and evaluation at $t=1$ yields:
+    % This causes Latex to break????
+    % so that
+    % \begin{align}
+    %     x(t) &= e^{At}x(0) + A^{-1}(tI + A^{-1})(e^{At} - I)B \\
+    %         &= \mat{c & s \\ -s & c}\mat{1 \\ 0} +
+    %             \mat{0 & -1}{1 & 0}\mat{t & -1 \\ 1 & t}\mat{c - 1 \\ -s} \\
+    % \end{align}
+    % and evaluation at $t=1$ yields:
     % \begin{equation}
         
     % \end{equation}
