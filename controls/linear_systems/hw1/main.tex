@@ -1,0 +1,883 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN/MCEN 5448}
+\title{Homework 1}
+\author{Sean Jennings}
+\date{September 18, 2023}
+
+\begin{document}
+\maketitle
+
+\section{State space model and Linearization}
+\subsection{(Vehicle Platooning)}
+For truck $i\in\{1, 2\}$, the position of the truck is given by $x_i$ and the
+input is given by $v_i$. The dynamics of each truck $i$ satisfies:
+\begin{equation}
+    \ddot{x}_i = v_i
+\end{equation}
+where $u := v_1$, so that the input to the first truck is defined as the input
+to the connected system, and the controller
+\begin{equation}
+    v_2 = K_p(x_2 - x_1) + K_v (\dot{x}_2 - \dot{x}_1)
+\end{equation}
+governs the input to the second truck, where $K_p,K_v \in \R$ are controller
+constants.
+
+We define the state ${\bf x}$ to be:
+\begin{equation}
+    {\bf x} := [x_1, \dot{x_1}, x_2, \dot{x_2}]^T
+\end{equation}
+Then, the derivative is given by:
+\begin{equation}
+    {\bf \dot{x}} = \begin{bmatrix}
+        \dot{x}_1, \\
+        \ddot{x}_1, \\
+        \dot{x}_2, \\
+        \ddot{x}_2
+    \end{bmatrix} = \begin{bmatrix}
+        \dot{x}_1, \\
+        u, \\
+        \dot{x}_2, \\
+        K_p(x_2 - x_1) + K_v (\dot{x}_1 - \dot{x}_2)
+    \end{bmatrix}
+\end{equation}
+and in matrix form, we have
+\begin{equation}
+    {\bf \dot{x}} = A {\bf x} + B {\bf u}
+\end{equation}
+where
+\begin{equation}
+    A = \begin{bmatrix}
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 0 & 0 \\
+        0 & 0 & 0 & 1 \\
+        -K_p & -K_v & K_p & K_v
+    \end{bmatrix}, \qquad B = \begin{bmatrix}
+        0 \\
+        1 \\
+        0 \\
+        0
+    \end{bmatrix}.
+\end{equation}
+Since our observation is given by 
+\begin{equation}
+    {\bf y} := [x_1, x_2]^T = \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 0 & 1 & 0
+    \end{bmatrix} {\bf x},
+\end{equation}
+in matrix form ${\bf y} = C {\bf x} + D {\bf u}$, we have
+\begin{equation}
+    C = \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 0 & 1 & 0
+    \end{bmatrix}, \qquad D = {\bf 0}_{2 \times 1}.
+\end{equation}
+Therefore, the platooning system is an LTI system with input ${\bf u}$, state ${\bf x}$,
+observation ${\bf y}$ and matrices $A$, $B$, $C$, $D$ defined as above.
+
+\subsection{(Unicycle Model)}
+
+We designate state and input vectors to be
+\begin{equation}
+    {\bf x} := \begin{bmatrix}
+        p_x \\
+        p_y \\
+        \theta \\
+    \end{bmatrix}, \qquad {\bf u} := \begin{bmatrix}
+        v \\ \omega
+    \end{bmatrix}
+\end{equation}
+and thus ${\bf \dot{x}} = f({\bf x}, {\bf u})$ where $f$ is
+\begin{equation}
+    f({\bf x}, {\bf u}) = \begin{bmatrix}
+        {\bf u}[0] \cos ({\bf x}[2]) \\
+        {\bf u}[0] \sin ({\bf x}[2]) \\
+        {\bf u}[1]
+    \end{bmatrix}.
+\end{equation}
+Note that ${\bf x}[i]$ denotes $i$th index of vector ${\bf x}$ and is zero-indexed.
+For instance, ${\bf u}[0] = v$.
+
+\begin{letterenum}
+    \item To compute the linearization about ${\bf x}^* = {\bf 0}_3$ and
+    ${\bf u}^* = {\bf 0}_2$, we define
+    \begin{equation}
+        \delta x = {\bf x} - {\bf x}^* = {\bf x}, \qquad
+        \delta u = {\bf u} - {\bf u}^* = {\bf u}
+    \end{equation}
+    Since
+    \begin{equation}
+        \frac{d (\delta x)}{dt} = \frac{d}{dt} ({\bf x} - {\bf x}^*)
+        = f({\bf x}, {\bf u}),
+    \end{equation}
+    a Taylor Series expansion of $f$ about $({\bf x}^*, {\bf u}^*)$ yields
+    \begin{equation}
+        \frac{d (\delta x)}{dt} = f(\xc^*, \uc^*)
+            + \frac{\delta f}{\delta \xc}(\xc^*, \uc^*) \delta x
+            + \frac{\delta f}{\delta \uc}(\xc^*, \uc^*) \delta u
+            + \mathcal{O}(\delta x^2) + \mathcal{O}(\delta u^2).
+    \end{equation}
+    Thus, we compute the jacobian of $f$ with respect to $\xc$:
+    \begin{equation}
+        \frac{\delta f}{\delta \xc}(\xc, \uc) = \begin{bmatrix}
+            0 & 0 & - \uc[0] \sin ( \xc[2]) \\
+            0 & 0 & \uc[0] \cos ( \xc[2]) \\
+            0 & 0 & 0
+        \end{bmatrix}
+        \label{eq:jacobian-x}
+    \end{equation}
+    and w.r.t $\uc$:
+    \begin{equation}
+        \frac{\delta f}{\delta \uc}(\xc, \uc) = \begin{bmatrix}
+            \cos ( \xc[2]) & 0 \\
+            \sin ( \xc[2]) & 0 \\
+            0 & 1
+        \end{bmatrix}.
+        \label{eq:jacobian-u}
+    \end{equation}
+    Evaluating at $(\xc^*, \uc^*)$ we have
+    \begin{align}
+        A := \frac{\delta f}{\delta \xc}(\xc, \uc) = {\bf 0}_{3 \times 3} \\
+        B := \frac{\delta f}{\delta \uc}(\xc, \uc) = \begin{bmatrix}
+            1 & 0 \\
+            0 & 0 \\
+            0 & 1
+        \end{bmatrix}
+    \end{align}
+    so that our linearization is given by:
+    \begin{equation}
+        \frac{d (\delta x)}{dt} \approx B \delta u
+    \end{equation}
+
+    \item To show that the trajectory $\omega(t) = v(t) = 1$, $p_x(t) = \sin(t)$,
+    $p_y(t) = 1 - \cos(t)$, and $\theta(t) = t$ we take the derivatives of each curve
+    \begin{align}
+        \dot{p}_x(t) = \frac{d}{dt}(\sin(t)) &= \cos(t) = v(t) \cos(\theta(t)) \\
+        \dot{p}_y(t) = \frac{d}{dt}(1 - \cos(t)) &= \sin(t) = v(t) \sin(\theta(t)) \\
+        \dot{\theta}(t) = \frac{d}{dt}(t) &= 1 = \omega(t).
+    \end{align}
+    and see that the system's differential equations are satisfied. Then,
+    to find the linearization about the trajectory we define the change of variables:
+    \begin{equation}
+        \delta x(t) := \xc(t) - \xc_{traj}(t), \qquad \delta u(t) := \uc(t) - \uc_{traj}(t)
+    \end{equation}
+    Then, the Taylor expansion of the derivative of $\delta x$ is given by:
+    \begin{align}
+        \frac{d(\delta x)}{dt} &= \frac{d\xc}{dt} - \frac{d\xc_{traj}}{dt} \\
+            &= \biggl(f(\xc_{traj}, \uc_{traj})
+                + \frac{\delta f}{\delta \xc} (\xc_{traj}, \uc_{traj}) \delta x
+                + \frac{\delta f}{\delta \uc} (\xc_{traj}, \uc_{traj}) \delta u
+                + \text{H.O.T.}
+                \biggr) \\ & \qquad - f(\xc_{traj}, \uc_{traj}) \\
+            &\approx \frac{\delta f}{\delta \xc} (\xc_{traj}, \uc_{traj}) \delta x
+                + \frac{\delta f}{\delta \uc} (\xc_{traj}, \uc_{traj}) \delta u
+    \end{align}
+    where the dependence of $\delta x$, $\xc_{traj}$, $\uc_{traj}$ upon time has
+    been omitted for brevity.
+    Substituting the trajectory curves into the expression for the jacobian w.r.t. 
+    $\xc$ (equation (\ref{eq:jacobian-x})) and
+    w.r.t. $\uc$ (equation (\ref{eq:jacobian-u})), we obtain the final result
+    for the linearization about the trajectory:
+    \begin{equation}
+        \frac{d(\delta x(t))}{dt} = \begin{bmatrix}
+            0 & 0 & -\sin(t) \\
+            0 & 0 & \cos(t) \\
+            0 & 0 & 0
+        \end{bmatrix} \delta x + \begin{bmatrix}
+            \cos(t) & 0 \\
+            \sin(t) & 0 \\
+            0 & 1
+        \end{bmatrix} \delta u
+    \end{equation}
+    We conclude by noting that the linearization about this particular trajectory
+    is a LTV system.
+\end{letterenum}
+
+\section{Linear Algebra}
+\subsection{}
+\begin{letterenum}
+    \item Let $\alpha, \beta, \gamma$ be elements of the set $\R^{m \times n}$ with
+        $m, n \in \N$. Let $a_{ij}$, $b_{ij}$, $c_{ij}$ denote the $i$th $j$th entry of 
+        the matrices $\alpha$, $\beta$, $\gamma$, respectively. Let $r,s \in \R$ be
+        scalars. 
+
+        The usual matrix addition defines the $ij$th entry of matrix $\alpha + \beta$
+        as follows
+        \begin{equation}
+            (\alpha + \beta)_{ij} = a_{ij} + b_{ij}
+        \end{equation}
+
+        The scalar multiplication operation defines the $ij$th entry of matrix
+        of $r\alpha$ to be:
+        \begin{equation}
+            (r\alpha)_{ij} = r a_{ij}
+        \end{equation}
+
+        We prove that the set $V = (\R_{m\times n}, +, \cdot)$ over the field of
+        $\R$ is a vector space. In the following, we will use the fact that two matrices 
+        $\alpha$ and $\beta$ are equal if and only if each of their entries are equal, i.e.
+        $a_{ij} = b_{ij}$ for all $1 \leq i \leq m$, $1 \leq j \leq n$. All arguments involving
+        indices $i,j$ are assumed to hold for all valid pairs.
+
+        \begin{itemize}
+            \item Since $a_{ij} + b_{ij} \in \R$, each element
+                $(\alpha + \beta)_{ij} \in \R$ and
+                $\alpha + \beta \in \R^{m \times n}$. Thus, $V$ is closed under addition.
+            \item Commutativity and associativity of addition follow similarly
+                from respective properties of $\R$.
+            \item The matrix ${\bf 0}_{m \times n} \in \R_{m \times n}$ which
+                has $({\bf 0}_{m \times n})_{ij} = 0$ for all $i,j$ is clearly
+                the zero vector since $(\alpha + 0)_{ij} = a_{ij} + 0 = a_{ij}$.
+            \item The additive inverse $-\alpha$ has entries $(-\alpha)_{ij} = -a_{ij}$.
+                for all $i,j$. Since $-a_{ij} \in \R$ for all $i,j$, we have
+                    $-\alpha \in \R^{m \times n}$. Clearly, $\alpha + (-\alpha) = 0_{m \times n}$.
+            \item For every $r \in \R$, $(r\alpha)_{ij} = r a_{ij} \in \R$.
+                So $r\alpha \in \R^{m \times n}$ and $V$ is closed under scalar
+                multiplication.
+            \item Clearly, $1 \alpha = \alpha$ since $(1\alpha)_{ij} = 1 a_{ij} = a_{ij}$.
+            \item $[(rs)\alpha]_{ij} = (rs)a_{ij} = r(s a_{ij}) = [r (s \alpha)]_{ij}$
+                follows from associativity of multiplication on $\R$.
+            \item $[r (\alpha + \beta)]_{ij} = r(a_{ij} + b_{ij}) = r a_{ij} + r b_{ij} = [r \alpha]_{ij} + [r \beta]_{ij}$
+            \item $[(r+s) \alpha]_{ij} = (r+s)a_{ij} = r a_{ij} + s a_{ij} = [r \alpha]_{ij} + [s \alpha]_{ij}$
+        \end{itemize}
+        The final two properties follow from the distributive law of the field $\R$.
+
+        Thus, the set $\R^{m \times n}$ with operations $+$ and $\cdot$ over the field $\R$
+        satisfies all the properties of a vector space. Clearly, $\R^{2 \times 2}$
+        is a special case of $\R^{m \times n}$ and thus is also a vector space.
+
+    \item The dimension of $\R^{m \times n}$ is $m \cdot n$ so the dimension of
+        $\R^{2 \times 2}$ is 4.
+
+    \item Define $\epsilon_{IJ}$ as the matrix with the $ij$th entry containing:
+        \begin{equation}
+            (\epsilon_{IJ})_{ij} = \biggl\{
+                \begin{array}{ll}
+                    1 &\qquad \text{if }I=i\text{ and }J=j \\
+                    0 &\qquad \text{otherwise}
+                \end{array}
+            \biggr.
+        \end{equation}
+        Then, the set of vectors $\mathcal{B} = \{\epsilon_{IJ}: I,J \in \N, 1 \leq I \leq m, 1 \leq J \leq n\}$
+        form a basis for $\R^{m \times n}$. To see this is a basis, we first verify
+        that it spans $\R^{m \times n}$. Let $\alpha = \sum_{i=1}^{m} \sum_{j=1}^{n} c_{ij} \epsilon_{ij}$,
+        be a linear combination of the basis $\mathcal{B}$, with scalars $c_{ij} \in \R$.
+        By selecting scalars such that $c_{ij} = (\alpha)_{ij}$, we can see the previous equality is
+        satified and $\alpha$ is indeed in the span of $\mathcal{B}$.
+
+        To check linear indepedence, examining the $ij$th entry of $\beta$, a linear combination
+        of $\mathcal{B}$
+        \begin{equation}
+            \beta := (\sum_{I=1}^{m}) \sum_{J=1}^{n} c_{IJ} \epsilon_{IJ} = c_{IJ}
+        \end{equation}
+        Thus, $\beta = 0$ if and only if $c_{IJ} = 0$ for all $I,J$,
+        $1 \leq I \leq m$, $1 \leq J \leq n$. This implies linear independence and
+        we have now proven $\mathcal{B}$ is a basis for $\R^{m \times n}$.
+
+        In particular, for $\R^{2 \times 2}$ our suggested basis is:
+        \begin{equation}
+            \epsilon_{11} = \begin{bmatrix}
+                1 & 0 \\ 0 & 0
+            \end{bmatrix} \qquad
+            \epsilon_{12} = \begin{bmatrix}
+                0 & 1 \\ 0 & 0
+            \end{bmatrix} \qquad
+            \epsilon_{21} = \begin{bmatrix}
+                0 & 0 \\ 1 & 0
+            \end{bmatrix} \qquad
+            \epsilon_{22} = \begin{bmatrix}
+                0 & 0 \\ 0 & 1
+            \end{bmatrix} \qquad
+        \end{equation}
+
+
+\end{letterenum}
+
+\subsection{}
+The Cayley-Hamilton Theorem says that for any $n \times n$ square matrix, $B$,
+the constants $b_1, b_2, \dots, b_n$ of the characteric polynomial satisfy
+the equation:
+\begin{equation}
+    \Delta(B) = B^n + b_1 B^{n-1} + b_2 B^{n-2} + \dots + b_{n-1} B + b_n I_{n\times n} = 0_{n\times n}
+\end{equation}
+Since the characteristic polynomial, $\Delta$, for our particular $A$ is
+\begin{equation}
+    \Delta(\lambda) = (1 - \lambda) (2 - \lambda) - 0 = \lambda^2 - 3 \lambda + 2;
+\end{equation}
+by Cayley-Hamilton, we have $A^2 + (-3) A + 2 I_{n \times n}=0$. We note
+the left-hand side is a linear combination of $\{I, A, A^2\}$, equal to
+0, and has non-trivial coefficients. Thus, this set of vectors is linearly dependent. 
+
+Alternatively, without using the Cayley-Hamilton, we can verify linear dependence by hand:
+
+\begin{equation}
+    A^2 = \begin{bmatrix}
+        1 & 1 \\ 0 & 2
+    \end{bmatrix} \begin{bmatrix}
+        1 & 1 \\ 0 & 2
+    \end{bmatrix} = \begin{bmatrix}
+        1 & 3 \\ 0 & 4
+    \end{bmatrix}
+\end{equation}
+To check whether the set $\{I, A , A^2\}$ is linearly dependent we look for
+non-trivial solutions to the equation $aI + bA + cA^2 = 0$ where $a,b,c\in \R$,
+which yields the system of equations:
+\begin{align}
+    a + b + c &= 0 \\
+        b + 3c &= 0 \\
+    a + 2b + 4c &= 0.
+\end{align}
+We then convert to a matrix representation
+\begin{equation}
+    \begin{bmatrix}
+        1 & 1 & 1 \\
+        0 & 1 & 3 \\
+        1 & 2 & 4 \\
+    \end{bmatrix} \begin{bmatrix}
+        a \\ b \\ c
+    \end{bmatrix} = 0 \\
+\end{equation}
+and row-reduce:
+\begin{equation}
+    \begin{bmatrix}
+        1 & 0 & -2 \\
+        0 & 1 & 3 \\
+        0 & 0 & 0
+    \end{bmatrix} \begin{bmatrix}
+        a \\ b \\ c
+    \end{bmatrix} = 0
+\end{equation}
+
+So for any $c \in \R$, contants $a = 2c$, $c = -3b$ gives a non-trivial solution.
+to the equation $aI + bA + cA^2 = 0$. For instance, $a=2$, $b=-3$, $c=1$, gives
+the linear combination:
+\begin{equation}
+    2 \begin{bmatrix}
+        1 & 0 \\ 0 & 1
+    \end{bmatrix} + (-3) \begin{bmatrix}
+        1 & 1 \\ 0 & 2
+    \end{bmatrix} + \begin{bmatrix}
+        1 & 3 \\ 0 & 4
+    \end{bmatrix} = \begin{bmatrix}
+        2 - 3 + 1 & -3 + 3 \\
+        0 & 2 - 6 + 4
+    \end{bmatrix} = 0.
+\end{equation}
+
+Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
+\newcommand{\Nc}{\mathcal{N}}
+\newcommand{\basis}{\mathcal{B}}
+
+\subsection{}
+\begin{letterenum}
+    \item We rearrange the given equation for $(T(\theta))_i$ so that
+        the matrix form is particularly apparent:
+        \begin{align}
+            (T(\theta))_i = u_i &= \frac{1}{|\Nc_i} \sum_{j \in \Nc_i} \theta_j - \theta_i \\
+                &= \frac{1}{|\Nc_i|} \bigr[ \sum_{j \in \Nc_i} \theta_j - \sum_{j \in \Nc_i} \theta_i] \\
+                &= \frac{1}{|\Nc_i| \sum_{j \in \Nc_i}} - \theta_i \\
+                &= \sum_{j=1}^m a_{ij}\theta_i
+                \label{matrix form}
+        \end{align}
+        where 
+        \begin{equation}
+            a_{ij} = \biggl\{
+                \begin{array}{ll}
+                    -1 &\qquad \text{if }i=j, \\
+                    1/|\Nc_i| & \qquad \text{if }j |\in \Nc_i \\
+                    0 &\qquad \text{otherwise}.
+                \end{array}
+            \biggr.
+        \end{equation}
+        Clearly, $T$ can be represented as a matrix operation $T(\theta) = A \theta$,
+        where $A$'s $ij$th entry is given by $a_{ij}$, and is therefore a linear
+        transformation.
+
+        For our particular set of neighbors, our matrix representation of the transform $A$
+        is
+        \begin{equation}
+            A = \begin{bmatrix}
+                -1 & 1 & 0 & 0 \\
+                1/2 & -1 & 1/2 & 0 \\
+                0 & 1/2 & -1 & 1/2 \\
+                0 & 0 & 1 & -1
+            \end{bmatrix}.
+            \label{eq:matrix-form-written}
+        \end{equation}
+        Reducing to row echelon form
+        \begin{equation}
+            \begin{bmatrix}
+                1 & -1 & 0 & 0 \\
+                0 & 1 & -1 & 0 \\
+                0 & 0 & 1 & -1 \\
+                0 & 0 & 0 & 0
+            \end{bmatrix}
+        \end{equation}
+        shows that $\mathcal{B}_N = \{[1, 1, 1, 1]^T\}$
+        is a basis for the null space.
+
+        Since $\epsilon_1$, $\epsilon_2$, and $\epsilon_3$ (where $\epsilon_i$ comes from
+        the canonical basis for $\R^4$) extend $\mathcal{B}_N$ to form a basis
+        for $\R^4$, the set $\mathcal{B}_R = \{T\epsilon_1, T\epsilon_2, T\epsilon_3\}$ forms
+        a basis for the range space. That is,
+        \begin{equation}
+            \mathcal{B}_R = \begin{Bmatrix}
+                \begin{bmatrix}
+                    -1 \\ 1/2 \\ 0 \\ 0
+                \end{bmatrix}, \begin{bmatrix}
+                    1 \\ -1 \\ 1/2 \\ 0
+                \end{bmatrix}, \begin{bmatrix}
+                    0 \\ 1/2 \\ -1 \\ 1
+                \end{bmatrix}
+            \end{Bmatrix}
+        \end{equation}.
+        \item The matrix representation in the standard basis is given by
+        equation (\ref{eq:matrix-form-written}).
+
+
+        \item 
+        Let $\basis_1 = \{\epsilon_1, \epsilon_2, \epsilon_3, \epsilon_4\}$ be the standard basis
+        and $\basis_2$ be the basis given by
+        $\{\epsilon_1 - \epsilon_2, \epsilon_2 - \epsilon_3,
+            \epsilon_3 - \epsilon_4, \epsilon_4\}$.
+            We will write $[P]_{\basis_2}^{\basis_1}$ to denote the expression
+            of $\basis_1$ with respect to $\basis_2$. In other words, the $j$th column
+            of $[P]_{\basis_2}^{\basis_1}$ is the $j$th basis vector of $\basis{1}$
+            expressed in terms of $\basis_2$.
+            
+            Let $V$ be a finite dimensional vector space with dimension
+            $n$ and $\alpha \in V$. Then $[\alpha]_{\basis_1} \in \R^n$ shall
+            denote the expression of $\alpha$ as coordinates in $\basis_1$.
+            We transform between coordinates with via the relation:
+            \begin{equation}
+                [\alpha]_{\basis_2} = [P]_{\basis_2}^{\basis_1} [\alpha]_{\basis_1}
+            \end{equation}
+
+            Let $T: V \to W$ be a linear operator between vector spaces $V$ and $W$,
+            and $\basis_1$, $\basis_2$ be bases of $V$ and $\mathcal{C}_1$, $\mathcal{C}_2$
+            be bases of $W$.
+            We then use the notation $[T]_{\mathcal{C}_1}^{\basis_1}$ to denote
+            the matrix representation of the transformation $T$ from a
+            coordinate vector expressed in $\basis_1$ to a coordinate vector
+            expressed in $\mathcal{C}_1$.
+
+            This notation allows the conveniently memorable notation of the
+            linear transform change of basis:
+            \begin{equation}
+                [T]_{\mathcal{C}_2}^{\basis_2} = [Q]_{\mathcal{C}_2}^{\mathcal{C}_1}
+                    [T]_{\mathcal{C}_1}^{\basis_1}
+                    [P]_{\basis_1}^{\basis_2}.
+            \end{equation}
+
+            We now return to the problem at hand of expressing the operator
+            $T$ of our flocking problem in the terms of the basis $\basis_2$.
+            The change of basis matrix is
+            \begin{equation}
+                [P]_{\basis_1}^{\basis_2} = \begin{bmatrix}
+                    1 & 0 & 0 & 0 \\
+                    -1 & 1 & 0 & 0 \\
+                    0 & -1 & 1 & 0 \\
+                    0 & 0 & -1 & 1 \\
+                \end{bmatrix}.
+                \label{eq:basis-1-to-basis-2}
+            \end{equation}
+            Note that the first column of this matrix represents the first
+            basis vector, called $\beta_1$, of $\basis_2$ with respect to $\basis_1$:
+            \begin{align}
+                \beta_1 &= \sum_{i=1}^{4} a_i \epsilon_i = \epsilon_1 - \epsilon_2 \\
+                [\beta_1]_{\basis_1} &= \begin{bmatrix}
+                    1 \\ -1 \\ 0 \\ 0
+                \end{bmatrix}.
+            \end{align}
+            The inverse of this matrix is the expression of $\basis_1$ w.r.t.
+            $\basis_2$
+            \begin{equation}
+                [P]_{\basis_2}^{\basis_1} = \begin{bmatrix}
+                    1 & 0 & 0 & 0 \\
+                    1 & 1 & 0 & 0 \\
+                    1 & 1 & 1 & 0 \\
+                    1 & 1 & 1 & 1 \\
+                \end{bmatrix}
+                \label{eq:basis-2-to-basis-1}
+            \end{equation}
+            Since there is ambiguity about whether the matrix representation
+            of $A'$ refers to the matrix representation using the basis
+            $\basis_2$ for just the input, just the output, or both, we
+            assume that $A'$ refers to the matrix representation of $T$ with
+            both input and output expressed in $\basis_2$. In other words,
+            $[T]_{\basis_2}^{\basis_2}$.
+            \begin{equation}
+                [T]_{\basis_2}^{\basis_2} = [P]_{\basis_2}^{\basis_1}
+                    [T]_{\basis_1}^{\basis_1}
+                    [P]_{\basis_1}^{\basis_2}
+            \end{equation}
+            Substituting values from equations (\ref{eq:matrix-form-written}),
+            (\ref{eq:basis-1-to-basis-2}), and (\ref{eq:basis-2-to-basis-1})
+            and performing the matrix multiplication yields:
+            \begin{equation}
+                [T]_{\basis_2}^{\basis_2} = \begin{bmatrix}
+                    -2 &  1 &  0 &  0  \\ 
+                    -0.5 & -0.5 &  0.5 &  0  \\
+                    -1 &  1 & -1 &  0.5  \\
+                    -1 &  0 &  1 & -0.5  \\
+                \end{bmatrix}
+            \end{equation}
+
+            We will conclude by noting that basis $\basis_2$ differs from
+            the one that the author would expect to provide a more intuitive
+            representation of the transformation. By selecting the basis
+            $\basis_3 = \{\epsilon_1,
+                \epsilon_1 + \epsilon_2,
+                \epsilon_1 + \epsilon_2 + \epsilon_3,
+                \epsilon_1 + \epsilon_2 + \epsilon_3 + \epsilon_4\}$, we find
+            change of basis matrices:
+            \begin{align}
+                [P]_{\basis_1}^{\basis_3} &= \begin{bmatrix}
+                    1 & 1 & 1 & 1 \\
+                    0 & 1 & 1 & 1 \\
+                    0 & 0 & 1 & 1 \\
+                    0 & 0 & 0 & 1
+                \end{bmatrix} \\
+                [P]_{\basis_3}^{\basis_1} &= \begin{bmatrix}
+                    1 & -1 & 0 & 0 \\
+                    0 & 1 & -1 & 0 \\
+                    0 & 0 & 1 & -1 \\
+                    0 & 0 & 0 & 1
+                \end{bmatrix}
+            \end{align}
+            Let $\theta \in \R^4$ be the angle of each bird and
+            $\delta\theta = [\theta]_{\basis_3} = [P]_{\basis_3}^{\basis_1} \theta$
+            be the representation of vector $\theta$ w.r.t. $\basis_3$.
+            % \begin{equation}
+            %     \delta\theta = [P]_{\basis_3}^{\basis_1} \theta
+            % \end{equation}
+            Then, the $i$th entry of $\delta\theta$,
+            \begin{equation}
+                \delta\theta_i = \biggl\{\begin{array}{ll}
+                        \theta_i &\qquad \text{if } i = 4 \\
+                        \theta_i - \theta_{i + 1} &\qquad \text{otherwise,}
+                \end{array}
+                \biggr.
+            \end{equation}
+            represents the difference between adjacent bird's headings for all but
+            the last. Given the particular collection of neighbors,
+            $\{\mathcal{N}_i: i=1,\dots,4\}$ contains strictly adjacent birds,
+            it is easy to imagine how this representation might promote
+            intuitive understanding. Indeed,
+            \begin{align}
+                [T]_{\basis_3}^{\basis_3} &= [P]_{\basis_3}^{\basis_1}
+                        [T]_{\basis_1}^{\basis_1}
+                        [P]_{\basis_1}^{\basis_3} \\
+                    &= \begin{bmatrix}
+                        -1.5 & 0.5 & 0 & 0 \\
+                        0.5 & -1 & 0.5 & 0 \\
+                        0 & 0.5 & -1.5 & 0 \\
+                        0 & 0 & 1 & 0 \\
+                    \end{bmatrix}
+            \end{align}
+            has all zeros in the 4th column, indicating that the absolute
+            reference point of the flock does not impact the control input,
+            only the relative positions.
+\end{letterenum}
+
+\section{Matrix Exponentials}
+
+\subsection{}
+\begin{letterenum}
+    \item 
+    \begin{equation}
+        A = \begin{bmatrix}
+            0 & 1 \\ 0 & 1
+        \end{bmatrix}
+    \end{equation}
+    Characteristic polynomial: $-\lambda(1 - \lambda) = 0$.
+
+    Eigenvalues: $\lambda_1 = 1$, $\lambda_2 = 0$
+
+    Corresponding eigenvectors: $v_1 = [1, 1]^T$, $v_0 = [1, 0]^T$
+
+    $A = PDP^{-1}$ where
+    \begin{align}
+        P = \begin{bmatrix}
+            1 & 1 \\ 1 & 0
+        \end{bmatrix} \\
+        P^{-1} = \begin{bmatrix}
+            0 & 1 \\ 1 & -1
+        \end{bmatrix} \\
+        D = \begin{bmatrix}
+            1 & 0 \\ 0 & 0
+        \end{bmatrix} \\
+    \end{align}
+
+    Then, the exponential is:
+    \begin{align}
+        e^{At} &= P e^{Dt} P^{-1} \\
+            &= \begin{bmatrix}
+                1 & 1 \\ 1 & 0
+            \end{bmatrix} \begin{bmatrix}
+                e^t & 0 \\ 0 & e^{0t}
+            \end{bmatrix} \begin{bmatrix}
+                0 & 1 \\ 1 & -1
+            \end{bmatrix} \\
+            &= \begin{bmatrix}
+                1 & e^t - 1 \\ 0 & e^{t}
+            \end{bmatrix}
+    \end{align}
+
+    \item 
+    \begin{equation}
+        A = \begin{bmatrix}
+            0 & 1 \\ 1 & 0
+        \end{bmatrix}
+    \end{equation}
+    Characteristic polynomial: $\lambda^2 - 1 = 0$.
+
+    Eigenvalues: $\lambda_{1,2} = \pm 1$
+
+    Corresponding eigenvectors: $v_1 = [1, 1]^T$, $v_0 = [1, -1]^T$
+
+    $A = PDP^{-1}$ where
+    \begin{align}
+        P = \begin{bmatrix}
+            1 & 1 \\ 1 & -1
+        \end{bmatrix} \\
+        P^{-1} = \begin{bmatrix}
+            1/2 & 1/2 \\ 1/2 & -1/2
+        \end{bmatrix} \\
+        D = \begin{bmatrix}
+            1 & 0 \\ 0 & -1
+        \end{bmatrix} \\
+    \end{align}
+
+    Then, the exponential is:
+    \begin{align}
+        e^{At} &= P e^{Dt} P^{-1} \\
+            &= \begin{bmatrix}
+                1 & 1 \\ 1 & -1
+            \end{bmatrix} \begin{bmatrix}
+                e^t & 0 \\ 0 & e^{-t}
+            \end{bmatrix} \frac{1}{2} \begin{bmatrix}
+                1 & 1 \\ 1 & -1
+            \end{bmatrix} \\
+            &= \frac{1}{2} \begin{bmatrix}
+                e^t + e^{-t} & e^t - e^{-t} \\ e^t - e^{-t} & e^t + e^{-t}
+            \end{bmatrix}
+    \end{align}
+
+    \item 
+    \begin{equation}
+        A = \begin{bmatrix}
+            0 & 1 \\ -1 & 0
+        \end{bmatrix}
+    \end{equation}
+    Characteristic polynomial: $\lambda^2 + 1 = 0$.
+
+    Eigenvalues: $\lambda_{1,2} = \pm i$
+
+    Corresponding eigenvectors: $v_1 = [1, i]^T$, $v_0 = [i, 1]^T$
+
+    $A = PDP^{-1}$ where
+    \begin{align}
+        P = \begin{bmatrix}
+            1 & i \\ i & 1
+        \end{bmatrix} \\
+        P^{-1} = \frac{1}{2} \begin{bmatrix}
+            1 & -i \\ -i & 1
+        \end{bmatrix} \\
+        D = \begin{bmatrix}
+            i & 0 \\ 0 & -i
+        \end{bmatrix} \\
+    \end{align}
+
+    Then, the exponential is:
+    \begin{align}
+        e^{At} &= P e^{Dt} P^{-1} \\
+            &= \begin{bmatrix}
+                1 & i \\ i & 1
+            \end{bmatrix} \begin{bmatrix}
+                e^{it} & 0 \\ 0 & e^{-it}
+            \end{bmatrix} \frac{1}{2} \begin{bmatrix}
+                1 & -i \\ -i & 1
+            \end{bmatrix} \\
+            &= \frac{1}{2} \begin{bmatrix}
+                e^t + e^{-t} & e^t - e^{-t} \\ e^t - e^{-t} & e^t + e^{-t}
+            \end{bmatrix}
+    \end{align}
+    Since $e^{-it} = \cos(t) - i \sin(t)$,
+    \begin{align}
+        \frac{1}{2} (e^{it} + e{-it}) = \cos(t) \\
+        \frac{i}{2} (e^{it} - e{-it}) = -\sin(t) \\
+    \end{align}
+    and we have a final formula for the exponential:
+    \begin{equation}
+        e^{At} = \begin{bmatrix}
+            \cos(t) & \sin(t) \\
+            -\sin(t) & \cos(t)
+        \end{bmatrix}
+    \end{equation}
+
+\end{letterenum}
+
+\subsection{}
+We begin with a theorem proved in lecture: If $A,B \in \R^{n \times n}$ with
+$AB = BA$, then
+\begin{equation}
+    e^{A+B} = e^{B+A} = e^A e^B.
+    \label{eq:exp-multiplication-law}
+\end{equation}
+We note that $A(-A) = (-A)A = -A^2$. Then we have:
+\begin{equation}
+    e^A e^{-A} = e^{A-A} = e^{0_{n \times n}} =
+        \sum_{i=0}^{\infty} \frac{0_{n \times n}^i}{i!} = I_{n \times n}.
+\end{equation}
+
+Thus, $(e^A)^{-1} = e^{-A}$.
+
+\subsection{}
+
+Let $A\in\R^{n \times n}$, $n\in\N$.
+
+First, we will prove:
+\begin{equation}
+    (A^i)^T = (A^T)^i
+    \label{eq:matrix-transpose}
+\end{equation}
+for $i=0,1,2,\dots$.
+
+We proceed by induction. Clearly, $(A^0)^T = I = (A^T)^0$. Now, assume
+$(A^i)^T = (A^T)^i$. We want to show, $(A^{i+1})^T = (A^T)^{i+1}$. Using
+$(AB)^T = B^T A^T$ for $A,B\in\R^{n\times n}$, we have
+\begin{equation}
+    (A^{i+1})^T = (A^i A)^T = A^T(A^i)^T = A^T(A^T)^i = (A^T)^{i+1}
+\end{equation}
+which completes the proof for equation (\ref{eq:matrix-transpose}).
+
+We now use (\ref{eq:matrix-transpose}) to show that
+\begin{equation}
+    e^{A^T} = (e^A)^T
+    \label{eq:exp-transpose}
+\end{equation}
+Proof:
+\begin{equation}
+    (e^A)^T = \biggl(\sum_{i=0}^{\infty} \frac{A^i}{i!}\biggr)^T
+        = \sum_{i=0}^{\infty} \frac{(A^i)^T}{i!}
+        = \sum_{i=0}^{\infty} \frac{(A^T)^i}{i!}
+        = e^{A^T}.
+\end{equation}
+
+We now complete the proof that if $A$ is skew-symmetric, it's exponential
+map is orthogonal.
+\begin{equation}
+    (e^A)^T e^A = e^{A^T}e^A = e^{A^T + A} = e^{0_{n \times n}} = I_{n\times n}
+\end{equation}
+where the first equality follows from eq (\ref{eq:exp-transpose}) and the third
+equality follows from $A$'s skew-symmetric property. To see that eq
+(\ref{eq:exp-multiplication-law}) applies, we verify that $A$ and $A^T$
+commute:
+\begin{equation}
+    AA^T = A(-A) = (-A)A = A^TA
+\end{equation}
+
+\section{Harmonic Oscillator}
+The non-homogeneous LTI system
+\begin{equation}
+    \dot{x} = Ax + Bu
+\end{equation}
+has solution
+\begin{align}
+    x(t) &= e^{At}x(0) + \int_{0}^{t}e^{A(t-\tau)}Bu(\tau)d\tau \\
+        &= e^{At}x(0) + e^{At}
+            \biggl( \int_{0}^{t} e^{-A\tau}u(\tau)d\tau \biggr)
+            B
+\end{align}
+
+\newcommand{\conv}{\int_{0}^{t} e^{-A\tau} d\tau }
+\newcommand{\convu}{\int_{0}^{t} e^{-A\tau} u(\tau) d\tau }
+
+Assuming $A$ is invertible, we note:
+\begin{equation}
+    \conv = -A^{-1}e^{-A\tau} \eval_0^\tau = A^{-1} (I - e^{-A\tau})
+\end{equation}
+
+We will use the following shorthand:
+\begin{align*}
+    c := \cos(t) &\qquad s := \sin(t) \\
+    c_{2t} := \cos(2t) &\qquad s_{2t} := \sin(2t)
+\end{align*}
+
+Since
+\begin{equation}
+    A = \begin{bmatrix}
+        0 & 1 \\ -1 & 0
+    \end{bmatrix},
+\end{equation}
+we have
+\begin{equation}
+    A^{-1} = \begin{bmatrix}
+        0 & -1 \\ 1 & 1
+    \end{bmatrix} \qquad e^{At} = \begin{bmatrix}
+        c & s \\ -s & c
+    \end{bmatrix}.
+\end{equation}
+
+
+\begin{letterenum}
+    \item For $u(t) = 1$, we have:
+    \begin{equation}
+        \convu = A^{-1}(I - e^{-A\tau})
+    \end{equation}
+    So that
+    \begin{align}
+        x(t) &= e^{At}x(0) + A^{-1}(e^{A\tau} - I)B \\
+            &= \mat{c & s \\ -s & c} \mat{1 \\ 0} + \mat{0 & -1 \\ 1 & 0}
+                \biggl(\mat{c & s \\ -s & c} - I\biggr) \mat{1 \\ 0} \\
+            &= \mat{c + s \\ c - s - 1}
+    \end{align}
+    and
+    \begin{equation}
+        x(1) = \mat{\cos(1) + \sin(1) \\ \cos(1) - \sin(1) - 1} \approx \mat{1.382 \\ 0.382}
+    \end{equation}
+
+    \item For $u(t) = t$, we begin by computing the integral via
+    integration by parts:
+    \begin{align}
+        \int_a^b udv = uv \eval_a^b - \int_{a}^{b} vdu \\
+        u = \tau & \qquad v = -A^{-1} e^{-A\tau} \\
+        du = d\tau &\qquad dv = e^{-A\tau}d\tau
+    \end{align}
+    % \begin{align}
+    %     \convu &= \int_{0}^{t} \tau e^{-A\tau}d\tau \\
+    %         &= \tau(-A^{-A\tau})\eval_0^t - \int_{0}^{t} (-A^{-1} e^{-A\tau}) d\tau \\
+    %         &= tA^{-1} (I - e^{-At}) + (A^{-1})^2 (I - e^{-At}) \\
+    %         &= A^{-1} (tI + A^{-1}) (I - e^{-At})
+    % \end{align}
+    so that
+    \begin{align}
+        x(t) &= e^{At}x(0) + A^{-1}(tI + A^{-1})(e^{At} - I)B, \\
+            &= \mat{c & s \\ -s & c}\mat{1 \\ 0} +
+                \mat{0 & -1}{1 & 0}\mat{t & -1 \\ 1 & t}\mat{c - 1 \\ -s} \\
+    \end{align}
+    and evaluation at $t=1$ yields:
+    % \begin{equation}
+        
+    % \end{equation}
+
+\end{letterenum}
+
+
+
+
+
+        
+        
+
+
+
+
+\end{document}
