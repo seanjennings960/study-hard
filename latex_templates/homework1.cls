@@ -1,3 +1,4 @@
+
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{homework}[2023/09/12 Homework]
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}}
