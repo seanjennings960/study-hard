@@ -1,2 +1,10 @@
 venv/
 __pycache__/
+
+# crazy pdflatex shenanigans:
+*.aux
+*.log
+*.pdf
+*.synctex*
+*.fls
+*.fdb_latexmk
