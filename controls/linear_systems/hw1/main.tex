@@ -841,7 +841,7 @@ we have
     \end{align}
     and
     \begin{equation}
-        x(1) = \mat{\cos(1) + \sin(1) \\ \cos(1) - \sin(1) - 1} \approx \mat{1.382 \\ 0.382}
+        x(1) = \mat{\cos(1) + \sin(1) \\ \cos(1) - \sin(1) - 1} \approx \mat{1.382 \\ -1.301}
     \end{equation}
 
     \item For $u(t) = t$, we begin by computing the integral via
@@ -858,12 +858,58 @@ we have
             &= A^{-1} (tI + A^{-1}) (I - e^{-At})
     \end{align}
     % This causes Latex to break????
-    % so that
-    % \begin{align}
+    so that
+    \begin{align}
+        x(t) &= e^{At}x(0) + A^{-1}(tI + A^{-1})(e^{At} - I)B \\
+            &= \mat{c & s \\ -s & c}\mat{1 \\ 0} +
+                \mat{0 & -1 \\ 1 & 0}\mat{t & -1 \\ 1 & t}\mat{c - 1 \\ -s} \\
+            &= \mat{c \\ -s} + \mat{-ts + (c - 1) \\ t(c-1) + s}
+    \end{align}
+    which evaluates to 
+    \begin{equation}
+        \boxed{x(1) \approx \begin{bmatrix}
+            -1.841 \\ -0.460
+        \end{bmatrix}}
+    \end{equation}
+
+    \item
+    \begin{align}
+        \int_{0}^{t} e^{-A\tau} B \sin(\tau) d\tau
+            &= \int_{0}^{t} \mat{c & -s \\ s & c} s d\tau \\
+            &= \int_{0}^{t} \mat{cs & -s^2 \\ s^2 & cs} d\tau \\
+            &= \frac{1}{2} \int_{0}^{t} \mat{
+                s_{2t} & c_{2t} - 1 \\
+                1 - c_{2t} & s_{2t}
+            } d\tau \\ &= \frac{1}{4} \mat{ -c_{2\tau} & s_{2\tau} - \tau \\
+                \tau - s_{2\tau} & -c_{2\tau}
+            } \eval_0^t \\
+            &= \frac{1}{4} \mat{
+                -c_{2t} & s_{2t} - t \\
+                t - s_{2t} & -c_{2t}
+            } - \mat{-1 & 0 \\ 0 & -1}\\
+            &= \frac{1}{4} \mat{
+                1 - c_{2t} & s_{2t} - 2t \\
+                2t - s_{2t} & 1 - c_{2t} \\
+            }
+    \end{align}
+    So then,
+    \begin{align}
+        x(t) &= e^{At}x(0) + e^{At} \int_{0}^{t} e^{-A\tau}\sin(\tau)d\tau B \\
+            &= \mat{c & s \\ -s & c} \biggr(\mat{1 \\ 0} + \frac{1}{4}\mat{
+                1 - c_{2t} \\
+                2t - s_{2t}
+            }\biggl)
+    \end{align}
+    and evaluating at $t=1$ has
+    \begin{equation}
+        x(1) \approx \mat{
+            0.961 \\
+            -0.992
+        }
+    \end{equation}
     %     x(t) &= e^{At}x(0) + A^{-1}(tI + A^{-1})(e^{At} - I)B \\
     %         &= \mat{c & s \\ -s & c}\mat{1 \\ 0} +
     %             \mat{0 & -1}{1 & 0}\mat{t & -1 \\ 1 & t}\mat{c - 1 \\ -s} \\
-    % \end{align}
     % and evaluation at $t=1$ yields:
     % \begin{equation}
         
