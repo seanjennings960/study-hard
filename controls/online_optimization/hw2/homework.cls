@@ -10,6 +10,7 @@
 \RequirePackage{enumitem}
 \RequirePackage{graphicx}
 \RequirePackage{listings, xcolor}
+\RequirePackage{mathsymb}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
