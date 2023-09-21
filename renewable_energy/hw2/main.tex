@@ -1,0 +1,80 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5407}
+\title{Homework 2}
+\author{Sean Jennings}
+\date{September 20, 2023}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+\begin{letterenum}
+\item The instantaneous power is given by the equation
+\begin{equation}
+    P = \frac{1}{2} \rho A U^3 C_P
+\end{equation}
+where $\rho$ is the air density, $A$ is the swept area,
+$U$ is the wind speed, and $C_P$ is the power coefficient.
+We assume the air is at STP and therefore has a density of
+$1.225$ kg/m$^3$. We compute swept area by first converting
+to meters
+\begin{equation}
+    A = \frac{\pi}{4} D^2 = 2339 \text{m/s}
+\end{equation}
+We also convert the wind speed to m/s before performing the computation
+in Python.  Table (\ref{table:powers}) shows the instantaneous power as a function of
+time.
+\begin{table}[h!]
+\centering
+\begin{tabular}{ |c|c|}
+\hline
+Time & Power (kW) \\
+\hline
+0000 & 0.36 \\
+0100 & 0.79 \\
+0200 & 0.04 \\
+0300 & 0.1 \\
+0400 & 0.15 \\
+0500 & 0.1 \\
+0600 & 1.09 \\
+0700 & 4.36 \\
+0800 & 12.88 \\
+0900 & 28.49 \\
+1000 & 22.93 \\
+1100 & 33.76 \\
+1200 & 37.21 \\
+1300 & 37.21 \\
+1400 & 22.09 \\
+1500 & 12.3 \\
+1600 & 15.36 \\
+1700 & 30.53 \\
+1800 & 19.2 \\
+1900 & 4.08 \\
+2000 & 0.88 \\
+2100 & 1.61 \\
+2200 & 4.95 \\
+2300 & 8.74 \\
+\hline
+\end{tabular}
+\caption{Instantaneous Power over time}
+\label{table:powers}
+\end{table}
+
+% \item Figure 
+% \begin{center}
+%     \includegraphics[width=\linewidth]{.png}
+%     \captionof{figure}{New England Load Data}
+%     \label{fig:enter-label}
+% \end{center}
+
+
+
+
+
+\end{document}
