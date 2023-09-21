@@ -22,8 +22,9 @@
 where $\rho$ is the air density, $A$ is the swept area,
 $U$ is the wind speed, and $C_P$ is the power coefficient.
 We assume the air is at STP and therefore has a density of
-$1.225$ kg/m$^3$. We compute swept area by first converting
-to meters
+$1.225$ kg/m$^3$. This seems like a reasonable assumption because Austin
+is at a low elevation of ~500 feet. We compute swept area by first converting
+the diameter $D$ to meters
 \begin{equation}
     A = \frac{\pi}{4} D^2 = 2339 \text{m/s}
 \end{equation}
@@ -66,12 +67,209 @@ Time & Power (kW) \\
 \label{table:powers}
 \end{table}
 
-% \item Figure 
-% \begin{center}
-%     \includegraphics[width=\linewidth]{.png}
-%     \captionof{figure}{New England Load Data}
-%     \label{fig:enter-label}
-% \end{center}
+\item Figure (\ref{fig:instantaneous-power}) plots the instantaneous power
+curve. As expected, it follows the shape of the wind speed curve. However,
+the slopes of the curve are magnified due to the cubic relation with wind speed.
+
+\begin{center}
+    \includegraphics[width=0.8\linewidth]{WIND_SPEED.png}
+    \captionof{figure}{Instantaneous Power in Austin}
+    \label{fig:instantaneous-power}
+\end{center}
+
+\end{letterenum}
+
+\section{Problem 2}
+\begin{letterenum}
+\item The heat rate, HR, is the amount of energy in the fuel required to generate
+1 kWh of electricity. To find the heat rate, we divide the amount of
+fuel energy by the total electricity generated.
+\begin{equation}
+    \text{HR} = \frac{75,444,200 \text{MMBtu} \cdot 10^6 \text{ Btu/MMBtu}}
+        {7,561,850 \text{ MWh} \cdot 1000 \text{ kWh/MWh}} = 9977.  \text{ Btu (/kWh)}
+\end{equation}
+
+To compute the efficiency as a percentage, we divide the number of BTU
+in a kWh by the heat rate. 1 kWh is equivalent to 3,412 Btu, so the
+efficiency is
+\begin{equation}
+    \eta = \frac{3412 \text{ Btu / kWh}}{9977 \text{ Btu / kWh}} = 34.2 \%
+\end{equation}
+
+\item Figures (\ref{fig:heat-input}) and (\ref{fig:heat-rate}) show the
+heat input and heat rate curves, respectively. We assume that each row of the
+table represents an hour of time, so that the energy generation in MWh of the
+left column is equivalent to the power in MW which is displayed. This
+assumption results in heat rate values of a reasonable magnitude. E.g.
+the heat rates correspond to a mean efficiency of 37\%.
+
+The author guesses this is a coal plant since it is running at a nearly
+constant rate: coal plants typically have slow ramp times, high minimum generation
+factors, and long start-up times. Coal plants at traditional combustion
+pressures have effiencies ~35-38\% so the efficiency also falls in range.
+
+The slow ramping could also make it a candidate for a nuclear
+plant, but the capacity of ~360MW is less than the 1GW typical of a nuclear
+reactor unit -- at least until we have some SMRs (small modular reactors)
+come online!
+
+\begin{center}
+    \includegraphics[width=0.6\linewidth]{heat_input_curve.png}
+    \captionof{figure}{Heat input curve}
+    \label{fig:heat-input}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=0.6\linewidth]{heat_rate_curve.png}
+    \captionof{figure}{Heat rate curve}
+    \label{fig:heat-rate}
+\end{center}
+\end{letterenum}
+
+\section{Problem 3}
+We will assume that the current of 3A which is displayed in the diagram
+represents the RMS current of the AC circuit. The complex power is given by:
+\begin{equation}
+    S = VI^* = |I|^2 R = (3\text{ A})^2 * 100 \ohm = 900 \text{W} + j0 \text{ var}
+\end{equation}
+Since the circuit is purely resistive, the phase angle between voltage and current
+is zero. The real component of the complex power, $P$, is real power, and the imaginary
+component, $Q$, is reactive power.
+\begin{equation}
+    S = P + jQ
+\end{equation}
+The real power is $\boxed{$900W$}$.
+
+\noindent The reactive power is $\boxed{$0var$}$.
+
+\noindent Apparent power is the magnitude of complex power, with units VA by convention,
+and is equal to $\boxed{$900VA$}$. It is equal to the real power since the load is purely
+resistive.
+
+\noindent The power factor is the cosine of the phase angle, so in this case: $\cos(0) = 1$.
+
+
+If a capacitor were added to the circuit, the current would lead the voltage,
+i.e. would have a positive phase angle.
+Since complex power multiplies $V$ by the conjugate of $I$, so the reactive
+power absorbed would be negative. The power factor would be less than 1.
+
+\section{Problem 4}
+
+The total complex power delivered by the source is the sum of the power
+absorbed by the loads:
+\begin{equation}
+    S = \sum_i S_i = S_R + S_C + S_L = 20 \text{W} + j(-5 \text{ VAr})
+        + j(20 \text{ VAr}) = 20 \text{ W} + j15 \text{ VAr}
+\end{equation}
+So the apparent power is $|S| = \sqrt{20^2 + 15^2} = 25$ VA.
+
+The power factor is
+\begin{equation}
+    \text{pf} = \tan^-1(Q / P) = \tan^-1(15/20) \approx 0.64
+\end{equation}
+This power factor is quite low. A lower power
+factor means that the power system is not running at peak efficiency, since
+a significant amount of the total apparent power generated is not being
+consumed as real power. Since customer loads such as motors are usually
+inductive, a distribution company will install shunt capacitors that will 
+deliver reactive power locally, so that reactive power does not need to
+be transmitted over distribution lines. This minimizes the line losses
+associated with the higher currents that would be required to deliver reactive
+power. Typically, a power factor under 0.85 in a distribution system 
+is considered poor.
+
+Figure (\ref{fig:power-tri-component}) plots the complex power vector
+decomposed into the contributions by each ciruit component.
+Figure (\ref{fig:power-tri-real}) plots the
+complex power vector decomposed into real and reactive parts.
+
+\begin{center}
+    \includegraphics[width=0.6\linewidth]{power_triangle_component.png}
+    \captionof{figure}{Power triangle: by component}
+    \label{fig:power-tri-component}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=0.6\linewidth]{power_triangle_real.png}
+    \captionof{figure}{Power triangle: real vs reactive}
+    \label{fig:power-tri-real}
+\end{center}
+
+\section{Problem 5}
+
+\begin{letterenum}
+    \item The base voltage levels for this power system are 161 kV and 69kV.
+    This is an example of a sub-transmission system. Distribution system 
+    voltage range from 4-35kV. Long-distance transmission lines has
+    voltages above 200kV to reduce line losses. Subtransmission lines
+    have voltages less than 200kV, and carry power between transmission
+    and distribution substations. The voltages in this diagram are
+    in this intermediate range.
+
+    \item Table (\ref{table:power-by-bus}) shows the the real, reactive, and apparent power for each
+    corresponding to each bus with a load. For each bus $i$, apparent power
+    consumed is
+    \begin{equation}
+        |S_i| = \sqrt{P_i^2 + Q_i^2},
+    \end{equation}
+    where $i\in B$ and $B$ is the set of each bus which has a load.
+
+    Then, the total real and reactive power for the full system is given by
+    the sum of the $P$ and $Q$ columns of table (\ref{table:power-by-bus}),
+    respectively:
+    \begin{equation}
+        P_{total} = \sum_{i \in B} P_i = 585 \text{ MW} \qquad
+        Q_{total} = \sum_{i \in B} Q_i = 145 \text{ MVAr}
+    \end{equation}
+    We see the largest load (by every measure) occurs at bus 5.
+
+    \begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        Bus & $P$ (MW) & $Q$ (MVAr) & $|S|$ (VA) \\
+        \hline
+        4 & 60 & 10  & 60.83  \\
+        5 & 100 & 30 & 104.4  \\
+        6 & 80 & 15  & 81.39  \\
+        7 & 90 & 20  & 92.2   \\
+        8 & 40 & 5   & 40.31  \\
+        9 & 10 & 5   & 11.18  \\
+        10 & 15 & 10 & 18.03  \\
+        11 & 75 & 15 & 76.49  \\
+        12 & 40 & 15 & 42.72  \\
+        13 & 30 & 10 & 31.62  \\
+        14 & 35 & 10 & 36.4   \\
+        15 & 10 & 0  & 10.0   \\
+        \hline
+    \end{tabular}
+    \caption{Real, Reactive, and Apparent Power by Bus}
+    \label{table:power-by-bus}
+    \end{table}
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+\end{letterenum}
+
+
+
+
 
 
 
