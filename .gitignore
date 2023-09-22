@@ -8,3 +8,5 @@ __pycache__/
 *.synctex*
 *.fls
 *.fdb_latexmk
+*.bbl
+*.blg
