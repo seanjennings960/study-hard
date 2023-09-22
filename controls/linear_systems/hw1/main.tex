@@ -4,7 +4,12 @@
 \usepackage{gensymb}
 \usepackage{subfig}
 \usepackage{float}
+\usepackage{amsthm}
+% \usepackage{biblatex} 
 
+%     backend=biber,
+%     style=numeric,
+%     citestyle=apa,
 \class{ECEN/MCEN 5448}
 \title{Homework 1}
 \author{Sean Jennings}
@@ -152,11 +157,13 @@ For instance, ${\bf u}[0] = v$.
     \end{align}
     so that our linearization is given by:
     \begin{equation}
-        \frac{d (\delta x)}{dt} \approx B \delta u
+        \boxed{\frac{d (\delta x)}{dt} \approx B \delta u}
     \end{equation}
 
-    \item To show that the trajectory $\omega(t) = v(t) = 1$, $p_x(t) = \sin(t)$,
-    $p_y(t) = 1 - \cos(t)$, and $\theta(t) = t$ we take the derivatives of each curve
+    \item Fix $\omega(t) = v(t) = 1$, $p_x(t) = \sin(t)$,
+    $p_y(t) = 1 - \cos(t)$, and $\theta(t) = t$.
+    To show this is a valid trajectory for our system, we take the 
+    derivatives of each curve
     \begin{align}
         \dot{p}_x(t) = \frac{d}{dt}(\sin(t)) &= \cos(t) = v(t) \cos(\theta(t)) \\
         \dot{p}_y(t) = \frac{d}{dt}(1 - \cos(t)) &= \sin(t) = v(t) \sin(\theta(t)) \\
@@ -185,7 +192,7 @@ For instance, ${\bf u}[0] = v$.
     w.r.t. $\uc$ (equation (\ref{eq:jacobian-u})), we obtain the final result
     for the linearization about the trajectory:
     \begin{equation}
-        \frac{d(\delta x(t))}{dt} = \begin{bmatrix}
+        \boxed{\frac{d(\delta x(t))}{dt} = \begin{bmatrix}
             0 & 0 & -\sin(t) \\
             0 & 0 & \cos(t) \\
             0 & 0 & 0
@@ -193,18 +200,18 @@ For instance, ${\bf u}[0] = v$.
             \cos(t) & 0 \\
             \sin(t) & 0 \\
             0 & 1
-        \end{bmatrix} \delta u
+        \end{bmatrix} \delta u}
     \end{equation}
     We conclude by noting that the linearization about this particular trajectory
     is a LTV system.
 \end{letterenum}
 
 \section{Linear Algebra}
-\subsection{}
+\subsection{Problem 2.1}
 \begin{letterenum}
-    \item Let $\alpha, \beta, \gamma$ be elements of the set $\R^{m \times n}$ with
-        $m, n \in \N$. Let $a_{ij}$, $b_{ij}$, $c_{ij}$ denote the $i$th $j$th entry of 
-        the matrices $\alpha$, $\beta$, $\gamma$, respectively. Let $r,s \in \R$ be
+    \item Let $\alpha, \beta$ be elements of the set $\R^{m \times n}$ with
+        $m, n \in \N$. Let $a_{ij}$ and $b_{ij}$ denote the $ij$th entry of 
+        the matrices $\alpha$ and $\beta$, respectively. Let $r,s \in \R$ be
         scalars. 
 
         The usual matrix addition defines the $ij$th entry of matrix $\alpha + \beta$
@@ -219,7 +226,7 @@ For instance, ${\bf u}[0] = v$.
             (r\alpha)_{ij} = r a_{ij}
         \end{equation}
 
-        We prove that the set $V = (\R_{m\times n}, +, \cdot)$ over the field of
+        We prove that the set $V = (\R_{m\times n}, +, \cdot)$ over the field
         $\R$ is a vector space. In the following, we will use the fact that two matrices 
         $\alpha$ and $\beta$ are equal if and only if each of their entries are equal, i.e.
         $a_{ij} = b_{ij}$ for all $1 \leq i \leq m$, $1 \leq j \leq n$. All arguments involving
@@ -248,11 +255,14 @@ For instance, ${\bf u}[0] = v$.
         \end{itemize}
         The final two properties follow from the distributive law of the field $\R$.
 
-        Thus, the set $\R^{m \times n}$ with operations $+$ and $\cdot$ over the field $\R$
-        satisfies all the properties of a vector space. Clearly, $\R^{2 \times 2}$
-        is a special case of $\R^{m \times n}$ and thus is also a vector space.
+        Thus, the set $\R^{m \times n}$ with standard matrix operations $+$
+        and $\cdot$ over the field $\R$ satisfies all the properties of a 
+        vector space. Clearly, $\R^{2 \times 2}$ is a special case of
+        $\R^{m \times n}$ and thus is also a vector space.
 
-    \item The dimension of $\R^{m \times n}$ is $m \cdot n$ so the dimension of
+    \item The dimension of $\R^{m \times n}$ is $m \cdot n$ because that is
+        the number of vectors in the basis for $\R^{m \times n}$, as we shall
+        see in the subsequent subproblem. So the dimension of 
         $\R^{2 \times 2}$ is 4.
 
     \item Define $\epsilon_{IJ}$ as the matrix with the $ij$th entry containing:
@@ -274,7 +284,8 @@ For instance, ${\bf u}[0] = v$.
         To check linear indepedence, examining the $ij$th entry of $\beta$, a linear combination
         of $\mathcal{B}$
         \begin{equation}
-            \beta := (\sum_{I=1}^{m}) \sum_{J=1}^{n} c_{IJ} \epsilon_{IJ} = c_{IJ}
+            \beta_{ij} := \biggl(\sum_{I=1}^{m} \sum_{J=1}^{n} c_{IJ} \epsilon_{IJ}
+                \biggr)_{ij} = c_{IJ}
         \end{equation}
         Thus, $\beta = 0$ if and only if $c_{IJ} = 0$ for all $I,J$,
         $1 \leq I \leq m$, $1 \leq J \leq n$. This implies linear independence and
@@ -282,6 +293,7 @@ For instance, ${\bf u}[0] = v$.
 
         In particular, for $\R^{2 \times 2}$ our suggested basis is:
         \begin{equation}
+            \boxed{
             \epsilon_{11} = \begin{bmatrix}
                 1 & 0 \\ 0 & 0
             \end{bmatrix} \qquad
@@ -294,12 +306,13 @@ For instance, ${\bf u}[0] = v$.
             \epsilon_{22} = \begin{bmatrix}
                 0 & 0 \\ 0 & 1
             \end{bmatrix} \qquad
+            }
         \end{equation}
 
 
 \end{letterenum}
 
-\subsection{}
+\subsection{Problem 2.2}
 The Cayley-Hamilton Theorem says that for any $n \times n$ square matrix, $B$,
 the constants $b_1, b_2, \dots, b_n$ of the characteric polynomial satisfy
 the equation:
@@ -312,10 +325,10 @@ Since the characteristic polynomial, $\Delta$, for our particular $A$ is
 \end{equation}
 by Cayley-Hamilton, we have $A^2 + (-3) A + 2 I_{n \times n}=0$. We note
 the left-hand side is a linear combination of $\{I, A, A^2\}$, equal to
-0, and has non-trivial coefficients. Thus, this set of vectors is linearly dependent. 
+0, and has non-trivial coefficients. Thus, this set of vectors is
+$\boxed{$linearly dependent.$}$ 
 
-Alternatively, without using the Cayley-Hamilton, we can verify linear dependence by hand:
-
+We verify this holds by computing the linear combination of interest. Since
 \begin{equation}
     A^2 = \begin{bmatrix}
         1 & 1 \\ 0 & 2
@@ -325,38 +338,7 @@ Alternatively, without using the Cayley-Hamilton, we can verify linear dependenc
         1 & 3 \\ 0 & 4
     \end{bmatrix}
 \end{equation}
-To check whether the set $\{I, A , A^2\}$ is linearly dependent we look for
-non-trivial solutions to the equation $aI + bA + cA^2 = 0$ where $a,b,c\in \R$,
-which yields the system of equations:
-\begin{align}
-    a + b + c &= 0 \\
-        b + 3c &= 0 \\
-    a + 2b + 4c &= 0.
-\end{align}
-We then convert to a matrix representation
-\begin{equation}
-    \begin{bmatrix}
-        1 & 1 & 1 \\
-        0 & 1 & 3 \\
-        1 & 2 & 4 \\
-    \end{bmatrix} \begin{bmatrix}
-        a \\ b \\ c
-    \end{bmatrix} = 0 \\
-\end{equation}
-and row-reduce:
-\begin{equation}
-    \begin{bmatrix}
-        1 & 0 & -2 \\
-        0 & 1 & 3 \\
-        0 & 0 & 0
-    \end{bmatrix} \begin{bmatrix}
-        a \\ b \\ c
-    \end{bmatrix} = 0
-\end{equation}
-
-So for any $c \in \R$, contants $a = 2c$, $c = -3b$ gives a non-trivial solution.
-to the equation $aI + bA + cA^2 = 0$. For instance, $a=2$, $b=-3$, $c=1$, gives
-the linear combination:
+we have
 \begin{equation}
     2 \begin{bmatrix}
         1 & 0 \\ 0 & 1
@@ -370,11 +352,13 @@ the linear combination:
     \end{bmatrix} = 0.
 \end{equation}
 
-Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
+We see that the Cayley-Hamilton theorem has correctly predicted a linear
+combination which annihilates $A$.
+
 \newcommand{\Nc}{\mathcal{N}}
 \newcommand{\basis}{\mathcal{B}}
 
-\subsection{}
+\subsection{Problem 2.3}
 \begin{letterenum}
     \item We rearrange the given equation for $(T(\theta))_i$ so that
         the matrix form is particularly apparent:
@@ -402,12 +386,12 @@ Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
         For our particular set of neighbors, our matrix representation of the transform $A$
         is
         \begin{equation}
-            A = \begin{bmatrix}
+            \boxed{A = \begin{bmatrix}
                 -1 & 1 & 0 & 0 \\
                 1/2 & -1 & 1/2 & 0 \\
                 0 & 1/2 & -1 & 1/2 \\
                 0 & 0 & 1 & -1
-            \end{bmatrix}.
+            \end{bmatrix}}.
             \label{eq:matrix-form-written}
         \end{equation}
         Reducing to row echelon form
@@ -419,7 +403,7 @@ Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
                 0 & 0 & 0 & 0
             \end{bmatrix}
         \end{equation}
-        shows that $\mathcal{B}_N = \{[1, 1, 1, 1]^T\}$
+        shows that $\boxed{\mathcal{B}_N = \{[1, 1, 1, 1]^T\}}$
         is a basis for the null space.
 
         Since $\epsilon_1$, $\epsilon_2$, and $\epsilon_3$ (where $\epsilon_i$ comes from
@@ -427,6 +411,7 @@ Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
         for $\R^4$, the set $\mathcal{B}_R = \{T\epsilon_1, T\epsilon_2, T\epsilon_3\}$ forms
         a basis for the range space. That is,
         \begin{equation}
+            \boxed{
             \mathcal{B}_R = \begin{Bmatrix}
                 \begin{bmatrix}
                     -1 \\ 1/2 \\ 0 \\ 0
@@ -436,48 +421,20 @@ Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
                     0 \\ 1/2 \\ -1 \\ 1
                 \end{bmatrix}
             \end{Bmatrix}
+            }
         \end{equation}.
         \item The matrix representation in the standard basis is given by
         equation (\ref{eq:matrix-form-written}).
 
 
         \item 
-        Let $\basis_1 = \{\epsilon_1, \epsilon_2, \epsilon_3, \epsilon_4\}$ be the standard basis
-        and $\basis_2$ be the basis given by
-        $\{\epsilon_1 - \epsilon_2, \epsilon_2 - \epsilon_3,
-            \epsilon_3 - \epsilon_4, \epsilon_4\}$.
-            We will write $[P]_{\basis_2}^{\basis_1}$ to denote the expression
-            of $\basis_1$ with respect to $\basis_2$. In other words, the $j$th column
-            of $[P]_{\basis_2}^{\basis_1}$ is the $j$th basis vector of $\basis{1}$
-            expressed in terms of $\basis_2$.
-            
-            Let $V$ be a finite dimensional vector space with dimension
-            $n$ and $\alpha \in V$. Then $[\alpha]_{\basis_1} \in \R^n$ shall
-            denote the expression of $\alpha$ as coordinates in $\basis_1$.
-            We transform between coordinates with via the relation:
-            \begin{equation}
-                [\alpha]_{\basis_2} = [P]_{\basis_2}^{\basis_1} [\alpha]_{\basis_1}
-            \end{equation}
-
-            Let $T: V \to W$ be a linear operator between vector spaces $V$ and $W$,
-            and $\basis_1$, $\basis_2$ be bases of $V$ and $\mathcal{C}_1$, $\mathcal{C}_2$
-            be bases of $W$.
-            We then use the notation $[T]_{\mathcal{C}_1}^{\basis_1}$ to denote
-            the matrix representation of the transformation $T$ from a
-            coordinate vector expressed in $\basis_1$ to a coordinate vector
-            expressed in $\mathcal{C}_1$.
-
-            This notation allows the conveniently memorable notation of the
-            linear transform change of basis:
-            \begin{equation}
-                [T]_{\mathcal{C}_2}^{\basis_2} = [Q]_{\mathcal{C}_2}^{\mathcal{C}_1}
-                    [T]_{\mathcal{C}_1}^{\basis_1}
-                    [P]_{\basis_1}^{\basis_2}.
-            \end{equation}
-
-            We now return to the problem at hand of expressing the operator
+            Let $\basis_1 = \{\epsilon_1, \epsilon_2, \epsilon_3, \epsilon_4\}$ be the standard basis
+            and $\basis_2$ be the basis given by
+            $\{\epsilon_1 - \epsilon_2, \epsilon_2 - \epsilon_3,
+                \epsilon_3 - \epsilon_4, \epsilon_4\}$.
+            We would like to express the operator
             $T$ of our flocking problem in the terms of the basis $\basis_2$.
-            The change of basis matrix is
+            The change of basis matrix  is
             \begin{equation}
                 [P]_{\basis_1}^{\basis_2} = \begin{bmatrix}
                     1 & 0 & 0 & 0 \\
@@ -487,6 +444,8 @@ Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
                 \end{bmatrix}.
                 \label{eq:basis-1-to-basis-2}
             \end{equation}
+            (see section (\ref{appendix}) for notational conventions)
+
             Note that the first column of this matrix represents the first
             basis vector, called $\beta_1$, of $\basis_2$ with respect to $\basis_1$:
             \begin{align}
@@ -495,6 +454,9 @@ Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
                     1 \\ -1 \\ 0 \\ 0
                 \end{bmatrix}.
             \end{align}
+            Since $[\alpha]_{\basis_1} = \alpha$, we will drop the bracket
+            notation for vectors expressed in $\basis_1$.
+
             The inverse of this matrix is the expression of $\basis_1$ w.r.t.
             $\basis_2$
             \begin{equation}
@@ -521,74 +483,21 @@ Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
             (\ref{eq:basis-1-to-basis-2}), and (\ref{eq:basis-2-to-basis-1})
             and performing the matrix multiplication yields:
             \begin{equation}
-                [T]_{\basis_2}^{\basis_2} = \begin{bmatrix}
+                \boxed{[T]_{\basis_2}^{\basis_2} = \begin{bmatrix}
                     -2 &  1 &  0 &  0  \\ 
                     -0.5 & -0.5 &  0.5 &  0  \\
                     -1 &  1 & -1 &  0.5  \\
                     -1 &  0 &  1 & -0.5  \\
-                \end{bmatrix}
+                \end{bmatrix}}
             \end{equation}
+            We discuss a more intuitive representation in Appendix section 
+            (\ref{sec:intuitive-basis}).
 
-            We will conclude by noting that basis $\basis_2$ differs from
-            the one that the author would expect to provide a more intuitive
-            representation of the transformation. By selecting the basis
-            $\basis_3 = \{\epsilon_1,
-                \epsilon_1 + \epsilon_2,
-                \epsilon_1 + \epsilon_2 + \epsilon_3,
-                \epsilon_1 + \epsilon_2 + \epsilon_3 + \epsilon_4\}$, we find
-            change of basis matrices:
-            \begin{align}
-                [P]_{\basis_1}^{\basis_3} &= \begin{bmatrix}
-                    1 & 1 & 1 & 1 \\
-                    0 & 1 & 1 & 1 \\
-                    0 & 0 & 1 & 1 \\
-                    0 & 0 & 0 & 1
-                \end{bmatrix} \\
-                [P]_{\basis_3}^{\basis_1} &= \begin{bmatrix}
-                    1 & -1 & 0 & 0 \\
-                    0 & 1 & -1 & 0 \\
-                    0 & 0 & 1 & -1 \\
-                    0 & 0 & 0 & 1
-                \end{bmatrix}
-            \end{align}
-            Let $\theta \in \R^4$ be the angle of each bird and
-            $\delta\theta = [\theta]_{\basis_3} = [P]_{\basis_3}^{\basis_1} \theta$
-            be the representation of vector $\theta$ w.r.t. $\basis_3$.
-            % \begin{equation}
-            %     \delta\theta = [P]_{\basis_3}^{\basis_1} \theta
-            % \end{equation}
-            Then, the $i$th entry of $\delta\theta$,
-            \begin{equation}
-                \delta\theta_i = \biggl\{\begin{array}{ll}
-                        \theta_i &\qquad \text{if } i = 4 \\
-                        \theta_i - \theta_{i + 1} &\qquad \text{otherwise,}
-                \end{array}
-                \biggr.
-            \end{equation}
-            represents the difference between adjacent bird's headings for all but
-            the last. Given the particular collection of neighbors,
-            $\{\mathcal{N}_i: i=1,\dots,4\}$ contains strictly adjacent birds,
-            it is easy to imagine how this representation might promote
-            intuitive understanding. Indeed,
-            \begin{align}
-                [T]_{\basis_3}^{\basis_3} &= [P]_{\basis_3}^{\basis_1}
-                        [T]_{\basis_1}^{\basis_1}
-                        [P]_{\basis_1}^{\basis_3} \\
-                    &= \begin{bmatrix}
-                        -1.5 & 0.5 & 0 & 0 \\
-                        0.5 & -1 & 0.5 & 0 \\
-                        0 & 0.5 & -1.5 & 0 \\
-                        0 & 0 & 1 & 0 \\
-                    \end{bmatrix}
-            \end{align}
-            has all zeros in the 4th column, indicating that the absolute
-            reference point of the flock does not impact the control input,
-            only the relative positions.
 \end{letterenum}
 
 \section{Matrix Exponentials}
 
-\subsection{}
+\subsection{Problem 3.1}
 \begin{letterenum}
     \item 
     \begin{equation}
@@ -625,9 +534,9 @@ Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
             \end{bmatrix} \begin{bmatrix}
                 0 & 1 \\ 1 & -1
             \end{bmatrix} \\
-            &= \begin{bmatrix}
+            &= \boxed{\begin{bmatrix}
                 1 & e^t - 1 \\ 0 & e^{t}
-            \end{bmatrix}
+            \end{bmatrix}}
     \end{align}
 
     \item 
@@ -665,9 +574,9 @@ Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
             \end{bmatrix} \frac{1}{2} \begin{bmatrix}
                 1 & 1 \\ 1 & -1
             \end{bmatrix} \\
-            &= \frac{1}{2} \begin{bmatrix}
+            &= \boxed{\frac{1}{2} \begin{bmatrix}
                 e^t + e^{-t} & e^t - e^{-t} \\ e^t - e^{-t} & e^t + e^{-t}
-            \end{bmatrix}
+            \end{bmatrix}}
     \end{align}
 
     \item 
@@ -716,15 +625,15 @@ Therefore, the set $\{I, A, A^2\}$ is linearly dependent.
     \end{align}
     and we have a final formula for the exponential:
     \begin{equation}
-        e^{At} = \begin{bmatrix}
+        e^{At} = \boxed{\begin{bmatrix}
             \cos(t) & \sin(t) \\
             -\sin(t) & \cos(t)
-        \end{bmatrix}
+        \end{bmatrix}}
     \end{equation}
 
 \end{letterenum}
 
-\subsection{}
+\subsection{Problem 3.2}
 We begin with a theorem proved in lecture: If $A,B \in \R^{n \times n}$ with
 $AB = BA$, then
 \begin{equation}
@@ -739,40 +648,40 @@ We note that $A(-A) = (-A)A = -A^2$. Then we have:
 
 Thus, $(e^A)^{-1} = e^{-A}$.
 
-\subsection{}
+\subsection{Problem 3.3}
 
-Let $A\in\R^{n \times n}$, $n\in\N$.
-
-First, we will prove:
+Let $A\in\R^{n \times n}$, $n\in\N$. We have
 \begin{equation}
     (A^i)^T = (A^T)^i
     \label{eq:matrix-transpose}
 \end{equation}
 for $i=0,1,2,\dots$.
 
-We proceed by induction. Clearly, $(A^0)^T = I = (A^T)^0$. Now, assume
-$(A^i)^T = (A^T)^i$. We want to show, $(A^{i+1})^T = (A^T)^{i+1}$. Using
-$(AB)^T = B^T A^T$ for $A,B\in\R^{n\times n}$, we have
-\begin{equation}
-    (A^{i+1})^T = (A^i A)^T = A^T(A^i)^T = A^T(A^T)^i = (A^T)^{i+1}
-\end{equation}
-which completes the proof for equation (\ref{eq:matrix-transpose}).
+\begin{proof}
+    We proceed by induction. Clearly, $(A^0)^T = I = (A^T)^0$. Now, assume
+    $(A^i)^T = (A^T)^i$. We want to show, $(A^{i+1})^T = (A^T)^{i+1}$. Using
+    $(AB)^T = B^T A^T$ for $A,B\in\R^{n\times n}$, we have
+    \begin{equation}
+        (A^{i+1})^T = (A^i A)^T = A^T(A^i)^T = A^T(A^T)^i = (A^T)^{i+1}
+    \end{equation}
+    which verifies the induction hypothesis.
+\end{proof}
 
 We now use (\ref{eq:matrix-transpose}) to show that
 \begin{equation}
     e^{A^T} = (e^A)^T
     \label{eq:exp-transpose}
 \end{equation}
-Proof:
-\begin{equation}
-    (e^A)^T = \biggl(\sum_{i=0}^{\infty} \frac{A^i}{i!}\biggr)^T
-        = \sum_{i=0}^{\infty} \frac{(A^i)^T}{i!}
-        = \sum_{i=0}^{\infty} \frac{(A^T)^i}{i!}
-        = e^{A^T}.
-\end{equation}
+\begin{proof}
+    \begin{equation}
+        (e^A)^T = \biggl(\sum_{i=0}^{\infty} \frac{A^i}{i!}\biggr)^T
+            = \sum_{i=0}^{\infty} \frac{(A^i)^T}{i!}
+            = \sum_{i=0}^{\infty} \frac{(A^T)^i}{i!}
+            = e^{A^T}.
+    \end{equation}
+\end{proof}
 
-We now complete the proof that if $A$ is skew-symmetric, it's exponential
-map is orthogonal.
+We now complete the proof for the main premise:
 \begin{equation}
     (e^A)^T e^A = e^{A^T}e^A = e^{A^T + A} = e^{0_{n \times n}} = I_{n\times n}
 \end{equation}
@@ -783,6 +692,7 @@ commute:
 \begin{equation}
     AA^T = A(-A) = (-A)A = A^TA
 \end{equation}
+Therefore, $e^{At}$ is orthogonal if $A$ is skew-symmetric.
 
 \section{Harmonic Oscillator}
 The non-homogeneous LTI system
@@ -802,7 +712,7 @@ has solution
 
 Assuming $A$ is invertible, we note:
 \begin{equation}
-    \conv = -A^{-1}e^{-A\tau} \eval_0^\tau = A^{-1} (I - e^{-A\tau})
+    \conv = -A^{-1}e^{-A\tau} \eval_0^t = A^{-1} (I - e^{-At})
 \end{equation}
 
 We will use the following shorthand:
@@ -810,6 +720,9 @@ We will use the following shorthand:
     c := \cos(t) &\qquad s := \sin(t) \\
     c_{2t} := \cos(2t) &\qquad s_{2t} := \sin(2t)
 \end{align*}
+This abuse of notation obscures the name of the argument,
+e.g. in some places $c= \cos(\tau)$, but this should be
+clear from context which argument is used.
 
 Since
 \begin{equation}
@@ -817,10 +730,10 @@ Since
         0 & 1 \\ -1 & 0
     \end{bmatrix},
 \end{equation}
-we have
+a simple matrix inversion and problem 3.1(c) hold that
 \begin{equation}
     A^{-1} = \begin{bmatrix}
-        0 & -1 \\ 1 & 1
+        0 & -1 \\ 1 & 0
     \end{bmatrix} \qquad e^{At} = \begin{bmatrix}
         c & s \\ -s & c
     \end{bmatrix}.
@@ -841,7 +754,7 @@ we have
     \end{align}
     and
     \begin{equation}
-        x(1) = \mat{\cos(1) + \sin(1) \\ \cos(1) - \sin(1) - 1} \approx \mat{1.382 \\ -1.301}
+        \boxed{x(1) = \mat{\cos(1) + \sin(1) \\ \cos(1) - \sin(1) - 1} \approx \mat{1.382 \\ -1.301}}
     \end{equation}
 
     \item For $u(t) = t$, we begin by computing the integral via
@@ -857,7 +770,7 @@ we have
             &= tA^{-1} (I - e^{-At}) + (A^{-1})^2 (I - e^{-At}) \\
             &= A^{-1} (tI + A^{-1}) (I - e^{-At})
     \end{align}
-    % This causes Latex to break????
+    % Latex to breaks if you use \mat{}{} with two args????
     so that
     \begin{align}
         x(t) &= e^{At}x(0) + A^{-1}(tI + A^{-1})(e^{At} - I)B \\
@@ -872,21 +785,26 @@ we have
         \end{bmatrix}}
     \end{equation}
 
-    \item
+    \item We utilize the double angle identities
+    \begin{equation}
+        \cos(t)\sin(t) = \frac{1}{2}\sin(2t) \qquad
+            \sin^2(t) = \frac{1}{2}(1 - \cos(t2))
+    \end{equation}
+    to analyze the integral for $u(t) = \sin(t)$:
     \begin{align}
-        \int_{0}^{t} e^{-A\tau} B \sin(\tau) d\tau
+        \int_{0}^{t} e^{-A\tau} \sin(\tau) d\tau
             &= \int_{0}^{t} \mat{c & -s \\ s & c} s d\tau \\
             &= \int_{0}^{t} \mat{cs & -s^2 \\ s^2 & cs} d\tau \\
             &= \frac{1}{2} \int_{0}^{t} \mat{
-                s_{2t} & c_{2t} - 1 \\
-                1 - c_{2t} & s_{2t}
+                s_{2\tau} & c_{2\tau} - 1 \\
+                1 - c_{2\tau} & s_{2\tau}
             } d\tau \\ &= \frac{1}{4} \mat{ -c_{2\tau} & s_{2\tau} - \tau \\
                 \tau - s_{2\tau} & -c_{2\tau}
             } \eval_0^t \\
-            &= \frac{1}{4} \mat{
+            &= \frac{1}{4} \biggl(\mat{
                 -c_{2t} & s_{2t} - t \\
                 t - s_{2t} & -c_{2t}
-            } - \mat{-1 & 0 \\ 0 & -1}\\
+            } - \mat{-1 & 0 \\ 0 & -1} \biggr)\\
             &= \frac{1}{4} \mat{
                 1 - c_{2t} & s_{2t} - 2t \\
                 2t - s_{2t} & 1 - c_{2t} \\
@@ -902,10 +820,10 @@ we have
     \end{align}
     and evaluating at $t=1$ has
     \begin{equation}
-        x(1) \approx \mat{
+        \boxed{x(1) \approx \mat{
             0.961 \\
             -0.992
-        }
+        }}
     \end{equation}
     %     x(t) &= e^{At}x(0) + A^{-1}(tI + A^{-1})(e^{At} - I)B \\
     %         &= \mat{c & s \\ -s & c}\mat{1 \\ 0} +
@@ -920,11 +838,132 @@ we have
 
 
 
+\section{Appendix} \label{appendix}
+\subsection{Change of Basis}
+Let $\basis_1 = \{\alpha_1, \alpha_2, \dots, \alpha_n\}$ and $\basis_2$
+be two bases on a finite dimensional vector space $V$ with dimension $n$.
+
+Let $\alpha \in V$. Then $[\alpha]_{\basis_1} \in \R^n$ shall
+denote the expression of $\alpha$ as "coordinates" in $\basis_1$.
+
+We define the change of basis formula using a notation
+inspired by \cite{bullo_lectures_2022}.
+
+
+{\it Definition}: $[P]_{\basis_2}^{\basis_1}$ to denote the expression
+of $\basis_1$ with respect to $\basis_2$. In other words, the $j$th column
+of $[P]_{\basis_2}^{\basis_1}$ is $[\alpha_j]_{\basis_2}$.
+
+
+\begin{equation}
+    [P]_{\basis_2}^{\basis_1} = \begin{bmatrix}
+        [\alpha_1]_{\basis_2} & 
+        \cdots &
+        [\alpha_j]_{\basis_2} & 
+        \cdots &
+        [\alpha_n]_{\basis_2} & 
+    \end{bmatrix}
+\end{equation}
+
+{\it Theorem:}
+We transform between coordinates in different bases with via the relation:
+\begin{equation}
+    [\alpha]_{\basis_2} = [P]_{\basis_2}^{\basis_1} [\alpha]_{\basis_1}
+\end{equation}
+
+A proof is provided in \cite{hoffman_linear_2014} Ch 2, Thm 7.
+
+\subsection{Matrix representation of Linear Operators}
+Let $T: V \to W$ be a linear operator between vector spaces $V$ and $W$,
+and $\basis_1$, $\basis_2$ be bases of $V$ and $\mathcal{C}_1$, $\mathcal{C}_2$
+be bases of $W$.
+We then use the notation $[T]_{\mathcal{C}_1}^{\basis_1}$ to denote
+the matrix representation of the transformation $T$ from a
+coordinate vector expressed in $\basis_1$ to a coordinate vector
+expressed in $\mathcal{C}_1$.
+
+This notation allows the conveniently memorable notation of the
+linear transform change of basis:
+\begin{equation}
+    [T]_{\mathcal{C}_2}^{\basis_2} = [Q]_{\mathcal{C}_2}^{\mathcal{C}_1}
+        [T]_{\mathcal{C}_1}^{\basis_1}
+        [P]_{\basis_1}^{\basis_2}.
+\end{equation}
+
+\subsection{Intuitive Basis Selection}
+\label{sec:intuitive-basis}
+For the author's own clarification, we continue problem (2.3) by noting that
+basis $\basis_2$ differs from
+the one that the author would expect to provide a more intuitive
+representation of the transformation. By selecting the basis
+\begin{equation}
+    \basis_3 = \begin{Bmatrix}
+    \epsilon_1, &\qquad
+    \epsilon_1 + \epsilon_2, &\qquad
+    \epsilon_1 + \epsilon_2 + \epsilon_3, &\qquad
+    \epsilon_1 + \epsilon_2 + \epsilon_3 + \epsilon_4
+    \end{Bmatrix}
+\end{equation}
+, we find
+change of basis matrices:
+\begin{align}
+    [P]_{\basis_1}^{\basis_3} &= \begin{bmatrix}
+        1 & 1 & 1 & 1 \\
+        0 & 1 & 1 & 1 \\
+        0 & 0 & 1 & 1 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix} \\
+    [P]_{\basis_3}^{\basis_1} &= \begin{bmatrix}
+        1 & -1 & 0 & 0 \\
+        0 & 1 & -1 & 0 \\
+        0 & 0 & 1 & -1 \\
+        0 & 0 & 0 & 1
+    \end{bmatrix}
+\end{align}
+To understand the intuitive properties, let $\theta \in \R^4$
+be the angle of each bird and
+$\delta\theta = [\theta]_{\basis_3} = [P]_{\basis_3}^{\basis_1} \theta$
+be the representation of vector $\theta$ w.r.t. $\basis_3$.
+% \begin{equation}
+%     \delta\theta = [P]_{\basis_3}^{\basis_1} \theta
+% \end{equation}
+Then, the $i$th entry of $\delta\theta$,
+\begin{equation}
+    \delta\theta_i = \biggl\{\begin{array}{ll}
+            \theta_i &\qquad \text{if } i = 4 \\
+            \theta_i - \theta_{i + 1} &\qquad \text{otherwise,}
+    \end{array}
+    \biggr.
+\end{equation}
+represents the difference between the heading of a pair of subsequent
+bird's headings for all but the last. Given the particular
+collection of neighbors in question, $\{\mathcal{N}_i: i=1,\dots,4\}$,
+contains strictly adjacent birds,
+it is easy to imagine how this representation might promote
+intuitive understanding. Indeed,
+\begin{align}
+    [T]_{\basis_3}^{\basis_3} &= [P]_{\basis_3}^{\basis_1}
+            [T]_{\basis_1}^{\basis_1}
+            [P]_{\basis_1}^{\basis_3} \\
+        &= \begin{bmatrix}
+            -1.5 & 0.5 & 0 & 0 \\
+            0.5 & -1 & 0.5 & 0 \\
+            0 & 0.5 & -1.5 & 0 \\
+            0 & 0 & 1 & 0 \\
+        \end{bmatrix}
+\end{align}
+has all zeros in the 4th column, indicating that the absolute
+reference point of the flock does not impact the control input,
+only the relative positions.
+
 
         
         
 
 
 
+% \LaTeX{} \cite{latex2e} is a set of macros built atop \TeX{} \cite{texbook}.
+\bibliographystyle{plain} % We choose the "plain" reference style
+\bibliography{refs} % Entries are in the refs.bib file
 
 \end{document}
