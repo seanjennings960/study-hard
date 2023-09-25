@@ -1,0 +1,735 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5417}
+\title{Homework 2}
+\author{Sean Jennings}
+\date{September 22, 2023}
+
+\begin{document}
+\maketitle
+
+% 
+\newcommand{\eq}[1]{equation (\ref{#1})}
+% \renewcommand{}[args]{def}
+\newcommand{\pf}{\mathcal{PF}}
+% Units
+\newcommand{\W}{\text{ kW}}
+\newcommand{\kW}{\text{ kW}}
+\newcommand{\MW}{\text{ MW}}
+\newcommand{\VA}{\text{ VA}}
+\newcommand{\kVA}{\text{ kVA}}
+\newcommand{\MVA}{\text{ MVA}}
+\newcommand{\VAr}{\text{ VAr}}
+\newcommand{\kVAr}{\text{ kVAr}}
+\newcommand{\MVAr}{\text{ MVAr}}
+\newcommand{\angled}[1]{\angle #1 \degree}
+\newcommand{\instantaneous}[2]{#1 \cos(\omega t + #2 \degree)}
+\newcommand{\instpower}[3]{#1 \biggl(
+    1 + \cos(2[\omega t + #3 \degree])
+\biggr) + #2 \sin(2[\omega t + #3 \degree])}
+\renewcommand{\arccos}{\text{cos}^{-1}}
+
+\section{Formulas}
+\subsection{Phasors}
+$\bar{V}$ denotes the phasor of RMS value $V$ and phase angle
+$\delta$ and represents the sinusoid:
+\begin{equation}
+    \bar{V} = V \angle \delta \Leftrightarrow
+        \sqrt{2} V \cos(\omega t + \delta)
+\end{equation}
+where $\omega$ is the reference angular frequency, which
+is assumed constant for any phasors within a given computation.
+
+\subsection{Complex Power}
+
+Complex power $S$ is related to voltage and current phasors,
+$\bar{V}$ and $\bar{I}$, respectively by
+\begin{equation}
+    S = \bar{V} \bar{I}^*
+    \label{eq:complex-power-from-phasors}
+\end{equation}
+where $I^*$ denote the complex conjugate. Its real component
+is called complex power, and is denoted $P$; its imaginary
+component is called reactive power, denoted $Q$.
+\begin{equation}
+    S = P + jQ
+    \label{eq:complex-power-components}
+\end{equation}
+where $j = \sqrt{-1}$. Its magnitude, $|S|$ is called apparent
+power.
+
+If $Z$ is the impedance between a given $\bar{V}$ and $\bar{I}$,
+such that $\bar{V} = Z \bar{I}$,
+(\ref{eq:complex-power-from-phasors})
+can be rewritten:
+\begin{align}
+    S &= \frac{V^2}{Z^*}
+        \label{eq:complex-power-from-voltage} \\
+        &= ZI^2
+        \label{eq:complex-power-from-current}
+\end{align}
+Note: we have used the property $\bar{V}\bar{V}^* = V^2$
+and the analogy for current.
+
+\subsection{Instantaneous Power}
+For voltage $v(t)$ and current $i(t)$, given by
+\begin{equation}
+    v(t) = V_{max} \cos(\omega t + \delta) \qquad
+        i(t) = I_{max} \cos(\omega t + \beta),
+\end{equation}
+
+Instantaneous power, is given by $p(t) = v(t)i(t)$,
+which via use of product-to-sum and sum/difference trig identities
+reduces to
+\begin{equation}
+    p(t) = VI_R\biggl( 1 + \cos(2[\omega t + \delta])\biggr)
+        + VI_X \sin(2[\omega t + \delta]).
+    \label{eq:instantaneous-power-raw}
+\end{equation}
+$I_R$ is called the real current, given by
+$I_R = I \cos(\delta - \beta)$
+and $I_X$ is called the reactive current, given by
+$I_X = I \sin(\delta - \beta)$. By noting the similarity
+to Euler's formula, we have
+\begin{equation}
+    P = VI_R \qquad Q = VI_X
+    \label{eq:instantaneous-to-complex-relation}
+\end{equation}
+So equation (\ref{eq:instantaneous-power}) can be rewritten:
+\begin{equation}
+    p(t) = P\biggl( 1 + \cos(2[\omega t + \delta])\biggr)
+        + Q \sin(2[\omega t + \delta]).
+    \label{eq:instantaneous-power}
+\end{equation}
+
+\subsection{Power Factor}
+Power factor, $\pf$ is given by
+\begin{align}
+    \pf &= \cos(\delta - \beta) 
+    \label{eq:power-factor} \\
+        &= \cos(\angle(S))
+    \label{eq:power-factor-complex}
+\end{align}
+
+\subsection{Sign Conventions} 
+When current enters the terminal designated as having positive 
+voltage, we use the "load convention" and positive power
+means it is {\it absorbed}.
+When current enters the negative terminal, we use the "generator
+convention and positive power means it is {\it delivered}.
+Table (\ref{table:sign-conventions}) summarizes the parlance.
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        Convention & Load & Generator \\
+        \hline
+        P $>$ 0 & real power absorbed & real power delivered \\
+        P $<$ 0 & real power delivered & real power absorbed \\
+        Q $>$ 0 & positive reactive power absorbed &
+            positive reactive power delivered \\
+        Q $<$ 0 & positive reactive power delivered &
+            positive reactive power absorbed \\
+        \hline
+    \end{tabular}
+    \caption{Summary of Sign Convention}
+    \label{table:sign-conventions}
+\end{table}
+
+\subsection{Complex from Real Power}
+Given a load which absorbed real power $P$ at a power factor
+$\pf$, the complex power is given by:
+\begin{equation}
+    S = P + (P \cdot \tan(d \cdot \arccos(\pf)))
+    \label{eq:complex-from-real}
+\end{equation}
+where $d = 1$ if the load is lagging, and $d = -1$
+if it is leading.
+
+\subsection{Power Factor correction}
+The amount of reactive power $\Delta Q$ that needs to be
+absorbed to correct a load with real power $P$ and power
+factor $\pf$ to a new target power factor $\pf_t$, with
+the real power comsumption constant is:
+\begin{equation}
+    \Delta Q = P (\tan (\arccos(\pf)) - \tan (\arccos(\pf_t)))
+    \label{eq:reactive-power-correction}
+\end{equation}
+
+\subsection{Resistance/Reactance Equivalents in Parallel and Series}
+If a load has impedance $Z$ can be represented by two equivalent
+circuits. The first has a resistance $R_s$ in series with a
+reactance $X_s$ so that it has total impedance $Z_s = R_s + j X_s$.
+Thus,
+\begin{equation}
+    R_s = \text{real}(Z) \qquad X_s = \text{imag}(Z).
+\end{equation}
+where $\text{real}(Z)$ is the real component of $Z$ and
+$\text{imag}(Z)$ is the imaginary components such that
+$Z = \text{real}(Z) + j \text{imag}(Z)$.
+
+The second equivalent circuit has a resistance $R_p$ in parallel
+with an impedance $X_p$. The equations
+\begin{equation}
+    R_p = \frac{|Z|^2}{\text{real}(Z)} \qquad
+    X_p = \frac{|Z|^2}{\text{imag}(Z)}
+    \label{eq:parallel-equivalent-impedance}
+\end{equation}
+gives the resistance and reactance in the parallel circuit
+as a function of the equivalent impedance, where $|Z|^2 = ZZ^*$
+is the square of the magnitude of $Z$.
+
+
+
+
+
+% \subsection{Circuit Tricks}
+% For a circuit with 2 parallel components, with impedances
+% $Z_1$ and $Z_2$, which absorbed as total power of $S$.
+% The power absorbed by each component, $S_1$ and $S_2$, is given by:
+% \begin{equation}
+%     S_1 = \biggl(\frac{Z_2}{Z_1 + Z_2}\biggr)^* S \qquad
+%         S_2 = \biggl(\frac{Z_1}{Z_1 + Z_2}\biggr)^* S
+%     \label{eq:parallel-power}
+% \end{equation}
+% This is analogous to the current divider law for parallel circuits,
+% but note the presence of the conjugate about the impedance
+% fraction.
+
+
+
+
+\section{Problem 2.10}
+From problem 2.3 we have:
+\begin{align*}
+    v(t) &= 678.8 \sin(\omega t - 15 \degree)
+        = 678.8\cos(\omega t - 105 \degree) \\
+    \bar{V} &= 391.9 \angle -105 \\
+    i(t) = 200 \cos(\omega t - 5\degree)
+    \bar{I} &=  115.5 \angle -5 \degree
+\end{align*}
+By eq (\ref{eq:complex-power-from-phasors}),
+we have:
+\begin{equation*}
+    S = -7.858 \kW + j (- 44.57 \kVAr)
+\end{equation*}
+\begin{letterenum}
+    \item By equations (\ref{eq:instantaneous-power}), we
+        have
+        \begin{equation*}
+            p(t) = -7.858 [1 + \cos(2(\omega t - 105 \degree))]
+                - 44.57 \sin(2(\omega t - 105 \degree)) \kW
+        \end{equation*}
+    \item By the current direction designated in the problem,
+         we use the load convention. Per table
+        (\ref{table:sign-conventions}), 7.858 kW
+        is delivered.
+    \item 44.57 kVar of positive reactive power is delivered.
+    \item . By convention, power factor is positive
+        which implies that the generator convention should
+        instead be used. Reversing the direction of current
+        means that the sign of $S$ is flipped, so we say
+        (real and positive reactive) power is delivered either
+        way. This gives a new current phase angle of
+        $\beta_{reverse} = \beta - 180\degree = -185\degree$
+        Thus, $\delta - \beta_{reverse} = 80 \degree$..
+        By equation (\ref{eq:power-factor}), we have $\pf = 0.173$
+        {\it leading} (as one would expect
+        when delivering positive reactive power)
+
+\end{letterenum}
+
+\section{Problem 2.11}
+Since the frequency is 60Hz, we have $\omega = 2\pi f = 377$
+rad/s. We take $V = 277$, $\delta=30\degree$ from problem 2.5.
+\begin{letterenum}
+    \item $Z = 20 + j0 \ohm$.
+        By (\ref{eq:complex-power-from-voltage}) and
+            (\ref{eq:complex-power-components}),
+        \begin{align*}
+            S &= \frac{V^2}{Z^*} = 3.8 \kW + j0 \\
+            P &= 3.8 \kW \\
+            Q &= 0 \VAr
+        \end{align*}
+        From (\ref{eq:instantaneous-power}),
+        \begin{equation*}
+            p(t) = 3.8 \biggl( 1 + \cos(2[377 t + 30\degree])\biggr) \quad \kW
+        \end{equation*}
+        The power factor is 1, and is purely resistive.
+    \item $Z = j \omega L$ where $L = 10 mH$.
+        By (\ref{eq:complex-power-from-voltage}) and
+            (\ref{eq:complex-power-components}),
+        \begin{align*}
+            S &= \frac{V^2}{(j \omega L)^*} = 0 \kW + j(20.35 \kVAr) \\
+            P &= 0 \kW \\
+            Q &= 20.35 \kVAr
+        \end{align*}
+        From (\ref{eq:instantaneous-power}),
+        \begin{equation*}
+            p(t) = 20.35 \sin(2[377 t + 30 \degree]) \quad \kW
+        \end{equation*}
+        The power factor is 0 and lagging.
+    \item $Z = -j 25 \ohm$.
+        By (\ref{eq:complex-power-from-voltage}) and
+            (\ref{eq:complex-power-components}),
+        \begin{align*}
+            S &= \frac{V^2}{Z^*} = 0 \kW - j(3.069 \kVAr) \\
+            P &= 0 \kW \\
+            Q &= -3.069 \kVAr
+        \end{align*}
+        From (\ref{eq:instantaneous-power}),
+        \begin{equation*}
+            p(t) = -3.069 \sin(2[377 t + 30 \degree]) \quad \kW
+        \end{equation*}
+        The power factor is 0 and leading.
+\end{letterenum}
+
+\section{Problem 2.12}
+From the instantaneous voltage, we have $bar{V} = 391.9 \angle 45$.
+We first find overall impedance:
+\begin{equation*}
+    Z = \biggl(1/Z_R + 1/Z_C\biggr)^{-1} = 8.62 - j (3.45) \ohm
+\end{equation*}
+Then, the total power absorbed by the load, the resistor,
+and the capacitor
+\begin{align*}
+    S = \frac{V^2}{Z^*} &= 15.46 \kW - j (6.143 \kVAr) \\
+    S_R = \frac{V^2}{Z_R^*} &= 15.46 \kW - j (0 \kVAr) \\
+    S_C = \frac{V^2}{Z_C^*} &= 0 \kW - j (6.143 \kVAr)
+\end{align*}
+
+
+\begin{letterenum}
+    \item From (\ref{eq:instantaneous-power}) and the complex
+        powers computed above,
+        instantaneous power for the resisitor is:
+    \begin{equation*}
+        p_R(t) = 15.46 (1 + \cos(2[\omega t + 45 \degree])) \quad \kVA
+    \end{equation*}
+    \item From (\ref{eq:instantaneous-power}) and the above,
+        instantaneous power for the capacitor is:
+    \begin{equation*}
+        p_C(t) = -6.143 \sin(2[\omega t + 45 \degree]) \quad \kVA
+    \end{equation*}
+    \item The real power absorbed by resistor is 15.46 kW
+        (again from above...).
+    \item The reactive power delivered by the capacitor is
+        6.143 kVAr.
+    \item The load power factor is obtained from the angle of the
+        total complex power:
+        \begin{equation*}
+            \pf = \cos(\angle(S)) = 0.928 \text{leading}
+        \end{equation*}
+\end{letterenum}
+
+\subsection{Problem 2.13}
+Circuit impedance $Z = Z_R + Z_C = 10 + j25 \ohm$.
+
+The current is: $\bar{I} = \bar{V} / Z = 14.55 \angle 113\degree$
+
+Then, power for the circuit overall, the resistor, and the capacitor
+are computed from \ref{eq:complex-power-from-current}.
+\begin{align*}
+    S = ZI^2 = 2.118 \kW - j (5.296 \kVAr) \\
+    S_R = ZI_R^2 = 2.118 \kW - j (0 \kVAr) \\
+    S_C = ZI_C^2 = 0 \kW - j (5.296 \kVAr)
+\end{align*}
+
+\begin{letterenum}
+    \item Instant. power for the resistor
+    \begin{equation*}
+        p_R(t) = 2.118 (1 + \cos(2[\omega t + 45 \degree])) \quad \kVA
+    \end{equation*}
+    \item for the capacitor:
+    \begin{equation*}
+        p_C(t) = -5.296 \sin(2[\omega t + 45 \degree]) \quad \kVA
+    \end{equation*}
+    \item real power consumed by resistor: 2.118kW
+    \item reactive power delivered by capacitor: 5.296 kVAr.
+    \item power factor: 0.371
+\end{letterenum}
+
+\subsection{Problem 2.14}
+$\bar{I} = 4\angle 0 kA$ so that
+$\bar{V} = Z \bar{I} = 8 \angle -45 \degree kV$ and
+\begin{equation*}
+    S = ZI^2 = 32\angle-45 \degree = 22.63 \MW - j22.63 \MVAr
+\end{equation*}
+\begin{letterenum}
+    \item instantaneous power:
+    \begin{equation*}
+        p(t) = 22.63 (1 + \cos(2[\omega t - 45 \degree)))
+            - 22.63 \sin(2[\omega t - 45 \degree]) \quad \MW
+    \end{equation*}
+    \item $P = 22.63 \MW$
+    \item $Q = 22.63 \MVAr$
+    \item $\pf = \cos(-45 \degree) = 0.7071$
+
+\end{letterenum}
+
+\subsection{Problem 2.15}
+\begin{align*}
+    \bar{V} &= 2.309 \angled{60} \\
+    \bar{I} &= \bar{V}/Z = 1.155 \angled{30} \\
+    S &= \bar{V} \bar{I}^* = 2.309 + j1.333 \\
+\end{align*}
+
+\begin{letterenum}
+    \item From phasors above
+    \begin{align*}
+        i(t) &= \instantaneous{1.155}{30} \\
+        p(t) &= \instpower{2.309}{1.333}{60} \quad \W
+    \end{align*}
+    \item The plots is in figure (\ref{fig:instantaneous-signals}).
+    \begin{center}
+        \includegraphics[width=0.8\linewidth]{instantaneous.png}
+        \captionof{figure}{Instantaneous signals}
+        \label{fig:instantaneous-signals}
+    \end{center}
+
+    \item the frequency for power is double, so 120 Hz. The average
+        value is the real power, 2.309 W.
+\end{letterenum}
+
+\section{Problem 2.16}
+$Z = 10 + j 15.08 \ohm$
+\begin{equation*}
+    S = \frac{V^2}{Z} = 439.83 \W + j663.3 \VAr
+\end{equation*}
+\begin{letterenum}
+    \item $\pf = 0.5527$ lagging
+    \item $P = 439.83$, $Q = 663.3$
+    \item $W = L \cdot (V / Z)^2 = 1.759$ J. $\omega W = 663.2$
+        VAr which indeed matches the reactive power.
+
+\end{letterenum}
+
+\section{Problem 2.17}
+\begin{letterenum}
+    \item We use equation (\ref{eq:complex-power-from-current})
+    \begin{align*}
+        S &= ZI^2 = j\omega L I^2 \\
+        Q &= \omega L I^2
+    \end{align*}
+    assuming $I$ is the rms current.
+
+    \item Instantaneous power only has the sine component. Since
+    $\bar{V} = j \omega L \bar{I}$, the angle of the voltage,
+    which is reference for the power expression, is
+    $\delta = \theta + 90 \degree$
+    \begin{align*}
+        p(t) &= \omega L I^2 \sin (2[\omega t + \theta + 90\degree]) \\
+             &= Q \sin (2[\omega t + \theta + 90\degree])
+    \end{align*}
+    Of course, this is all can be obtained by multiplying
+    $i(t)$ and $v(t)$ and applying trig product-sum and difference
+    formulas, but complex numbers so neatly hide that complexity!
+
+    \item The average real power to the inductor is zero, 
+    because the angle between voltage and current is 90$\degree$.
+\end{letterenum}
+
+\section{Problem 2.18}
+\begin{letterenum}
+    \item Since $S = Z I^2$, the angle of impedance determines
+        the how much power is real vs. reactive ($I$ is a magnitude!):
+        \begin{equation*}
+            P = I^2 \cos(\angle(Z)) \qquad Q = I^2 \sin(\angle(Z))
+        \end{equation*}
+    \item The voltage angle is $\angle(V) = \angle(Z) + \angle(I) = \angle(Z)$
+    so power is:
+    \begin{equation*}
+        p(t) = \instpower{P}{Q}{\angle(Z)}
+    \end{equation*}
+
+    \item If you have more (less) capacitance than inductance
+        (as compared by reactance), the reactive power
+        angle of the impedance becomes negative (positive), and thus
+        the reactive power becomes negative (positive) as well.
+
+        The relative magnitude of resistance compared to the total
+        reactance is also importance. More (less) resistance
+        means the angle will be smaller (larger), and thus more
+        (less) real power,
+
+        When $\omega^2LC = 1$, we have the following expression for
+        reactance
+        \begin{equation*}
+            X = \omega L - \frac{1}{\omega C}
+                = \frac{\omega^2 LC - 1}{j \omega C}
+        \end{equation*}
+        So the impedance angle is 0 and the reactive power term
+        disappears. The instantaneous power curve is then a 
+        sinusoid with mean and amplitude of real power, so it
+        has peaks of 0 and $2P$.
+\end{letterenum}
+
+\section{Problem 2.19}
+\begin{letterenum}
+    \item We have
+    \begin{align*}
+        \bar{V} = 150 \angled{10} \W \\
+        \bar{I} = 5 \angled{-50} \\
+        S = 750 \angle 60 = 375 W + j 649 VAr
+    \end{align*}
+    The power triangle is just the plot of $S$ in complex space.
+
+    \item The power factor is $\cos(60\degree) = 0.5$ lagging.
+    \item A target power factor of 0.9 corresponds to an
+        angle of $\theta = \arccos(0.9)$. Then, the target
+        reactive power is
+        \begin{equation*}
+            Q_{target} = P\tan\theta = P\tan(\arccos(0.9)) = 181.6 VAr
+        \end{equation*}
+        So the capacitor would need to deliver
+        $Q - Q_{target} = 467.9 VAr$.
+\end{letterenum}
+
+\section{Problem 2.20}
+$S_1$ and $S_2$ are the power triangles for components 1 and 2,
+respectively. $S$ is the power delivered by the source.
+\begin{align*}
+    Z = (1 / Z_1 + 1 / Z_2)^{-1} &= 10.35 \angled{-15.00} \\
+    S_1 = V^2 / Z_1^* &= \boxed{433.01 \W + j 250.0 \VAr} \\
+    S_2 = V^2 / Z_2^* &= \boxed{500.1 \W - j 500.1 \VAr} \\
+    S = V^2 / Z^* &= \boxed{933.1 \W - j250.1 \VAr}
+\end{align*}
+
+\section{Problem 2.21}
+\begin{letterenum}
+    \item The reactive power, $Q$, for a given real power output $P = 1000 \kW$
+        and power factor $\pf = 0.7$ is 
+        \begin{equation*}
+            Q = P \tan(\arccos(\pf))
+        \end{equation*}
+        The difference between the current reactive power
+        and the reactive power $Q_t$ to obtain power factor
+        $\pf_t = 0.9$ is
+        \begin{equation*}
+            Q_t - Q = P \biggl(
+                \tan(\arccos(\pf_t)) - \tan(\arccos(\pf))\biggr)
+                = -535.9 kVAr
+        \end{equation*}
+        So 535.9 kVAr must be delivered by the shunt capacitor.
+
+    \item The new total power is: 
+    \begin{equation*}
+        P_{new} = P + P_{motor} = 1000 \kW + 1000 \text{ hp}
+            \frac{0.746 \kW}{1 \text{ hp}} \frac{1}{0.9} = 1828.89 kW
+    \end{equation*}
+    From the above equation, we have
+    \begin{equation*}
+        Q = 1020.2 kVAr
+    \end{equation*}
+    so that the new power factor is
+    \begin{equation*}
+        \pf_{new} = \cos(\arctan(P_{new}/Q)) = 0.776
+    \end{equation*}
+\end{letterenum}
+
+\section{Problem 2.22}
+\begin{letterenum}
+    \item Find impedance
+    \begin{equation*}
+        Z = (1/Z_1 + 1/Z_2) = 3.299 + j 2.577 \ohm
+    \end{equation*}
+    Use it to compute reactive power, based on angle
+    \begin{equation*}
+        Q = P tan(\angle(Z)) = 1562.5 \VAr
+    \end{equation*}
+    Compute $S_1$ and $S_2$ by power divider formula:
+    \begin{equation*}
+        S_1 = (Z / Z_1)^* S = 937.5 \W + j 1563 \VAr
+        S_2 = (Z / Z_2)^* S = 1062.5 \W
+    \end{equation*}
+    So the real power is $\boxed{937.5 \W}$ for component 1,
+    and $\boxed{1062.5 \W}$ for component 2.
+
+    \item The total current supplied by source is related to
+        complex power and load impedance:
+    \begin{equation*}
+        I = \sqrt{\frac{S}{Z}} = 24.6 \text{ A}
+    \end{equation*}
+\end{letterenum}
+
+\section{Problem 2.23}
+\begin{equation*}
+    S = \bar{V}\bar{I}^* = 3000 \angled{-30} = 2598 - j1500
+\end{equation*}
+So the source is delivering 3000 W real power and absorbing
+1500 VAr of positive reactive power.
+
+\section{Problem 2.24}
+We assume the first source is purely resistive (since it is a lighting
+load, and no PF is mentioned.) So $S_1 = 10 \kW + j0 \kVAr$.
+$S_2$ provides apparent power so
+\begin{equation*}
+    S_2 = 10 \kVA \angle(\arccos(0.9)) = 9 \kW + j4.359 \kVAr
+\end{equation*}
+$S_3$ is specc'ed in (real) horsepower $P_{hp} = 10 hp$ and
+efficiency $\rho = 0.85$, with $\pf_3 = 0.95$ leading, so we have:
+\begin{align*}
+    P_3 &= P_{hp} \cdot C / \rho = 8.776 \kW \\
+    S_3 &= P_3 + j (P_3 * \tan(- \arccos(\pf_3))) \\
+        &= 8.776 \kW - j 2.885 \kVAr
+\end{align*}
+where $C = 0.746 \kW / \text{ hp}$ is a unit conversion factor.
+
+So the total power is
+\begin{align*}
+    S &= \sum_{i=1}^3 S_i = 27.82 \angled{3.038} \kVA \\
+    P &= 27.78 \kW \\
+    Q &= 1.474 \kVAr \\
+    |S| &= 27.83 \kVA
+\end{align*}
+Figure (\ref{fig:2-24-power-triangle}) draws the source power
+triangle.
+
+\begin{center}
+    \includegraphics[width=0.6\linewidth]{2_24_p_triangle.png}
+    \captionof{figure}{2.24: Power triangle}
+    \label{fig:2-24-power-triangle}
+\end{center}
+
+\section{Problem 2.25}
+We have $Z_R = 3\ohm$, $Z_L = j8 \ohm$, $Z_C = -j4\ohm$. So
+the total impedance is $Z = Z_R + Z_L + Z_C = 3 + j4 \ohm$.
+Thus, with voltage $\bar{V} = 100 \angled0$, the total current is
+$\bar{I} = \bar{V} / Z = 20 \angled{53.13}$ A. Then the power
+for each component is:
+\begin{align*}
+    S_R &= Z_R I^2 = 1200 \W + j0 \VAr \\
+    S_L &= Z_L I^2 = 0 \W + j3200 \VAr \\
+    S_C &= Z_C I^2 = 0 \W - j1600 \VAr \\
+\end{align*}
+Then, the total power can be compute from $V$ and $Z$
+\begin{equation*}
+    S = V^2 / Z^* = 1200\W+ j1600\VAr
+\end{equation*}
+which is equal to:
+\begin{equation*}
+    S = S_R + S_L + S_C = 1200 \W + j1600 \VAr
+\end{equation*}
+
+\section{Problem 2.26}
+\begin{letterenum}
+\item Given real power of the plant is $P_p = 120 \kW$ at $\pf_p= 0.85$
+lagging, by equation (\ref{eq:complex-from-real}), we have the plant's
+complex power $S_p = 120 \kW + j74.37 \kVAr$. With the voltage
+at the plant $\bar{V_p} = 400 \angled{0}$, the current
+through the series circuit of the plant and the line is:
+\begin{equation*}
+    \bar{I} = \biggl(\frac{S_p}{\bar{V_p}}\biggr)^* = 294.1 \text{ A}
+\end{equation*}
+The power in the line is then with impedance
+$Z_L = 0.5 \ohm/\text{ km} \cdot 2 \text{ km} = 1 \ohm$ is
+\begin{equation*}
+    S_L = Z_L I^2 = 86.51 \kVAr
+\end{equation*}
+and the total power from the source is the sum:
+\begin{equation*}
+    S = S_p + S_L = 120 \kW + j 160.9 \kVAr
+\end{equation*}
+which gives the source power factor: $\pf = 0.598$ lagging.
+Voltage can then be computed from power and current to be
+\begin{equation*}
+    \bar{V} = \frac{S}{\bar{I}^*} = 682.4 \angled{21.5} \text{ V}
+\end{equation*}
+
+\item Via a circuit analysis approach, we first compute the 
+plant impedance, $Z_p$ from it's power absorption, using
+the complex power $S_p$ as computed above:
+\begin{equation*}
+    Z_p = \biggl(\frac{V_p^2}{S_p}\biggr)^* = 1.632 \angle 31.8 \ohm
+        = 1.3872 + j0.860 \ohm
+\end{equation*}
+so that the total impedance is
+\begin{equation*}
+    Z = 1.3872 + j1.860 \ohm
+\end{equation*}
+Total voltage from the source, $\bar{V}$, then follows from the voltage
+divider law:
+\begin{equation*}
+    \bar{V} = \frac{Z}{Z_p} \bar{V_p} = 682.4 \angled{21.5} \text{ V}
+\end{equation*}
+Then the power is:
+\begin{equation*}
+    S = \frac{V^2}{Z^*} = 120 \kW + j160.9 \kVAr
+\end{equation*}
+which gives power factor $\pf = 0.598$ lagging. All these numbers
+agree with the power analysis approach in part a).
+
+\end{letterenum}
+
+\section{Problem 2.27}
+By equation (\ref{eq:reactive-power-correction}),
+we have the reactive power needed to correct the load with
+real power consumption $P = 50 kW$ from power factor
+$\pf = 0.8$ lagging to $\pf = 0.95$ lagging is
+\begin{equation}
+    \Delta Q = -21.065 \kVAr
+\end{equation}
+That is, an additional $21.065 \kVAr$ must be delivered by
+the capacitor bank. The power delivered by the capacitor
+if related to voltage $V = 220$, capacitor impedance $Z_C$,
+which, in turn, is related to angular frequency $\omega = 377$ rad/s,
+and the unknown capacitance $C$, by the following:
+\begin{align*}
+    S_C &= j \Delta Q = \frac{V^2}{Z_C^*}
+        = \frac{V^2}{\biggl(\frac{1}{j\omega C}\biggr)^*}
+        = -j\omega C V^2 \\
+    C &= - \frac{\delta Q}{\omega V^2} \\
+        &= \boxed{1,154 \text{ }\mu \text{F}}
+\end{align*}
+
+\section{Problem 2.28}
+$S_i$, the complex power of absorbed by load $i$, and $S$ the
+complex power delivered by the source is given by
+\begin{align*}
+    S_1 &= 12 \kW + j6.667 \kVAr \\
+    S_2 = 4 \angle (-\arccos(0.96)) &= 3.84 \kW - j1.12 \kVAr \\
+    S_3 &= 15 \kW + j0 \\
+    S = S_1 + S_2 + S_3 = 31.33 \angled{10.2}
+        &= 30.84 \kW + j5.547 \kVAr
+\end{align*}
+Thus the equivalent impedance for the three parallel loads
+is: 
+\begin{equation*}
+    Z = \frac{V^2}{S^*} = 1.809 + j 0.325 \ohm.
+\end{equation*}
+Then, a resistance $R_s$ in series with a reactance
+$X_s$ is simply the real and imaginary components of $Z$:
+\begin{equation*}
+    Z_s = R_s + j X_s
+\end{equation*}
+so that the series resistance is $\boxed{R_s = 1.809 \ohm}$ and the series
+reactance is $\boxed{X_s = +0.325 \ohm}$.
+
+The circuit with resistance $R_p$ in parallel with reactance $X_p$
+and an equivalent impedance is given by
+equation (\ref{eq:parallel-equivalent-impedance}), so that:
+\begin{equation*}
+    \boxed{R_p = 1.868 \ohm} \qquad \boxed{X_p = +10.38 \ohm}
+\end{equation*}
+
+
+
+
+
+
+
+
+
+
+
+% \section{}
+% \begin{letterenum}
+% \end{letterenum}
+
+\end{document}
+
