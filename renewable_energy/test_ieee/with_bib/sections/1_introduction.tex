@@ -13,7 +13,85 @@ Accepted for publication \cite{acceptedpub}\\
 Submitted for publication \cite{unpub}\\
 Not published \cite{notpub}\\
 Conversation \cite{conv}
-sup homies
+sup homies bad boys
 
+
+\IEEEPARstart{T}{he} penetration of renewable energy sources (RES)
+projected to increase over the coming decades, with gains highly powered by
+solar and wind resources. The NREL report %\ref
+has solar and wind energy increasing to >50\% share by 2050. 
+Solar photovoltaics (PV) and Type III and Type IV wind turbine generators
+(WTG) are both inverter-based resources (IBRs), as opposed to synchronous
+generators (SGs) of which the conventional power grid is mostly composed.
+
+Throughout the history of the power grid, reliability has been a prime concern.
+A core aspect of power system reliability is frequency control, the ability
+to maintain the AC voltage and current signals close to a given setpoint
+(e.g. 60 Hz in the USA). If frequency deviates too far from its setpoint,
+protection mechanisms of the grid, such as under-frequency load shedding
+(UFLS) are triggered to prevent damage to equipment and to arrest further
+instability.  %\ref?
+Load shedding means that some customer(s) have lost power, a serious grid
+reliability issue.
+
+When the grid is near equilibrium, its frequency is closely related
+to the real power transfer between its nodes. When a system fault, such as a
+generator going offline, causes a power imbalance in the system, 
+the rest of the generators increase power output to balance
+generation and load. To transfer power between nodes requires the phase angle
+between nodes in the system to shift, which results in transient frequency
+deviations.
+
+The rate at which frequency changes (RoCoF) is related to underlying physical
+system from which the energy is derived. Conventionally,
+thermal power plants use SGs to convert the underlying mechanical energy
+contained in steam into electrical energy. The RoCoF is limited by
+the mechanical {\bf inertia} of the SG as governed by the swing equation.
+
+On the other hand, IBRs connect an energy resource such as a PV cell,
+WTG, or a battery energy storage system (bESS) to the grid via a 
+power electronic (PE) inverter which converts a DC source to an AC output.
+The dynamics governing the energy resource as well as the control algorithm.
+Because the IBR is not directly connected to any form of mechanical inertia,
+IBR do not have inertia and that systems with high penetrations of IBRs
+are {\it low-inertia} systems. \cite[text]{}
+
+The control algorithms used by IBRs can be broadly divided into two strategies:
+\begin{enumerate}
+  \item Grid-following Inverters (GFL), and
+  \item Grid-forming Inverters (GFM).
+\end{enumerate}
+
+This distinction, however, is informal. To date, there is no IEEE standard
+on the definition of GFM. NREL defines a GFM to be any inverter that does 
+not operate with a phase-lock loop (PLL). %ref??
+
+There has been some debate on the security of IBRs. %ref{foundation-and-challenges}
+posits that "low inertia likely implies low security" since
+lack of mechanical inertia means that the stability of the system
+relies on the software implementation of control algorithms. Thus,
+there is a growing body of research aimed at demonstrating the 
+robustness of the control strategies deployed on IBRs.
+
+While the deployment of increasing penetrations of IBR to the large-scale
+grid may not be gauranteed, it remains one of the currently most 
+economically feasible paths to net-zero carbon emissions. Furthermore,
+any potential deployment will necessarily be gradual process: the entirety of
+SG-based generation cannot be replaced with generation based on IBRs
+overnight. Therefore, it is of vital importance to study the 
+dynamics of IBR-based frequency control in the variety of contexts
+anticipated in the forthcoming energy transition. Since this
+entails nothing less than a complete rearchitecting of the energy
+grid, there are numerous open research questions in this field
+which will be enumerated.
+
+This literature review focuses on the challenges and oppurtunities along
+the path to incorporating high levels of IBR penetration into the grid 
+at a large scale. It is organized as follows: section \ref{sec:math-models}
+summarizes the mathematical formulation for frequency control; section
+\ref{sec:control-strategies} enumerates and classifies the many
+of control schemes that have been proposed in literature; section
+\ref{sec:commericial-demonstrations} summarizes the major commericial
+projects which have been deployed using GFM technology to-date.
 
 

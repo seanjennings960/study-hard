@@ -1,0 +1,47 @@
+\label{sec:control-strategies}
+
+Literature on GFM control has existed since the mid-1990s %\ref{?}
+since it is a technical requirement for microgrids (MGs), which may
+not have SGs and therefore must establish their own frequency.
+(move to Intro?)
+
+A number of schemes for controlling GFMs have been proposed, including
+\begin{enumerate}
+  \item droop control
+  \item multi-loop droop control
+  \item virtual synchronous machine (VSM)
+  \item virtual oscillating control (VOC)
+\end{enumerate}
+
+\subsection{Virtual Inertia-based Schemes}
+Both VSM and VOC strategies aim to emulate SGs by designing controllers
+which exhibit similar dynamical properties to an SG. The degree
+to which it is possible to fully emulate an SG is again driven by 
+the physics of the underlying system, but the studies have shown
+the capability of PE to emulate a SG within both simulation %\ref{virtual-inertia-cs}
+and on physical devices.
+
+These methods ensure that the RoCoF after a distrubance remains constrained
+within a certain limit. This is important because various components of
+power system protection make assumptions on RoCoF, so that changes
+in the dynamical properties of underlying generation may invalidate
+protection-related assumptions.
+
+
+\subsection{Droop Control}
+To the best of the author's knowledge, there exists no formal definition
+of "droop control" within GFM literature. The origins of the
+term "droop" is vestigial terminology from the tradition of SGs, where
+it presumably refers to the "droop" of the mechanical centrifugal governor
+control mechanism [add figure].
+
+The commonality between droop control techniques is the inverse
+relationship between frequency and power generation, such that
+frequency is essentially used as a signal within the grid that a power
+imbalance has occurred and that other generation sources should
+increase their power output accordingly.
+
+
+\subsection{Optimization-based techniques}
+[TODO: foundations and challenges paper has interesting notes on optimal
+control parameter tuning, etc., read this more thoroughly!]

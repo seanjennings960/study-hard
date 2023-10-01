@@ -1,0 +1,92 @@
+
+
+\label{sec:math-models}
+
+\subsection{Synchronous Generators}
+ We begin our summary of the literature by reviewing the dynamics of SGs, 
+ which is a topic that has been well-established
+ for decades. Despite it's lack of novelty, the topic remains highly
+ relevant to the problem of IBR frequency control since
+ \begin{enumerate}
+  \item a substantial portion of the prevailing industry terminology
+    is based around these terms, and
+  \item SG dynamics interact with IBR dynamics via their network
+    interconnections within the grid.
+ \end{enumerate}
+
+%  A SG is composed of three major components from a control standpoint,
+% the excitation system, the 
+
+ The relationship between power and frequency in a SG is governed by
+ \begin{equation}
+  J\dot{\omega} = p_m - p_e
+  \label{eq:swing-equation}
+ \end{equation}
+ where $J$ is the system intertia, $p_m$ is the mechanical power input to
+ the generator, and $p_e$ is the electrical power which is absorbed
+ by connected loads.
+
+Since a change in frequency signals there is a power imbalance within the
+system, the rotor speed of an SG is typically regulated by a
+feedback-mechanism called the governor. This feedback couples a change in 
+frequency, $\omega$, to a (typically proportional) change in the power
+delivered by the prime mover $p_m$:
+\begin{equation}
+  \dot{p_m} = - \frac{\omega_{set}}{R} * (\omega - \omega_{set}) + p_{m,set}
+  \label{eq:governor-control}
+\end{equation}
+
+Combining equation \ref{eq:swing-equation} and \ref{eq:governor-control}
+gives a second order relationship between frequency, $\omega$ and 
+mechanical power delivered, $p_m$.
+ 
+\subsection{IBR Grid Integration}
+In contrast, the frequency-real power relation for IBR resources are not
+coupled by mechanical inertia of the swing equation,
+but rather are determined by the underlying energy source for the IBR system.
+%\ref{interactivity}
+defines makes the assumption that power and energy is available from a bESS,
+but the same conclusions hold if the energy source is curtailed PV or wind power.
+This assumption is a common and vital one: it informs the design of
+the DC side of an IBR. %\ref{battery-sizing}
+elaborates on the relationship between the control parameters and
+the power requirements for the bESS.
+
+%\ref{interactivity}
+demonstrates that the timescale of IBR reactions are an order of magnitude
+shorter than the mechanical timescale (~1 second) which SGs operate.
+Thus, when considering the interaction between the two we find that 
+% $p_{m,G} \approx p_{m,Go}$ is a
+on this short timescale, the IBR response is first-order with respect to the
+electrical power $p_{m,I}$ drawn from the circuit:
+\begin{equation}
+  \dot{p_{m,I}} = \frac{2 \pi (p_{e,I} - p_{m,I})}{\tau_I}
+\end{equation}
+
+It is well-documented that if the grid contains above a certain penetration
+of GFLs, instability occurs. Therefore, for grids with high
+IBR penetrations, a certain percentage of GFMs are necessary to maintain
+stability. However, GFMs can also have their own drawbacks: they are
+require more specialized hardware and control algorithms so are
+therefore more expensive.
+
+It has been shown that the placement of GFMs within a power system
+topology has an important impact on overall system stability in a 
+system with mixed GFL, SG, and GFM-based resources. However,
+the exact interaction between GFLs and GFMs remains an open research
+question. In particular, the ratio of GFLs to GFMs at which instability
+arises and the optimal placement of GFMs within a given power system
+remain under-studied questions.
+
+A major difference between the physics of IBRs versus SGs is that
+typically IBRs have a much lower current threshold that they
+can produce based on the limits of the underlying PEs. As a result,
+they have a smaller short-circuit ratio, which corresponds to 
+a lower system strength. In general, a weaker system strength
+implies a decrease in the voltage stiffness, which can impair
+IBR performance. GFMs can provide "voltage strength" which is another
+advantage over GFLs. Since this review is focused on frequency
+control of IBRs, we will consider further discussion on the topic
+as out of scope and will conclude with the note that voltage and
+frequency control are inherently coupled and modeling these 
+interactions is vital for demonstrating system stability.
