@@ -1,0 +1,31 @@
+%% This is a skeleton file to create IEEE style Bibliography list. There is a guide added "create-manual-bib-entry.txt" to manually create popular types of references such as PhD thesis, website, unpublished work etc.
+%%
+%% Modified by K. Reaz( kahn.reaz@ieee.org)
+%% Support sites:
+%% http://www.ieee.org/
+
+%%***********************************************************
+%% Legal Notice:
+%% This code is offered as-is without any warranty either expressed or implied; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE! 
+%% User assumes all risk and can modify as s/he wants.
+
+%%***********************************************************
+
+%package list
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+
+
+\begin{document}
+%Here goes the title
+\title{Genrate IEEE styled Bibliography for All Types of  Items}
+\maketitle
+
+%Main body starts
+\section{Item types}
+\input{sections/1_introduction}
+
+\bibliographystyle{IEEEtran}
+\bibliography{main}
+
+\end{document}
