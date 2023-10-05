@@ -15,7 +15,7 @@ to maintain the AC voltage and current signals close to a given setpoint
 (e.g. 60 Hz in the USA) \cite{anderson_power_2003}. If frequency deviates too far from its setpoint,
 protection mechanisms of the grid, such as under-frequency load shedding
 (UFLS) are triggered to prevent damage to equipment and to arrest further
-instability.  %\ref?
+instability \cite{denholm_inertia_2020}
 Load shedding means that some customer(s) have lost power, a serious grid
 reliability issue.
 
@@ -40,7 +40,7 @@ power electronic (PE) inverter which converts a DC source to an AC output.
 The dynamics governing the energy resource as well as the control algorithm.
 Because the IBR is not directly connected to any form of mechanical inertia,
 IBR do not have inertia and that systems with high penetrations of IBRs
-are {\it low-inertia} systems. \cite[text]{}
+are {\it low-inertia} systems.
 
 The control algorithms used by IBRs can be broadly divided into two strategies:
 \begin{enumerate}
@@ -48,16 +48,26 @@ The control algorithms used by IBRs can be broadly divided into two strategies:
   \item Grid-forming Inverters (GFM).
 \end{enumerate}
 
-This distinction, however, is informal. To date, there is no IEEE standard
-on the definition of GFM. NREL defines a GFM to be any inverter that does 
-not operate with a phase-lock loop (PLL). %ref??
+While the IEEE has established standards for GFL converters \cite{photovoltaics_ieee_2018},
+the definition of GFM remains debated within research communities.
+To date, there is no IEEE standard on the definition of GFM.
+NREL defines a GFM to be any inverter that does not operate with a phase-lock loop (PLL)
+\cite{lin_research_2020}
 
-There has been some debate on the security of IBRs. %ref{foundation-and-challenges}
-posits that "low inertia likely implies low security" since
+There has been some debate on the security of IBRs. The authors
+of \cite{milano_foundations_2018}
+posit that "low inertia likely implies low security" since
 lack of mechanical inertia means that the stability of the system
 relies on the software implementation of control algorithms. Thus,
 there is a growing body of research aimed at demonstrating the 
 robustness of the control strategies deployed on IBRs.
+
+Despite the informal definition, GFM control technology is
+not new: since the 1990s, it has been researched extensively by
+the microgrid research community \cite{lin_research_2020},
+and implemented within smaller power systems. However, the 
+integration of GFM systems into the power grid on a larger scale
+has 
 
 While the deployment of increasing penetrations of IBR to the large-scale
 grid may not be gauranteed, it remains one of the currently most 

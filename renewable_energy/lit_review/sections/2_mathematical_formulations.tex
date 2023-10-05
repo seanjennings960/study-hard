@@ -40,53 +40,59 @@ Combining equation \ref{eq:swing-equation} and \ref{eq:governor-control}
 gives a second order relationship between frequency, $\omega$ and 
 mechanical power delivered, $p_m$.
  
-\subsection{IBR Grid Integration}
+\subsection{IBR Grid Integration} \label{sec:grid-integration}
 In contrast, the frequency-real power relation for IBR resources are not
 coupled by mechanical inertia of the swing equation,
 but rather are determined by the underlying energy source for the IBR system.
-%\ref{interactivity}
-defines makes the assumption that power and energy is available from a bESS,
+In \cite{kenyon_interactive_2023}, the authors
+make the assumption that power and energy is available from a bESS,
 but the same conclusions hold if the energy source is curtailed PV or wind power.
 This assumption is a common and vital one: it informs the design of
-the DC side of an IBR. %\ref{battery-sizing}
-elaborates on the relationship between the control parameters and
+the DC side of an IBR. The authors of \cite{allehyani_effect_2022}
+elaborate on the relationship between the control parameters and
 the power requirements for the bESS.
 
-%\ref{interactivity}
-demonstrates that the timescale of IBR reactions are an order of magnitude
+\cite{kenyon_interactive_2023} demonstrates that the timescale of IBR reactions
+are an order of magnitude
 shorter than the mechanical timescale (~1 second) which SGs operate.
 Thus, when considering the interaction between the two we find that 
-% $p_{m,G} \approx p_{m,Go}$ is a
-on this short timescale, the IBR response is first-order with respect to the
+$p_{m,G} \approx p_{m,Go}$.
+On this short timescale, the IBR response is first-order with respect to the
 electrical power $p_{m,I}$ drawn from the circuit:
 \begin{equation}
   \dot{p_{m,I}} = \frac{2 \pi (p_{e,I} - p_{m,I})}{\tau_I}
 \end{equation}
 
 It is well-documented that if the grid contains above a certain penetration
-of GFLs, instability occurs. Therefore, for grids with high
+of GFLs, instability occurs \cite{kenyon_stability_2020}. Therefore, for grids with high
 IBR penetrations, a certain percentage of GFMs are necessary to maintain
-stability. However, GFMs can also have their own drawbacks: they are
-require more specialized hardware and control algorithms so are
-therefore more expensive.
+stability. However, GFMs also add to system cost, requiring more specialized
+hardware and control algorithms \cite{noauthor_grid_2021}. Thus,
+a quantification of such limits can help reduce system costs.
+quantifying such limits. Recent research has proposed that ratio of 17.8\%
+GFM inverters within the system can improve the small-signal stability margin
+\cite{xin_how_2023}. However, more work remains to verify this
+limit taking into account a more in-depth consideration dynamic stability
+and contingency requirements.
 
-It has been shown that the placement of GFMs within a power system
+It has also been shown that the placement of GFMs within a power system
 topology has an important impact on overall system stability in a 
-system with mixed GFL, SG, and GFM-based resources. However,
-the exact interaction between GFLs and GFMs remains an open research
-question. In particular, the ratio of GFLs to GFMs at which instability
-arises and the optimal placement of GFMs within a given power system
-remain under-studied questions.
+system with mixed GFL, SG, and GFM-based resources \cite{kenyon_stability_2020}.
+However, a precise formulation of the topology-dependence in hybrid GFL/GFM
+systems remains an open research question. The 2021 NERC report on GFM technology
+highlights the need for a well-defined process to determining the locations
+within the grid where GFM technology provides the most benefit.
 
 A major difference between the physics of IBRs versus SGs is that
 typically IBRs have a much lower current threshold that they
 can produce based on the limits of the underlying PEs. As a result,
 they have a smaller short-circuit ratio, which corresponds to 
-a lower system strength. In general, a weaker system strength
-implies a decrease in the voltage stiffness, which can impair
-IBR performance. GFMs can provide "voltage strength" which is another
-advantage over GFLs. Since this review is focused on frequency
+a lower system strength \cite{kenyon_stability_2020}.
+In general, a weaker system strength implies a decrease in the voltage stiffness,
+which can impair IBR performance. GFMs can provide "voltage strength" which is another
+advantage over GFLs \cite{xin_how_2023}. Since this review is focused on frequency
 control of IBRs, we will consider further discussion on the topic
-as out of scope and will conclude with the note that voltage and
-frequency control are inherently coupled and modeling these 
-interactions is vital for demonstrating system stability.
+as out of scope and will conclude with the following note. In power systems with
+low X/R ratios, such as the distribution systems where PV resources are commonly
+located, voltage and frequency control are more strongly coupled \cite{anttila_grid_2022}.
+Thus, modeling these interactions may be vital for demonstrating system stability.
