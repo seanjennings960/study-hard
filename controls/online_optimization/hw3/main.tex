@@ -1,0 +1,257 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+\usepackage{amsthm}
+
+\class{ECEN 5478}
+\title{Homework 3}
+\author{Sean Jennings}
+\date{October 3, 2023}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+
+\newcommand{\convexarg}{\lambda x + (1 - \lambda y)}
+\newcommand{\convexineq}[2]{
+    #1(\lambda x + (1 - \lambda y)) #2 \leq \lambda #1 (x)
+        + (1 - \lambda) #1 (y)
+}
+\newcommand{\strongconvexterm}[1]{
+    \frac{#1}{2} \lambda (1 - \lambda) \norm{y - x}^2
+}
+
+\begin{letterenum}
+    \item By the definition of convexity and $\mu$-strong convexity,
+        we have:
+        \begin{align}
+            \convexineq{f}{&} - \strongconvexterm{\mu}
+                \label{eq:f-strong-convex}\\
+            \convexineq{g}{&} \label{eq:g-convex}
+        \end{align}
+        Adding eq (\ref{eq:f-strong-convex}) and (\ref{eq:g-convex})
+        yields
+        \begin{align*}
+            (f+g) (\convexarg) &= f(\convexarg) + g(\convexarg) \\
+                &\leq \lambda f(x) + (1 - \lambda)f(y) - \strongconvexterm{\mu} \\
+                &\quad + \lambda g(x) + (1 - \lambda)g(y) \\
+                &= \lambda (f+g)(x) + (1 - \lambda)(f+g)(y) - \strongconvexterm{\mu}
+        \end{align*}
+        so that $f + g$ is $\mu$-strongly convex, with strong convexity
+        coefficient equivalent to that of $f$.
+
+    \item Again by definition of strong convexity, we have:
+    \begin{equation}
+        \convexineq{g} - \strongconvexterm{\nu}.
+        \label{eq:g-strongly-convex}
+    \end{equation}
+    Following a similar argument to part a), instead adding equations
+    (\ref{eq:f-strong-convex}) and (\ref{eq:g-strongly-convex}), we have
+    \begin{align*}
+        (f + g) (\convexarg)
+            &\leq \lambda f(x) + (1 - \lambda)f(y) - \strongconvexterm{\mu} \\
+            &\quad + \lambda g(x) + (1 - \lambda)g(y) - \strongconvexterm{\nu} \\
+            &= \lambda (f + g)(x) + (1 - \lambda) (f + g)(y) - \strongconvexterm{\mu + \nu}
+    \end{align*}
+    thus proofing $f + g$ is $(\mu + \nu)$-strongly convex.
+\end{letterenum}
+
+\section{Problem 2}
+For $f$ defined
+\begin{equation}
+    f(x) = \frac{1}{2} x^TQx - a \norm{x}^2,
+\end{equation}
+$f$ is twice continuously differentiable with gradient
+\begin{equation}
+    \nabla f(x) = Qx - 2ax
+\end{equation}
+and hessian
+\begin{equation}
+    \nabla^2 f(x) = Q - 2aI.
+\end{equation}
+where $I\in\R^{n\times n}$ is the identity matrix.
+
+We note a preliminary fact: if $A\in\R^{n\times n}$ has eigenvectors
+$v_i$ for $i=1,\dots,n$ and corresponding eigenvalues $\lambda_i$,
+then for any $c \in \R$, each eigenvector $v_i$ of $A$ is also
+an eigenvector of $A - cI$ with eigenvalue $\lambda_i - c$.
+
+\begin{proof}
+    \begin{equation}
+        (A - cI) v_i = Av_i - cv_i = \lambda v_i - cv_i = (\lambda - c) v_i
+    \end{equation}
+\end{proof}
+
+\begin{letterenum}
+    \item Since $f$ is twice continuously differentiable, and the
+        domain in question is $\R^n$, we can check second order
+        convexity conditions. The hessian must be positive semi-definite:
+        \begin{equation}
+            \nabla^2 f(x) = Q - 2aI \succeq 0
+        \end{equation}
+        By the eigenvector characterization theorem, we have that the minimum
+        eigenvalue of $Q - 2aI$ must be non-negative. Since the eigenvalues
+        of $Q-2aI$ are related to those of $Q$ by the fact proved above, we have
+        \begin{equation}
+            \lambda_{min} \geq 2a
+        \end{equation}
+        where $\lambda_{min}$ is the minimum eigenvalue of $Q$.
+
+    \item Consider the function
+    \begin{equation}
+        g(x) := f(x) - \frac{\mu}{2}\norm{x}^2
+    \end{equation}
+    for some $\mu\in\R$ with $\mu > 0$.
+    
+    By the theorem relating strong convexity to the definition of
+    $g$, we have $f$ is $\mu$-strongly convex if and only if $g$
+    is convex. It is clear that $g$ is also twice continuously
+    differentiable with hessian
+    \begin{equation}
+        \nabla^2 g(x) = Q - (2a + \mu) I.
+    \end{equation}
+    and thus $g$ is convex iff $Q - (2a + \mu)I \succeq 0$. Again by eigenvalue
+    characterization, $g$ is convex iff $\lambda_{min} - (2a + \mu) \geq 0$,
+    where $\lambda_{min}$ is defined as above, which implies
+    $\lambda_{min} - 2a \geq \mu > 0$.
+
+    If $\lambda_{min} > 2a$, we can select
+    $0 < \mu \leq \lambda_{min} - 2a$ such that $g$ is convex.
+    If $\lambda_{min} \leq 2a$, no such $\mu$ exists.
+    Conversely, if $g$ is convex, then $\lambda - 2a > 0$.
+
+    Therefore, $Q - 2aI \succ 0$. 
+    is a sufficient and necessary condition for $f$ being
+    $\mu$-strongly convex. In terms of eigenvalues, this condition
+    if equivalent to $\lambda_{min} > 2a$.
+
+    We note that for $f$ to be strongly convex, the preceding
+    inequality on the minimum eigenvalue of $Q$ from part a) becomes strict. Equivalently,
+    $Q$ must be positive definite, rather than positive semi-definite.
+\end{letterenum}
+
+\section{Problem 3}
+\begin{letterenum}
+    \item Since $f$ is convex, by the gradient inequality, we have
+    \begin{equation}
+        f(x) + \nabla(x)^T(y-x) \leq f(y)
+    \end{equation}
+    for all $x,y\in\X$. Put $y=x^*$.
+    \begin{align*}
+        f(x) - f(x^*) \leq \nabla f(x)^T (x - x^*) \\
+            &\leq \norm{\nabla f(x)} \norm{x - x^*} \\
+            &\leq G(x - x^*)
+    \end{align*}
+
+    \item Define the operator $F: \R^n \to \R^n$,
+    $F := \mathcal{I} - \alpha \nabla f$ so that
+    $x_{k+1} = (\text{proj}_{\X} \circ F) (x_k)$. We assume for simplicity
+    that $f$ is twice-continuously differentiable. We then see that the
+    gradient of $F$ is:
+    \begin{equation}
+        \nabla F = I - \alpha \nabla^2 f
+    \end{equation}
+    Since $f$ is twice-continouusly differentiable, $L$-smooth and $\mu$-strongly
+    convex, its minimum and maximum eigenvalues are given by
+    \begin{equation}
+        \lambda_{max}(\nabla^2 f) = L \qquad \lambda_{min}(\nabla^2 f) = \mu
+    \end{equation}
+    Then for all $x \in \R^n$ we have the following ordering
+    \begin{equation}
+        (1 - \alpha L) I \preceq \nabla F(x) \preceq (1 - \alpha \mu) I
+    \end{equation}
+    Thus, the norm of $\nabla F$ has the following bound:
+    \begin{equation}
+        \norm{\nabla F} \leq \rho
+    \end{equation}
+    where $\rho := \text{max}\{ |1 - \alpha L|, | 1 - \alpha \mu | \}$.
+    
+    Since its gradient is bounded by $\rho$, $F$ is Lipschitz with constant $\rho$.
+
+    Since the projection operator is nonexpansive, the composition
+    $\text{proj}_{\X} \circ F$ is also Lipschitz with constant $\rho$. Thus,
+    putting $x = x_k$ into the result from the previous section, and 
+    iteratively appling the Lipschitz property, we find the desired bound
+    \begin{align*}
+        f(x_k) - f(x^*) &\leq G \norm{x_k - x^*} \\
+            &= G \norm{F(x_{k-1}) - F(x^*)} \\
+            &\leq G \rho \norm{x_{k-1} - x^*} \\
+            &\leq G \rho^k \norm{x_{k-1} - x^*}
+    \end{align*}
+\end{letterenum}
+
+\section{Problem 4}
+We rewrite the regularized least square's cost function in matrix form with
+$a_i \in R^n$ as the $i$th row of the matrix $A \in R^{N \times n}$ and 
+$y_i \in \R$ as the $i$th entry of $y \in \R^n$.
+
+\begin{equation}
+    f(x) = \norm{Ax - y}^2 + \frac{\lambda}{2} \norm{x - \bar{x}}^2
+\end{equation}
+The gradient and hessian are given as follows
+\begin{align}
+    \nabla f(x) &= 2A^T(Ax - y) + \lambda(x - \bar{x}) \label{eq:gradient} \\
+    \nabla^2 f(x) &= 2A^TA + \lambda I \label{eq:hessian}
+\end{align}
+
+\begin{letterenum}
+    \item For any $x,z \in \R^n$, we have
+    \begin{align*}
+        \norm{\nabla f(x) - \nabla f(z)} &=
+            \norm{2A^T(Ax - y) + \lambda (x - \bar{x}) \\
+        &\qquad - 2A^T(Az - y) - \lambda (z - \bar{x})} \\
+        &= \norm{2A^TA (x - z) + \lambda (x - z)} \\
+        &\leq \norm{2A^TA + \lambda I} \norm{x - z}.
+    \end{align*}
+    So it is $L$-smooth with minimum smoothness constant
+    $L = 2\lambda_{max}(A^TA) + \lambda$. Since $A^TA \succeq 0$ and $\lambda > 0$,
+    we have $L > 0$.
+
+    \item To check strong convexity, we look at the minimum eigenvalue of the hessian
+    from equation (\ref{eq:hessian}).
+    \begin{align}
+        \mu = \lambda_{min}(\nabla^2 f(x)) &= \lambda_{min}(A^TA + \lambda I) = \lambda_{min}(A^TA) + \lambda
+            \label{eq:min-eigenvalue} \\
+            &=  \lambda
+    \end{align}
+    where we used the fact that since $N < n$, $A^TA$ is not full rank and thus
+    has a zero eigenvalue. Thus, it is $\mu$-strongly convex with $\mu=\lambda$.
+    The regularization term therefore ensures strong convexity even when
+    there are insufficient data points.
+
+    \item Assuming that $A$ is full column rank, $N > n$ implies that $A^TA$
+    is invertible and is thus positive definite. It is still $\mu$-strongly
+    convex, with $\mu$ given by equation (\ref{eq:min-eigenvalue}), but now
+     $\mu > \lambda$ since $\lambda_{min}(A^TA) > 0$.
+\end{letterenum}
+
+
+
+% \section{Appendix}
+
+% Suppose $f: \R^n \to \R^n$ is Lipschitz with constant $L > 0$ and is continuously
+% differentiable. Then,
+% \begin{equation}
+%     \norm{\nabla f(x)} \leq L
+% \end{equation}
+% for all $x \in R^n$.
+
+% \begin{proof}
+%     Take $x,h \in R^n$, with $h$ such that
+%     $\nabla f(x)^T h = \norm{\nabla f(x)} \norm{h}$.  By the Lipschitz
+%     property of $f$, we have
+%     \begin{equation}
+%         \norm{f(x + h) - f(x)} \leq L \norm{h}
+%     \end{equation}
+
+    
+% \end{proof}
+
+
+
+
+\end{document}
