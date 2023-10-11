@@ -27,6 +27,14 @@ end
 ###################     POWER    #####################################
 ######################################################################
 
+function S_from_P_pf(P, pf, leading)
+    dir = if leading; -1 else 1 end
+    Q = P * tan(dir * acos(pf))
+    return P + im * Q
+end
+
+
+
 function pf_from_complex(S)
     return cos(angle(S))
 end
@@ -49,20 +57,58 @@ end
 
 
 ######################################################################
+###################     SEQUENCE    ##################################
+######################################################################
+
+# TODO: Figure out how to either name these better or put them
+# inside of a class so it doesn't leak these super generic names!
+# Well, really there should be a nicer interface than just
+# pure matrices??
+a = phasordeg(1, 120)
+A = [
+    1 1 1
+    1 a^2 a
+    1 a a^2
+]
+# Line-to-line conversion
+B = [
+    1 -1 0
+    0 1 -1
+    -1 0 1
+]
+
+######################################################################
 ########################     DISPLAY     #############################
 ######################################################################
 
-function print_values(v)
+DISPLAY_SIGDIGITS = 4
+
+function print_values(v::NamedTuple)
     for (name, value) in pairs(v)
         println(name)
-        display(round.(value, sigdigits=3))
+        print_value(value)
     end
 end
 
-function Base.show(io::IO, x::Complex)
-    x_ang = rad2deg(angle(x))
-    print(io, "$(abs(x)) ∠ $(x_ang)° | $(real(x)) + j $(imag(x))")
+function print_value(v)
+    display(round.(v, sigdigits=DISPLAY_SIGDIGITS))
 end
+
+function print_value(v::Complex)
+    # Rounding for complex is done inside show! (Will also need to extend
+    # to complex matrices..)
+    display(v)
+end
+
+function Base.show(io::IO, x::Complex)
+    x_real = round(real(x), sigdigits=DISPLAY_SIGDIGITS)
+    x_imag = round(imag(x), sigdigits=DISPLAY_SIGDIGITS)
+    x_abs = round(abs(x), sigdigits=DISPLAY_SIGDIGITS)
+    x_ang = round(rad2deg(angle(x)), sigdigits=DISPLAY_SIGDIGITS)
+    print(io, "$(x_abs) ∠ $(x_ang)° | $(x_real) + j $(x_imag)")
+end
+
+
 
 
 # function print_value(val)
