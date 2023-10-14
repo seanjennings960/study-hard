@@ -1,0 +1,55 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{mathsymb}[2023/09/12 mathsymb]
+
+\RequirePackage{amsmath, amssymb}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\norm}[1]{\lVert #1 \rVert_2}
+\newcommand{\normp}[2]{\lVert #1 \rVert_{#2}}
+\newcommand{\normi}[1]{\lVert #1 \rVert_\infty}
+\newcommand{\mnorm}[1]{\biggl\lVert \mat{ #1 } \biggr\rVert_2}
+
+% Systems and Controls symbols
+\newcommand{\xc}{{\bf x}}
+\newcommand{\uc}{{\bf u}}
+
+\newcommand{\eval}{\biggr\rvert}
+\newcommand{\mat}[1]{\begin{bmatrix} #1 \end{bmatrix}}
+
+\newcommand{\psd}{\succeq 0}
+
+% Power Systems Units, etc
+\newcommand{\eq}[1]{equation (\ref{#1})}
+% \renewcommand{}[args]{def}
+\newcommand{\pf}{\mathcal{PF}}
+% Power Units
+\newcommand{\W}{\text{ W}}
+\newcommand{\kW}{\text{ kW}}
+\newcommand{\MW}{\text{ MW}}
+
+\newcommand{\VA}{\text{ VA}}
+\newcommand{\kVA}{\text{ kVA}}
+\newcommand{\MVA}{\text{ MVA}}
+
+\newcommand{\VAr}{\text{ VAr}}
+\newcommand{\kVAr}{\text{ kVAr}}
+\newcommand{\MVAr}{\text{ MVAr}}
+
+\newcommand{\V}{\text{ V}}
+\newcommand{\kV}{\text{ kV}}
+
+\newcommand{\A}{\text{ A}}
+\newcommand{\mA}{\text{ mA}}
+
+\newcommand{\mohm}{\text{ m}\ohm}
+
+
+\newcommand{\angled}[1]{\angle #1 \degree}
+\newcommand{\instantaneous}[2]{#1 \cos(\omega t + #2 \degree)}
+\newcommand{\instpower}[3]{#1 \biggl(
+    1 + \cos(2[\omega t + #3 \degree])
+\biggr) + #2 \sin(2[\omega t + #3 \degree])}
+\renewcommand{\arccos}{\text{cos}^{-1}}
