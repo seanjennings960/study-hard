@@ -17,6 +17,7 @@
 \begin{letterenum}
 \item Figure \ref{fig:solar-circuit} shows the equivalent circuit of a single
 solar cell. Table \ref{table:solar-parameters} summarizes the parameters 
+
 \begin{center}
     \includegraphics[width=0.5\linewidth]{Images/solar_circuit.png}
     \captionof{figure}{Solar Cell Equivalent Circuit}
@@ -46,7 +47,7 @@ know as "dark current," to flow through the device, without reaching the load.
 The name "dark current" refers to the fact that a current will flow across
 the cell, even in the dark, if a voltage, $V > 0$, is applied across the terminals.
 Since current does not flow when voltage polarity is reversed, $V < 0$, it is
-modeled as a diode.  \cite{nelson_physics_2003}
+modeled as a diode.  
 
 The "series resistance" refers to the voltage potential/heat that is dissipated
 due to the material within the cell through which the current flows as well
@@ -101,9 +102,9 @@ by the following equation
 \end{equation*}
 $QE(E)$ is the material-dependent probability that a incoming photon
 of a particular energy will cause an electron to flow through the circuit.
-$b_s(E)$ is the number of photons in a given energy band that enter a
-unit area per unit time. $A$ is the area of the cell, and $q$ is again
-the charge of an electron.
+$b_s(E)$ is the number of photons with energy in the interval $(E, E + dE)$
+that enter a unit area per unit time. $A$ is the area of the cell, and
+$q$ is again the charge of an electron.
 
 \item The open-circuit voltage $V_{oc}$ can be derived from equation
 (\ref{eq:solar-characteristic}), with the simplying assumptions of
@@ -138,14 +139,14 @@ p-n junction. On one hand, the electron band gap is reduced, causing
 an increase in short circuit current $I_{sc}$. However, the dark current
 also increases so that the open-circuit voltage $V_{oc}$ also decreases.
 The increase in dark current outweighs the increase in short circuit current,
-thus reducing the overall power output.
+thus reducing the overall power output \cite{nelson_physics_2003}.
 
 \item The maximum operating point is defined in terms of power output. The
 maximum power point (MPP) occurs at some point slightly less than $V_{oc}$,
 before the current begins to rapidly drop to 0. Various MPP tracking (MPPT)
 control algorithms can be implemented to control the operating voltage of the PV
 cell to follow the maximum, but "Perturb and Observe" is the most commonly
-implemented due to its ease of implementation.
+implemented due to its ease of implementation \cite{eltawil_mppt_2013}.
 
 It works by slightly "perturbing" the operating voltage and "observing" the
 change in power. If the power increases, it will continue to change the
@@ -155,7 +156,8 @@ opposite direction.
 
 \section{Problem 2}
 \begin{letterenum}
-\item It seems to be pretty standard for manufacturers to provide:
+\item It is pretty standard for manufacturers
+(e.g. \cite{noauthor_tiger_2020}\cite{noauthor_qpeak_2023}) to provide:
 \begin{itemize}
     \item maximum power output,
     \item voltage at maximum power,
@@ -206,9 +208,9 @@ across two standardized operating conditions: standard test conditions
 
     Including unit conversion, we find:
     \begin{equation*}
-        P = 0.8 (396259 \text{ gal/sec}) (0.00379 m^3/gal)
-            (9.81 \text{ m/s}^2) (590 \text{ ft} * 0.3048 \text{ m/ft})
-            = 2.120 \text{ MW}
+        P = 0.8 (396259 \text{ gal/sec} \cdot 0.00379 \text{ m}^3\text{/gal})
+            (9.81 \text{ m/s}^2) (590 \text{ ft} \cdot 0.3048 \text{ m/ft})
+            = \boxed{2.120 \text{ MW}}
     \end{equation*}
 
 \item In terms of energy conversion, run-of-river plants do not have an
@@ -283,8 +285,8 @@ significant power potential.
     to old is $0.451^2 = 20.34\%$.
 \end{letterenum}
 
-
-
+\bibliographystyle{plain}
 \bibliography{RenEngHW3}
+
 
 \end{document}
