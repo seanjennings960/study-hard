@@ -59,7 +59,8 @@ class ParametrizedLinearCost:
         return self.A.T @ (self.A @ x - w)
 
 
-SIGMA_SUP = np.sqrt(np.sin(1/10)**2 + np.sin(1 / 100)**2)
+# SIGMA_SUP = np.sqrt(np.sin(1/10)**2 + np.sin(1/100**2))
+SIGMA_SUP = np.sqrt(2 * (1 - np.cos(1/10)) + 2 * (1 - np.cos(1/100)))
 
 def disturbance(t):
     return np.array([
@@ -158,7 +159,7 @@ def plot_cost_heatmap(solution):
     n_points = 100
     delta = 1
 
-    x_sol =solution.x
+    x_sol = solution.x
     x_range = autorange(x_sol[0], delta, n_points)
     y_range = autorange(x_sol[1], delta, n_points)
 
@@ -260,6 +261,10 @@ def main():
         [1, 0.8], 
         [0.7, 1]
     ])
+    # A = np.array([
+    #     [2, 0],
+    #     [0, 1]
+    # ])
     timesteps = 300
     x0 = [10, 5]
     # stepsize = 0.1
@@ -267,13 +272,17 @@ def main():
     stepsize = 'optimal'
 
     cost = ParametrizedLinearCost(A)
+    print("mu:", cost.mu)
+    print("L", cost.L)
+    print("SIGMA_SUP:", SIGMA_SUP)
+    # print("SIGMA_SUP_1:", SIGMA_SUP_2)
     problem = Problem(timesteps, cost, x0, disturbance, stepsize)
 
     solution = online_gradient_descent(problem)
 
     # plot_trajectory_2d(solution)
-    # plot_cost(solution)
-    plot_cost_heatmap(solution)
+    plot_cost(solution)
+    # plot_cost_heatmap(solution)
 
 
 
