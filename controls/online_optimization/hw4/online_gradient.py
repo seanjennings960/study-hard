@@ -1,55 +1,23 @@
-import functools
+from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Callable, Union
 
 STATE_DIM = 2
-
-
-def one_or_2d(f):
-    """
-    Assuming a function with 2 ndarray arguments, make
-    sure they are 
-    """
-    @functools.wraps(f)
-    def inner(x, w):
-        original_dim = x.dim
-        x = np.atleast_2d(x)
-        w = np.atleast_2d(w)
-        if original_dim == 2:
-            # Make sure not to squeeze a (1, n) input.
-            return f(x, w)
-        else:
-            return np.squeeze(f(x, w))
-    return inner
-
-
+SAVE_DIR = Path("Images")
 
 class ParametrizedLinearCost:
     def __init__(self, A):
         self.A = A
         hessian_eigvals = np.linalg.eigvals(A.T @ A)
         self.L = max(hessian_eigvals)
-        print("sqrt(L)", np.sqrt(self.L))
-        print("||A||2", np.linalg.norm(A))
         self.mu = min(hessian_eigvals)
 
     def eval(self, x, w):
         """
         Evaluate cost at a series of timesteps.
-
-        Let shape = x.shape[1:]
-
-        Input:
-            x: input in w/ dimension of (n,) + shape
-            w: disturbance w/ dim either (n,) + shape
-        
-        Output:
-            cost: at each point in shape
         """
         # Decorator makes sure input is dim (timesteps, n)
-        print('Ax', (self.A @ x).shape)
-        print('w', (w).shape)
         return np.linalg.norm(self.A @ x - w, axis=0)
 
     def gradient(self, x, w):
@@ -59,7 +27,6 @@ class ParametrizedLinearCost:
         return self.A.T @ (self.A @ x - w)
 
 
-# SIGMA_SUP = np.sqrt(np.sin(1/10)**2 + np.sin(1/100**2))
 SIGMA_SUP = np.sqrt(2 * (1 - np.cos(1/10)) + 2 * (1 - np.cos(1/100)))
 
 def disturbance(t):
@@ -99,22 +66,11 @@ class Solution:
                        abs(1 - self.cost.mu * alpha))
         self.error_bound = self.compute_bound()
 
-    def norm_a_inv(self):
-        norm_a_inv = np.linalg.norm(np.linalg.inv(self.cost.A))
-        print("||A^-1||:", norm_a_inv)
-        print("1/sqrt(mu)", 1/np.sqrt(self.cost.mu))
-
-
-
     def compute_bound(self):
+        """Bound as a function of time."""
         rho_to_t = np.array([
             self.rho**t for t in range(self.problem.timesteps)
         ])
-        self.norm_a_inv()
-        print("rho", self.rho)
-        print("1/(1-rho)", 1 / (1- self.rho))
-        # print(rho_to_t)
-
         return rho_to_t * np.linalg.norm(self.x[:, 0]) + (
             (1 - rho_to_t) / (1 - self.rho) * SIGMA_SUP
         ) / np.sqrt(self.cost.mu)
@@ -155,7 +111,7 @@ def autorange(x, delta, n_points):
     return np.linspace(start, end, n_points)
 
 
-def plot_cost_heatmap(solution):
+def plot_cost_heatmap(solution, name):
     n_points = 100
     delta = 1
 
@@ -178,9 +134,7 @@ def plot_cost_heatmap(solution):
     t_indices = range(0, num_plots * interval, interval)
     for i, t_index in enumerate(t_indices):
 
-        print('t_index', t_index)
         w = np.full(x_flat.shape, solution.w[:, np.newaxis, t_index])
-        print('w-i', w[:, 0])
         cost = solution.cost.eval(x_flat, w)
 
         plots[i].pcolormesh(x[0], x[1], cost.reshape(x[0].shape))
@@ -188,7 +142,8 @@ def plot_cost_heatmap(solution):
                       'o', label='x_t')
         plots[i].plot(solution.x_star[0, t_index], solution.x_star[1, t_index],
                       'o', label='x*_t')
-        plots[i].legend()
+        if i == 2:
+            plots[i].legend()
         plots[i].set_xlabel("x0")
         plots[i].set_ylabel("x1")
         plots[i].set_title(f"t={t_index}")
@@ -200,44 +155,12 @@ def plot_cost_heatmap(solution):
                         top=0.9, 
                         wspace=0.4, 
                         hspace=0.4)
-    plt.show()
+    # plt.show()
+
+    fig.savefig(SAVE_DIR / f"heatmap_{name}.png")
 
 
-def plot_trajectory_2d(solution):
-    """
-    Plot 2-dim trajectory in state space.
-
-    Inputs:
-        x: assumed to be dimension (timesteps, 2)
-
-    Raises: 
-    """
-    x = solution.x
-    x_star = solution.x_star
-    print(x.shape)
-    assert x.ndim == 2
-    assert x.shape[0] == 2
-    assert x.shape[1] > 0
-
-    _, p = plt.subplots(2, 1)
-    p[0].plot(x[0, :], x[1, :], label="x_t")
-    p[0].plot(x[0, 0], x[1, 0], marker="o", label="start")
-    p[0].plot(x[0, -1], x[1, -1], marker="o", label="end")
-    p[0].plot(x_star[0, :], x_star[1, :], label="x*")
-    p[0].set_xlabel('x_0')
-    p[0].set_ylabel('x_1')
-    p[0].legend()
-    error = x - x_star
-    p[1].plot(error[0, :], error[1, :])
-    p[1].set_xlabel("(x - x*)_0")
-    p[1].set_ylabel("(x - x*)_1")
-    p[1].set_title("displacement from x*")
-    plt.suptitle("State-space trajectory")
-    plt.show()
-
-
-
-def plot_cost(solution):
+def plot_cost(solution, name):
     x, w = solution.x, solution.w
     x_star, cost = solution.x_star, solution.cost
     c = cost.eval(x, w)
@@ -245,44 +168,52 @@ def plot_cost(solution):
     error = np.linalg.norm(x - x_star, axis=0)
     error_bound = solution.error_bound
 
-    _, p = plt.subplots(2, 1)
+    fig, p = plt.subplots(3, 1)
     p[0].plot(c)
-    p[0].set_xlabel("Iteration index -- t")
     p[0].set_ylabel("Cost -- f_t(x_t)")
-    p[0].set_title("Cost of function f over iteration index")
+    p[0].set_title("f(x) over iteration index")
     p[1].plot(error)
     p[1].plot(error_bound)
-    plt.show()
+    p[1].set_ylabel("Tracking error")
+    p[1].set_xlabel("Iteration index -- t")
+    p[2].semilogy(error)
+    p[2].semilogy(error_bound)
+    p[2].set_ylabel("Tracking error")
+    p[2].set_xlabel("Iteration index -- t")
+    # plt.show()
+    print("saving: ", SAVE_DIR / f"error_{name}")
+    fig.savefig(SAVE_DIR / f"error_{name}.png")
 
 
 def main():
+    SAVE_DIR.mkdir(exist_ok=True)
     # Input parameters
-    A = np.array([
-        [1, 0.8], 
-        [0.7, 1]
-    ])
-    # A = np.array([
-    #     [2, 0],
-    #     [0, 1]
-    # ])
     timesteps = 300
     x0 = [10, 5]
-    # stepsize = 0.1
-    # stepsize = 'marginal'
     stepsize = 'optimal'
+    for i, A in enumerate([
+        np.array([
+                [1, 0.8], 
+                [0.7, 1]
+            ]),
+        np.eye(2),
+        np.array([
+            [2, 1],
+            [0, 1]
+        ])
+    ]):
 
-    cost = ParametrizedLinearCost(A)
-    print("mu:", cost.mu)
-    print("L", cost.L)
-    print("SIGMA_SUP:", SIGMA_SUP)
-    # print("SIGMA_SUP_1:", SIGMA_SUP_2)
-    problem = Problem(timesteps, cost, x0, disturbance, stepsize)
+        cost = ParametrizedLinearCost(A)
+        print("mu:", cost.mu)
+        print("L", cost.L)
+        print("SIGMA_SUP:", SIGMA_SUP)
+        problem = Problem(timesteps, cost, x0, disturbance, stepsize)
 
-    solution = online_gradient_descent(problem)
+        solution = online_gradient_descent(problem)
 
-    # plot_trajectory_2d(solution)
-    plot_cost(solution)
-    # plot_cost_heatmap(solution)
+        plot_name = f"A{i}"
+        plot_cost(solution, plot_name)
+        plot_cost_heatmap(solution, plot_name)
 
 
 

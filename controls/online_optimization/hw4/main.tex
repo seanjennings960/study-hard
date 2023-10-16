@@ -30,25 +30,26 @@ and $\nabla f_t(x_t^*) = 0$ implies that
 
 Since $f_t$ is $\mu$-strongly convex and $L$-smooth, from lectures and the previous
 homework, we have that $G_t$ is Lipschitz w/ constant
-$\rho = \max\{|1 - \alpha L|, |1 - \alpha \mu|\}$. Then, a single-step bound on
-tracking error can be derived as follows:
+$\rho = \max\{|1 - \alpha L|, |1 - \alpha \mu|\}$. Since adding a constant preserves
+Lipschitz-ness, $\hat{G}_t$ is Lipschitz with the same constant $\rho$.
+Then, a single-step bound on tracking error can be derived as follows:
 \begin{align}
     \norm{x_t - x_t^*} &= \norm{\hat{G}_t(x_{t-1}) - G_t(x_t^*)} \\
-        &= \norm{G_t(x_{t-1}) - G_t(x_t^*)} \\
         &= \norm{G_t(x_{t-1}) + \nu_t - G_t(x_t^*)} \\
-        &\leq \norm{G_t(x_{t-1} - G_t(x_t^*))} - \norm{\nu_t} \\
-        &\leq \norm{G_t(x_{t-1}) - G_t(x_{t-1}^* + G_t(x_{t-1}^*))}
-            + \norm{G_t(x_{t-1}^* - G_t(x_t^*))} + \norm{\nu_t} \\
+        &\leq \norm{G_t(x_{t-1}) - G_t(x_t^*)} + \norm{\nu_t} \\
+        &\leq \norm{G_t(x_{t-1}) - G_t(x_{t-1}^*)}
+            + \norm{G_t(x_{t-1}^*) - G_t(x_t^*)} + \norm{\nu_t} \\
         &\leq \rho \norm{x_{t-1} - x_{t-1}^*} + \rho \sigma_{t-1} + \norm{\nu_t}
         \label{eq:single-step-bound}
 \end{align}
 where $\sigma_t := \norm{x_{t+1}^* - x_t^*}$.
 
+
 Iterating over equation \ref{eq:single-step-bound} yields the $t$-step tracking
 bound:
 \begin{align}
     \norm{x_t - x_t^*} &\leq \rho^2 \norm{x_{t-2} - x_{t-2}^*} + \rho^2 \sigma_{t-2} +
-        \rho \sigma_{t-1} + \rho \norm{\nu_{t-1}} + \norm{\nu_t}
+        \rho \sigma_{t-1} + \rho \norm{\nu_{t-1}} + \norm{\nu_t} \\
         &\leq \rho^t \norm{x_0 - x_0^*} + D_t + E_t
         \label{eq:multi-step-bound}
 \end{align}
@@ -68,27 +69,27 @@ separately:
     \limsup_{t\to\infty} \rho^t \norm{x_0 - x_0^*} &= 0 \\
     \limsup_{t\to\infty} E_t &=
         \limsup_{t\to\infty} \sum_{i=1}^t \rho_{t-i} \norm{\nu_i} \\
-        &\leq \limsup_{t\to\infty} \sum_{j=0}^{t-1} \rho^j \hat{\nu} \\
-        &= \frac{\hat{\nu}}{1-\rho} \\
+        &\leq \limsup_{t\to\infty} \sum_{j=0}^{t-1} \rho^j \bar{\nu} \\
+        &= \frac{\bar{\nu}}{1-\rho} \\
     \limsup_{t\to\infty} D_t &=
         \limsup_{t\to\infty} \sum_{i=1}^{t} \rho^{t-i+1} \sigma_{i+1} \\
-        \leq \limsup_{t\to\infty} \biggl(
+        &\leq \limsup_{t\to\infty} \biggl(
             \sum_{j=0}^{t-1} \rho^{t+1}
         \biggr) \sup_{\tau \geq 0} \sigma_\tau \\
-        &= \rho \hat{\sigma} \limsup_{t\to\infty} \sum_{j=0}^{t} \rho^t \\
-        &= \frac{\rho \hat{\sigma}}{1 - \rho}
+        &= \rho \bar{\sigma} \limsup_{t\to\infty} \sum_{j=0}^{t} \rho^t \\
+        &= \frac{\rho \bar{\sigma}}{1 - \rho}
 \end{align*}
 
-where $\hat{\nu} = \sup_{t \geq 0} \norm{\nu_t}$ and
-$\hat{\sigma} = \sup_{t \geq 0} \norm{sigma_t} =
+where $\bar{\nu} = \sup_{t \geq 0} \norm{\nu_t}$ and
+$\bar{\sigma} = \sup_{t \geq 0} \norm{\sigma_t} =
 \sup_{t \geq 0} \norm{x_{t+1}^* - x_t^*}$. (We note a slight disprepency between
-this definition of $\hat{\sigma}$ and the one in the problem statement which uses
+this definition of $\bar{\sigma}$ and the one in the problem statement which uses
 $x_{t-1}^*$ rather than $x_{t+1}^*$.)
 
 Then the $\limsup$ of the tracking bound is:
 \begin{equation*}
     \limsup_{t\to\infty} \norm{x_t - x_t^*} =
-        \frac{\hat{\nu}} + \rho \hat{\sigma}{1 - \rho}
+        \frac{\bar{\nu} + \rho \bar{\sigma}}{1 - \rho}
 \end{equation*}
 \end{letterenum}
 
@@ -99,8 +100,8 @@ Then the $\limsup$ of the tracking bound is:
 $w_t \in \R^2$, $A\in \R^{2\times 2}$ and additionally
 $w_t = [w_{t,1}, w_{t,2}]^T$ has
 \begin{align*}
-    w_{t,1} = 5 + \sin(t/10)
-    w_{t,2} = 2 + \sin(t/100)
+    w_{t,1} &= 5 + \sin(t/10) \\
+    w_{t,2} &= 2 + \sin(t/100)
 \end{align*}
 and
 \begin{equation*}
@@ -112,8 +113,8 @@ method, i.e.
 \begin{equation*}
     x_{t+1} = x_t - \alpha \nabla f_t(x_t)
 \end{equation*}
-where $\nabla f_t(x) = A^T (Ax - w_t)$, and $x_0$ is an input, which we will
-arbitrarily select to be $x_0 = [10, 5]^T$.
+where $\nabla f_t(x) = A^T (Ax - w_t)$, and $x_0$ is the algorithm starting
+point, which we will arbitrarily select to be $x_0 = [10, 5]^T$.
 
 To select the step size, we note that $\nabla^2f_t(x) = A^T A$. Since
 $\nabla^2 f_t(x)$ is constant and positive definite,
@@ -125,8 +126,8 @@ as follows (as proven in the previous homework set):
     L = \lambda_{max} (\nabla^2 f(x)) = \lambda_{max} (A^T A) \approx 3.067 \\
 \end{align*}
 
-Defining $G_t := \mathcal{I} - \alpha \nabla f$, from the previous homework,
-we have that the $G_t$ is Lipschitz with constant
+Define $G_t := \mathcal{I} - \alpha \nabla f$. From the previous homework,
+we have that $G_t$ is Lipschitz with constant
 $\rho(\alpha) = \max \{ | 1- \alpha L|, |1 - \alpha \mu| \}$.
 
 We proceed to compute the convergence bound for our algorithm. 
@@ -141,18 +142,18 @@ where $\sigma_t = \norm{x_{t+1}^* - x_t^*}$ is the path length at time $t$.
 
 The multistep bound is then:
 \begin{align}
-    \norm{x_t - x_t^*} &= \rho^t \norm{x_0 - x_0^*} +
-        \sum_{i=0}^{t-1} \rho^{t-i-1}\sigma_i
-        &= \rho^t \norm{x_0 - x_0^*} + \frac{1 - \rho^t}{1-\rho} \hat{\sigma}
+    \norm{x_t - x_t^*} &= \rho(\alpha)^t \norm{x_0 - x_0^*} +
+        \sum_{i=0}^{t-1} \rho(\alpha)^{t-i-1}\sigma_i \\
+        &= \rho(\alpha)^t \norm{x_0 - x_0^*} + \frac{1 - \rho(\alpha)^t}{1-\rho(\alpha)} \bar{\sigma}
         \label{eq:multistep-bound-alg}
 \end{align}
-with $hat{\sigma} = \sup_{\tau \geq 0} \sigma_\tau$.
+with $bar{\sigma} = \sup_{\tau \geq 0} \sigma_\tau$.
 
 Since the only dependence upon $\alpha$ within the tracking bound is via
 $\rho(\alpha)$, we can minimize the tracking bound by selecting $\alpha$ to
 minimize $\rho$:
 \begin{equation*}
-    \rho_{min} = \min_\alpha > 0 \rho(\alpha)
+    \rho_{min} = \min_{\alpha > 0} \rho(\alpha)
 \end{equation*}
 Since $\mu < L$, the maximum occurs when $-(1-\alpha L) = 1 - \alpha \mu$:
 \begin{align*}
@@ -170,17 +171,17 @@ fixed point occurs when $\nabla f_t(x) = A^T(Ax - w_k) = 0$, so that
 
 Given our knowledge of $w_t$ we can bound the path length.
 \begin{align}
-    \sigma_t &= \norm{x_{t+1}^* - x_t^*} 
-        &= \norm{A^{-1} w_{t+1} - A^{-1} w_t}
+    \sigma_t &= \norm{x_{t+1}^* - x_t^*}  \\
+        &= \norm{A^{-1} w_{t+1} - A^{-1} w_t} \\
         &\leq \norm{A^{-1}} \norm{w_{t+1} - w_t}
         \label{eq:norm}
 \end{align}
 
-The difference between consequentive $w_t$s is given by:
-\begin{equation*}
-    w_{t+1,1} - w_{t,1} = t + \sin(\frac{t+1}{10}) - (5 + \sin{\frac{t}{10}})
+The difference between consequentive $w_t$ is given by:
+\begin{align*}
+    w_{t+1,1} - w_{t,1} = t + \sin(\frac{t+1}{10}) - (5 + \sin{\frac{t}{10}}) \\
         = \sin(\frac{t}{10} + \frac{1}{10}) - \sin(\frac{t}{10}) 
-\end{equation*}
+\end{align*}
 which can be bounded by converting into complex coordinates. For any
 $\omega,\phi \in \R$, we have
 \begin{align*}
@@ -189,43 +190,59 @@ $\omega,\phi \in \R$, we have
         &= \Im (e^{i\omega t} e^{i\phi} - e^{i\omega t}) \\
         &= \Im ( e^{i\omega t} (e^{i\phi} - 1)) \\
         &\leq | e^{i\omega t} ( e^{i\phi} - 1)| \\
-        &\leq | ( e^{i\phi} - 1)|
+        &\leq | ( e^{i\phi} - 1)| \\
         &= \sqrt{(\cos \phi - 1)^2 + \sin^2 \phi}\\
         &= \sqrt{2 ( 1- \cos \phi)}
 \end{align*}
 So that the magnitude on the right-hand side of equation \ref{eq:norm} is
 bounded by:
 \begin{equation}
-    \hat{w} := \sup_{t \geq 0} \norm{w_{t+1} - w_t} =
-        \sqrt{4(1 - \cos(1/10))^2 + 4(1 - \cos(1/100))^2} \\
-        = 2 \sqrt{(1 - \cos(1/10)^2 + (1 - \cos(1/100))^2)}
+    \bar{w} := \sup_{t \geq 0} \norm{w_{t+1} - w_t} \leq
+        \sqrt{2 (1 - \cos(1/10)) + 2 ( 1- \cos(1/100))}
         \label{eq:disturbance-bound}
 \end{equation}
 and the bound for path length is:
 \begin{equation}
-    \hat{\sigma} \leq = \norm{A^{-1}} \hat{w}
+    \bar{\sigma} \leq = \norm{A^{-1}} \bar{w}
         \label{eq:path-length-bound}
 \end{equation}
 
 \item The algorithm has been coded in Python and plots of the results
-are shown in figures \ref{} - \ref{}.
+are shown in figures \ref{fig:tracking} - \ref{fig:tracking_identity}.
 
-Figure \ref{} shows the tracking error as a function of the iteration
+Figure \ref{fig:tracking} shows the tracking error as a function of the iteration
 index, with the tracking error shown on both linear and logarithmic
 scales. Additionally, we plot the upper bound on tracking error
 as given by equations \ref{eq:multistep-bound-alg}, \ref{eq:disturbance-bound},
 and \ref{eq:path-length-bound}. We note that in this case the upper bound
 is rather conservative.
 
-% \begin{center}
-%     \includegraphics[]{}
-% \end{center}
+\begin{center}
+    \includegraphics[width=0.8\linewidth]{Images/error_A0.png}
+     \captionof{figure}{Tracking Error}
+     \label{fig:tracking}
+\end{center}
+
+For developing the author's intuition, we also plot a heatmap
+where the color across the grid of $x =[x_0, x_1]^T$, corresponds to $f(x)$, and
+overlay the points $x_t$ and $x_t^*$ of the trajectory.
+
+\begin{center}
+    \includegraphics[width=0.8\linewidth]{Images/heatmap_A0.png}
+     \captionof{figure}{Heatmap at various $t$}
+     \label{fig:heatmap1}
+\end{center}
 
 Interestingly, when $A$ is selected instead to be the identity matrix,
+the tracking error bound of equation \ref{eq:multistep-bound-alg}
+is rather more precise, presumably related to the significantly smaller
+Lipschitz constant. As shown in figure \ref{fig:tracking_identity}.
 
-
-
-
+\begin{center}
+    \includegraphics[width=0.8\linewidth]{Images/error_A1.png}
+     \captionof{figure}{Tracking error for A = I}
+     \label{fig:tracking_identity}
+\end{center}
 
 
 \end{letterenum}
