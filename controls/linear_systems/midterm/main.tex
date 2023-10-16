@@ -1,0 +1,486 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+\usepackage{amsthm}
+
+
+\class{ECEN 5448}
+\title{Midterm 1}
+\author{Sean Jennings}
+\date{October 16}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+
+\begin{letterenum}
+\item We define state variable $x = [x_1, x_2]^T\in \R^2$ such that $x_1 = \theta$
+and $x_2 = \dot{\theta}$. Then, the system is nonlinear and can be represented by
+the equations
+\begin{align*}
+    \dot{x} = \mat{\dot{x_1} \\ \dot{x_2}} = f(x, u) \\
+    y = g(x, u)
+\end{align*}
+where $f: \R^2 \times \R \to \R^2$ is
+\begin{equation*}
+    f([x_1, x_2]^T, u) = \mat{
+        x_2 \\
+        -\frac{b}{I} x_2 - \frac{mg\ell}{I} \cos x_1
+    } + \mat{0 \\ 1} u
+\end{equation*}
+and $g: \R^2 \times \R \to \R$ is
+\begin{equation*}
+    g([x_1, x_2]^T, u) = \ell \sin(x_1)
+\end{equation*}
+
+\item Since we assume that $\tau(t) = 0$ for all $t \geq 0$, we also have
+    $u(t) = \tau(t) = 0$. Let $x^* = [\theta^*, \dot{\theta}^*]^T = [-\pi/2, 0]^T$.
+    and $x^{**} = [\theta^{**}, \dot{\theta}^{**}]^T = [\pi/2, 0]^T$. To show
+    that $x^*$ and $x^{**}$ are each equilibrium points with $u(t) = 0$,
+    it suffices to show that $f(x^*, 0) = f(x^{**}, 0) = 0_{2\times 1}$, where
+    $0_{2\times 1}$ is the zero vector in $\R^2$. Since
+    $\cos(\pi/2) = \cos({-\pi/2}) = 0$, we have
+    \begin{align*}
+        f(x^*, 0) = f([-\pi/2, 0]^T, 0) = \mat{
+            0 \\
+            -\frac{b}{I} 0 - \frac{mg\ell}{I} \cos(-\pi/2)
+        } + \mat{0 \\ 1} 0
+        &= \mat{0 \\ 0}
+    \end{align*}
+    and similarly,
+    \begin{align*}
+        f_(x^{**}, 0) = f([\pi/2, 0]^T, 0) = \mat{0 \\ 0}.
+    \end{align*}
+
+    To compute the linearizations about these equilibrium points, we define
+    two changes of variables $\delta x^* = x - x^*$
+    and $\delta x^{**} = x - x^{**}$.
+    
+    We will also define $u^* = 0$ and $\delta u^* = u - u^* = u$ for completeness.
+    But since $u(t) = 0$, we also have $\delta u^*(t) = 0$ for all $t$.
+
+    Since $x^*$ and $x^{**}$ are constant, we have
+    $\frac{d}{dt}(\delta x^*) = \frac{d}{dt}(\delta x^{**}) = f(x, u)$. Starting
+    with $\delta x^*$, we take the Taylor expansion of $f$ about the equilibrium 
+    point $\delta x^* = 0$:
+    \begin{align*}
+        \frac{d}{dt}(\delta x^*) &= f(x^*, u^*) +
+            \frac{\delta f}{\delta x}(x^*, u^*) \delta x^*
+            + \frac{\delta f}{\delta u}(x^*, u^*) \delta u^*
+            + \mathcal{O}((\delta x^*)^2) + \mathcal{O}((\delta u^*)^2) \\
+            &= \frac{\delta f}{\delta x}(x^*, u^*) \delta x^* + \mathcal{O}((\delta x^*)^2)
+    \end{align*}
+    where the second equality holds because $f(x^*, u^*) = 0$ and
+    $\delta u^* = 0$. Similarly, for the second equilibrium point we have
+    \begin{equation*}
+        \frac{d}{dt}{(\delta x^{**})} = \frac{\delta f}{\delta x} \delta x^{**}
+            + \mathcal{O}((\delta x^{**})^2).
+    \end{equation*}
+    Therefore, it remains to find the Jacobian relative to $x$ for our system:
+    \begin{equation*}
+        \frac{\delta f}{\delta x}([x_1, x_2]^T, u) = \mat{
+            0 & 1 \\
+            \frac{gm\ell}{I} \sin(x_1) & \frac{-b}{I}
+        }
+    \end{equation*}
+    Thus our linearization (neglecting higher order terms) is given by:
+    \begin{align*}
+        \frac{d}{dt}(\delta x^*) &\approx A_1 \delta x^* \\
+        \frac{d}{dt}(\delta x^{**}) &\approx A_2 \delta x^{**} \\
+    \end{align*}
+    where $A_1, A_2\in\R^{2\times 2}$ are
+    \begin{align*}
+        A_1 &= \frac{\delta f}{\delta x}(x^*, u^*) = \mat{
+            0 & 1 \\
+            \frac{gm\ell}{I} \sin(-\pi/2) & \frac{-b}{I}
+        } = \mat{
+            0 & 1 \\
+            -\frac{gm\ell}{I} & \frac{-b}{I}
+        } \\
+        A_2 &= \frac{\delta f}{\delta x}(x^*, u^*) = \mat{
+            0 & 1 \\
+            \frac{gm\ell}{I} \sin(\pi/2) & \frac{-b}{I}
+        } = \mat{
+            0 & 1 \\
+            \frac{gm\ell}{I} & \frac{-b}{I}
+        }.
+    \end{align*}
+
+\item By Lyapunov's first method, we have that
+\begin{enumerate}
+    \item if the linearization is (globally) exp. stable,
+        the nonlinear is locally exp. stable;
+    \item if the linearization is (globally) unstable,
+        the nonlinear is locally unstable; and
+    \item if the linearization is (globally) marginally,
+        the method is indecisive.
+\end{enumerate}
+
+So we analyze the real components of the eigenvalues of the matrices
+$A_1$ and $A_2$ to determine the local stability properties of $x^*$ and
+$x^{**}$, respectively.
+
+Starting with the first equilibrium point $x^*$, and assuming
+$\ell = m = I = 1$, $g = 10$, and $b \geq 0$, we have
+\begin{equation*}
+    A_1 = \mat{
+        0 & 1 \\
+        -10 & -b
+    }
+\end{equation*}
+which has eigenvalues given by the characteristic equation:
+\begin{align*}
+    -\lambda (-b - \lambda) + 10 = 0 \\
+    \lambda^2 + b\lambda + 10 = 0 \\
+    \lambda_{1,2} = \frac{1}{2} (-b \pm \sqrt{b^2 - 40})
+\end{align*}
+where $\lambda_{1,2}$ are the first and second eigenvalues (corresponding
+to the (+) and (-) of the $\pm$, respectively).
+
+For $b = 0$, $\lambda_{1,2} = \pm i \sqrt{40}$ with $i = \sqrt{-1}$. So the 1st
+Lyapunov method is indecisive.
+
+For $0 < b^2 \leq 40$, $\Re(\sqrt{b^2 - 40}) = 0$, so that 
+\begin{equation*}
+    \Re(\lambda_{1,2}) = -\frac{b}{2} < 0
+\end{equation*}
+
+For $b^2 > 40$, the square root term is real and since $b^2 - 40 < b^2$,
+we have $\sqrt{b^2 - 40} < |b| = b$ and thus
+\begin{align*}
+    \Re(\lambda_{1,2}) &= 1/2 \Re(-b \pm \sqrt{b^2 - 40}) \\
+        &= 1/2 (-b \pm \sqrt{b^2 - 40}) \\
+        &< 0
+\end{align*}
+
+So in summary, for any $b > 0$, we have $\Re(\lambda_{1,2}) < 0$ and thus the system is
+locally exponentially stable about $x^*$. And again, for $b=0$ Lyapunov's first method
+is indecisive.
+
+Repeating the analysis for $x^{**}$ (and skipping steps which are nearly identical),
+we have
+\begin{equation*}
+    A_2 = \mat{
+        0 & 1 \\
+        10 & -b
+    }
+\end{equation*}
+with eigenvalues
+\begin{equation*}
+    \lambda_{1,2} = 1/2 (-b \pm \sqrt{b^2 + 40}).
+\end{equation*}
+Since $b^2 + 40 > 0$ for all $b$, the root is strictly real, and we have
+$\sqrt{b^2 + 40} > b$ so that
+\begin{equation*}
+    \Re(\lambda_1) = \frac{1}{2} \Re(-b + \sqrt{b^2 + 40}) > 0.
+\end{equation*}
+The linearized system has a positive eigenvalue and is (globally)
+unstable. Therefore, the nonlinear system is locally unstable about
+$x^{**}$ for all values of $b$ (even negative values, but of course including
+all those non-negative).
+\end{letterenum}
+
+\section{Problem 2}
+Let $\dot{x} = Ax + Bu$ where
+\begin{equation*}
+    A = \mat{
+        -2 & 1 \\
+        0 & 0
+    } \qquad B = \mat{
+        0 \\ 1
+    }
+\end{equation*}
+The solution to the non-homogenous LTI system is given by:
+\begin{equation}
+    x(t) = e^{At} x(0) + \int_{0}^{t} e^{A (t - \tau)} B u(\tau) d\tau
+    \label{eq:non-homogenous-solution}
+\end{equation}
+
+To facilitate computation of the exponential $e^{At}$, we first compute
+its jordan normal form. $A$'s characteristic equation is given by:
+\begin{align*}
+    (-2 - \lambda) (-\lambda) = \lambda( \lambda + 2) &= 0 \\
+    \lambda_{1,2} &= 0, -2
+\end{align*}
+Thus, $A$ is diagonizable, and it is easy to see that corresponding eigenvectors
+are $v_1 = [1, 2]^T$ and $v_2 = [1, 0]^T$. We can therefore write
+$A$ in the form $A = PDP^{-1}$ where
+\begin{equation*}
+    P = \mat{1 & 1 \\ 2 & 0} \qquad D = \mat{0 & 0 \\ 0 & -2}
+        \qquad P^{-1} = \frac{1}{2} \mat{0 & 1 \\ 2 & -1}
+\end{equation*}
+and it follows that $e^{At} = Pe^{Dt}P^{-1}$.
+
+From equation (\ref{eq:non-homogenous-solution}), with initial state
+$x(0) = 0_{2 \times 1}$ and input $u(t) = e^{-t}$, we have
+\begin{align*}
+    x(t) &= e^{At} \int_{0}^{t} e^{-A\tau} B e^{-\tau} d\tau \\
+        &= P e^{Dt} P^{-1} \int_{0}^{t} P e^{-Dt} (P^{-1} B) e^{-\tau} d\tau \\
+        &= \frac{1}{2} P e^{Dt} \int_{0}^{t} \mat{
+            1 & 0 \\
+            0 & e^{2\tau}
+        } \mat{1 \\ -1}e^{-\tau} d\tau \\
+        &= \frac{1}{2} P e^{Dt} \int_{0}^{t} \mat{e^{-\tau} \\ -e^{\tau}} d\tau \\
+        &= \frac{1}{2} P e^{Dt} \mat{-e^{-\tau} \\ -e^{\tau}} \eval_{\tau=0}^t \\
+        &= \frac{1}{2} P \mat{
+            1 & 0 \\
+            0 & e^{-2t}
+        } \biggl(
+            \mat{-e^{-t} \\ -e^{t}} - \mat{-1 \\ -1}
+        \biggr) \\
+        &= \frac{1}{2} P \mat{
+            1 - e^{-t} \\
+            e^{-2t} ( 1- e^{t})
+        } \\
+        &= \frac{1 - e^{-t}}{2} \mat{1 & 1 \\ 2 & 0}\mat{1 \\ -e^{-t}} \\
+        &= \frac{1-e^{-t}}{2} \mat{1 - e^{-t} \\ 2}
+\end{align*}
+Therefore, at $t=1$, we have
+\begin{equation*}
+    x(1) = \frac{1 - e^{-1}}{2} \mat{1 - e^{-1} \\ 2} \approx \mat{0.1998 \\ 0.6321}
+\end{equation*}
+
+\section{Problem 3}
+We begin this problem by proving that a homogenous LTV system $\dot{x} = A(t) x$
+has solution
+\begin{align}
+    x(t) = \Phi(t, t_0) x(t_0) \\
+    \Phi(t, t_0) = e^{\int_{t_0}^{t} A(\tau) d\tau}
+    \label{eq:ltv-solution}
+\end{align}
+if $A(t)$ and $\int_{t_0}^{t} A(\tau) d\tau$ commute for all $t$.
+
+For shorthand throughout the exercise, we will define the function
+$f_A: \R \to \R^n$ such that $f_A(t)$ is equal
+to the integral term which appears in the exponent of equation (\ref{eq:ltv-solution}):
+$f_A(t) = \int_{t_0}^{t} A(\tau) d\tau$.
+
+We will prove that (\ref{eq:ltv-solution}) holds, given $A(t)$ and $f_A(t)$ commute.
+First, we prove that given $A(t)$ and $f_A(t)$
+commute, the following relation holds for any $i\in\Z_{\geq0}$:
+\begin{equation}
+    \frac{d}{dt} \biggl(
+        \biggl(
+            \int_0^t A(\tau) d\tau
+        \biggr)^i
+    \biggr) = i A(t) \biggl(\int_{0}^{t} A(\tau d\tau)^{i-1}\biggr)
+    \label{eq:derivative-of-ltv-integral}
+\end{equation}
+
+\begin{proof}
+    We will prove by induction. The base case $i=0$ clearly holds since
+    $\frac{d}{dt}(1) = 0$.  Then, given that (\ref{eq:derivative-of-ltv-integral})
+    holds for $i$, for $i+1$, we have
+    \begin{align*}
+        \frac{d}{dt} \biggl(
+            f_A(t)^{i+1}
+        \biggr)
+        &= \frac{d}{dt} (f_A(t) f_A(t)^i) \\
+        &= f_A(t) (i A(t) f_A(t)^{i-1}) + A(t) f_A(t)^{i} \\
+        &= i A(t) f_A(t)^{i} + A(t) f_A(t) \\
+        &= (i + 1) A(t) f_A(t)^{i}
+    \end{align*}
+    where we have used the product rule, the fact that $\frac{df}{dt}(t) = A(t)$,
+    and the fact that $A(t)$ and $f_A(t)$ commute.
+    Thus, (\ref{eq:derivative-of-ltv-integral})
+    holds for all $i$, completing the proof by induction.
+\end{proof}
+
+Now, since $x(0)$ is
+constant, we are interested in the derivative of the exponential component.
+Since matrix exponentiation is defined as $e^A := \sum_{i=0}^{\infty} A^i / i!$
+for any $A \in \R^{n \times n}$, by applying (\ref{eq:derivative-of-ltv-integral})
+we obtain the following
+\begin{align*}
+    \frac{d}{dt} (e^{f_A(t)}) &= \sum_{i=0}^{\infty} \frac{\frac{d}{dt} f_A(t)^i}{i!} \\
+        &= \sum_{i=1}^{\infty} \frac{i A(t) f_A(t)^{i-1}}{i!} \\
+        &= A(t) \sum_{i=1}^{\infty} \frac{f_A(t)^{i-1}}{(i-1)!} \\
+        &= A(t) e^{f_A(t)}
+\end{align*}
+
+Finally, differentiating the solution proposed in (\ref{eq:ltv-solution}) yields:
+\begin{align*}
+    \frac{d}{dt}(x(t)) = \frac{d}{dt}(e^{\int_{0}^{t} A(\tau) d\tau})
+        = A(t) e^{\int_{0}^{t} A(\tau)d\tau} x(0)
+        = A(t) x(t)
+\end{align*}
+
+To see that the initial condition $x(t_0)$ holds, note that
+$f_A(t_0) = 0_{n \times n}$ so that
+$\Phi(t_0, t_0) = e^{0_{n\times n}} = I_{n\times n}$.
+
+Returning to the case where
+\begin{equation*}
+    A(t) = \mat{0 & \omega(t) \\ -\omega(t) & 0},
+\end{equation*}
+we see that $A(t)$ and $A(\tau)$ commute by simply carrying out the matrix
+multiplication and using the fact that the real number $\omega(t)$ and
+$\omega(\tau)$ commute:
+\begin{align*}
+    A(t) A(\tau) &= \mat{
+        0 & \omega(t) \\
+        -\omega(t) & 0
+    } \mat{
+        0 & \omega(\tau) \\
+        -\omega(\tau) & 0
+    } \\
+    &= \mat{
+        -\omega(t) \omega(\tau) & 0 \\
+        0 & -\omega(t) \omega(\tau)
+    } \\
+    &= \mat{
+        0 & \omega(\tau) \\
+        -\omega(\tau) & 0
+    } \mat{
+        0 & \omega(t) \\
+        -\omega(t) & 0
+    } \\
+    &= A(\tau) A(t).
+\end{align*}
+
+Now, multiplication of $A(t)$ and $f_A(t)$ gives
+
+\begin{align*}
+    A(t) f_A(t) &= A(t) \int_{0}^{t} A(\tau) d\tau \\
+        &= \int_{0}^{t} A(\tau) d\tau A(t) \\
+        &= f_A(t) A(t)
+\end{align*}
+where we have pulled $A(t)$ into the integral and used the fact that
+$A(t)$ and $A(\tau)$ commute.
+
+Thus, the equation (\ref{eq:ltv-solution}) provides a valid solution, and
+it remains to simplify the integral $f_A(t)$. Since $\omega(t)$ is a constant
+we can factor it out of the matrix. Let $B = \mat{0 & 1 \\ -1 & 0}$ such
+that $A = \omega(t)B$. Since the eigenvalues of $B$ are $\pm i$, we use
+the following diagonalization $B = PDP^{-1}$ where
+\begin{equation*}
+    P = \mat{
+        1 & 1 \\
+        i & -i
+    } \qquad D = \mat{
+        i & 0 \\
+        0 & -i
+    } \qquad P^{-1} = \frac{1}{2} \mat{
+        1 & -i \\
+        1 & i
+    }
+\end{equation*}
+
+Define $W(t) = \int_{0}^{t} \omega(\tau) d\tau$. Then,
+\begin{align*}
+    e^{f_A(t)} &= e^{\int_{0}^{t} \omega(\tau) PDP^{-1}d\tau} \\
+        &= e^{P (W(t) D) P^{-1}} \\
+        &= P e^{W(t) D} P^{-1} \\
+        &= \mat{
+            1 & 1 \\
+            i & -i
+        } \mat{
+            e^{iW(t)} & 0 \\
+            0  & e^{-iW(t)}
+        } \frac{1}{2} \mat{
+            1 & -i \\
+            1 & i
+        } \\
+        &= \frac{1}{2} \mat{
+            e^{iW(t)} & e^{-iW(t)} \\
+            i e^{iW(t)} & -i e^{-iW(t)}
+        } \mat{
+            1 & -i \\
+            1 & i
+        } \\
+        &= \frac{1}{2} \mat{
+            e^{iW(t)} + e^{-iW(t)} & -i(e^{iW(t)} - e^{-iW(t)}) \\
+            i(e^{iW(t)} - e^{-iW(t)}) & e^{iW(t)} + e^{-iW(t)}
+        }.
+\end{align*}
+By Euler's formula, for any $a \in \R$ we have
+\begin{equation*}
+    e^{ia} + e^{-ia} = (\cos a + i \sin a) + (\cos a - i \sin a) = 2\cos a
+\end{equation*}
+and 
+\begin{equation*}
+    i(e^{ia} - e^{-ia}) = i(\cos a + i\sin a) - i(\cos a - i \sin a) = 2i^2\sin a = -2 \sin a
+\end{equation*}
+so that
+\begin{equation}
+    \Phi(t, t_0) = e^{f_A(t)} = \mat{
+        \cos W(t) & \sin W(t) \\
+        -\sin(W(t)) & \cos W(t)
+    }
+    \label{eq:exponential-of-skew-integral}
+\end{equation}
+
+\section{Problem 4}
+
+\begin{letterenum}
+
+\item The derivative of $\frac{1}{2}\norm{x(t)}^2$ can be computed as follows
+\begin{align*}
+    \frac{d}{dt}\biggl(\frac{1}{2}\norm{x(t)}^2\biggr)
+        &= \frac{d}{dt} \biggl(\frac{1}{2}x(t)^T x(t)\biggr) \\
+        &= \frac{1}{2} \biggl(\dot(x)^T(t) x(t) + x^T(t) \dot{x}(t)\biggr) \\
+        &= x^T(t) \dot{x}(t) \\
+        &= x^T(t) A(t) x(t) \\
+\end{align*}
+where the third equality follows from the fact that the vector inner product
+commutes ($\dot{x}^T(t) x(t) = x^T(t) \dot{x})$. Let $x(t) = [x_1, x_2, x_3]^T$,
+where we have removed the dependence on time simply as a notational shorthand.
+
+Substituting our given matrix $A(t)$ into the previous relation yields:
+\begin{align*}
+    \frac{d}{dt}\biggl(\frac{1}{2} \norm{x(t)}^2\biggr) &=
+        \mat{x_1 & x_2 & x_3} \mat{
+            t x_2 - 2x_3 \sin (2t) \\
+            -t x_1 + x_3 e^t \\
+            2x_1 \sin (2t) - x_3 e^t
+        } \\
+        &= t(x_1x_2 - x_1x_2) + 2\sin(2t) (x_1x_3 - x_1x_3) + e^t (x_2x_3 - x_2x_3) \\
+        &= 0
+\end{align*}
+
+Therefore, since $d/dt(\frac{1}{2}\norm{x(t)}^2) = 0$ for all $t$,
+integrating both sides yields
+\begin{equation*}
+    \norm{x(t)}^2 = C
+\end{equation*}
+where $C$ is a integration constant, easily seen to be $C = \norm{x(0)}^2$.
+Since $\norm{x} \geq 0$ for any $x\in\R^n$ we have:
+\begin{equation}
+    \norm{x(t)} = \norm{x(0)}
+    \label{eq:constant-norm}
+\end{equation}
+
+\item We first note that since the system is linear, it has one
+equilibrium point located at the origin, $x^* = 0$.
+Then, for any $\delta > 0$, if we select $x(0)$ such that $\norm{x(0)} < \delta$,
+by equation (\ref{eq:constant-norm}) we have $\norm{x(t)} = \norm{x(0)} < \delta$
+for all $t$. Selecting $\epsilon = \delta$, we therefore have that the norm
+of $x(t)$ is bounded by $\epsilon$ for all $t$, and $x^*$ satisfies the definition
+of a marginal stability equilibrium point.
+
+However, since $\lim_{t\to\infty} \norm{x(t)} = \norm{x(0)}$, for any
+$x(0)$ with $\norm{x(0)} > 0$
+\begin{equation*}
+    \lim_{t\to\infty} \norm{x(t)} \neq 0
+\end{equation*}
+implies that 
+\begin{equation*}
+    \lim_{t\to\infty} x(t) \neq \mat{0 \\ 0 \\ 0} = x^*
+\end{equation*}
+by the definition of a norm ($\norm{x} = 0$ iff $x = 0$).
+
+Since $x(t)$ does not converge to the origin, the origin is not a
+asymptotically (or exponentially) stable equilibrium point.
+
+
+
+
+
+\end{letterenum}
+
+
+\end{document}
