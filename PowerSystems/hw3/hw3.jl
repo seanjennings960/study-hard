@@ -96,7 +96,7 @@ function problem_3_14()
 
 end
 
-function problem_3_22()
+function problem_3_23()
     S_r = 100e6
     Z_l1 = 48.4
     Z_l2 = 65.43
@@ -162,6 +162,24 @@ function problem_8_13()
 
 end
 
+function problem_3_27()
+    S_rated = 500e6
+    S_rated2 = 100e6
+    V_r1 = 220e3
+    V_r2 = 22e3
+    V_r3 = 230e3
+    Z = 0.1
+
+    Z_r2 = V_r2^2 / S_rated
+    Z_pu = Z / Z_r2
+
+    Z_r1 = V_r1^2 / S_rated
+    Z_1 = Z_pu * Z_r1
+    Z_r3 = V_r3^2 / S_rated2
+    Z_3pu = Z_pu * (V_r1 / V_r3)^2
+    PS.print_values((; Z_r2, Z_pu, Z_3pu, Z_r1, Z_1, Z_r3))
+end
+
 function problem_8_14()
     Z_y = 12 + im * 16 
     Z_s_inv = [
@@ -180,4 +198,4 @@ function problem_8_14()
 end
 
 
-problem_3_22()
+problem_3_27()

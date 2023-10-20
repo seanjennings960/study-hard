@@ -4,7 +4,7 @@ using Plots
 phasor(A, ϕ) = A * exp((ϕ)im)
 phasordeg(A, θ) = phasor(A, deg2rad(θ))
 phasor_from_p2p(A, θ) = phasor(A / √(2), θ)
-phasor_from_p2p_deg(A, θ) = phasordeg(A / √(3), θ)
+phasor_from_p2p_deg(A, θ) = phasordeg(A / √(2), θ)
 
 
 function print_phasor(a, deg=true)
@@ -52,6 +52,8 @@ function problem_2_10()
     pf = cos(δ - β)
     println("PF: $pf")
     s = V * conj(I)
+    println("Angle diff:")
+    println(rad2deg(δ - β))
     println("PF (from power angle): $(cos(angle(s)))")
     println("V:")
     print_phasor(V)
@@ -317,12 +319,12 @@ function problem_2_28()
 end
 
 
-# problem_2_10()
+problem_2_10()
 # problem_2_11()
 # problem_2_12()
 # problem_2_13()
 # problem_2_15()
-problem_2_17()
+# problem_2_17()
 # problem_2_20()
 # problem_2_21()
 # problem_2_22()
