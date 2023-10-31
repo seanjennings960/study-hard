@@ -1,0 +1,193 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5478}
+\title{Homework 5}
+\author{Sean Jennings}
+\date{October 26, 2023}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+If $f$ is a convex function, by the gradient inequality we have
+\begin{equation*}
+    f(y) \geq f(x) + \nabla f(x) (y - x) \\
+\end{equation*}
+for all $x,y\in\R^n$, and also
+\begin{equation*}
+    f(x) \geq f(y) + \nabla f(y) (x - y).
+\end{equation*}
+Adding together these equations yields
+\begin{equation*}
+    f(x) + f(y) \geq f(x) + f(y) + \nabla f(x) (y - x) - \nabla f(y) (y - x) \\
+\end{equation*}
+which reduces to:
+\begin{equation*}
+    (\nabla f(x) - \nabla f(y)) (x - y) \geq 0
+\end{equation*}
+showing that $\nabla f$ is a monotone operator.
+
+\section{Problem 2}
+
+If we let $f_i(x) = e^{x_i}$ where $x_i$ is the $i$th entry of $x$, then $f_i$
+is convex for each $i$. This is easy to see by noting that the hessian is positive
+semi-definite ($\nabla^2 f_i(x) \succeq 0$) for all $x$
+since the $i,i$th entry is equal to $e^{x_i} > 0$ and all other entries are 0.
+
+Since each $f_i(x) := e^{x_i}$ is convex, we also have that
+$\sum_{i=1}^{n} f_i(x)$ is convex. Since $\log$ is a monotonic function,
+then the function of interest is the composition of a monotone operator with
+a convex function and is therefore also convex (Beck Thm 7.22).
+
+\section{Problem 3}
+
+The function of interest can be rewritten as:
+\begin{equation*}
+    f(x) = \max_{1 \leq i \leq n} \{f_i(x)\}
+\end{equation*}
+
+where $f_i: \R^n \to \R$ is given by
+\begin{equation*}
+    f_i(x) = e_i^T x
+\end{equation*}
+with $e_i$ as the $i$th standard basis vector in $\R^n$.
+
+Each $f_i$ is maps $\R^n$ to a half space and is thus convex (Beck Lemma 6.3), so that $f$ is the
+pointwise maximum of convex functions and is therefore also convex (Beck Thm 7.25).
+
+\section{Problem 4}
+
+\begin{letterenum}
+\item $Y = \sum_{i=1}^{N} X_i$ is sub-Weibull since it is the sum of subW variables.
+    By the closure lemma given in lecture, we have
+    \begin{equation*}
+        Y \sim \text{subW} \biggl(\max_{1\leq i \leq N} \{\theta_i\},
+            \sum_{i=1}^{N} \nu_i\biggr)
+    \end{equation*}
+    Or equivalently, $\theta_y = \max_{1 \leq i \leq N} \{\theta_i\}$ and
+    $\nu_y = \sum_{i=1}^N \nu_i$.
+
+\item In lecture, we also proved that for $a>0$, $\theta > 0$ $\nu > 0$, and $X \sim \subW (\theta, \nu)$
+\begin{equation}
+    X^a \subW (a \theta, \nu^a \max\{1, a^{a\theta}\})
+    \label{eq:subW-x-to-a}
+\end{equation}
+so that for each $i \in [1, N]$
+\begin{equation}
+    X_i^2 \sim \subW(2 \theta_i, v_i^2 4^{\theta_i})
+    \label{eq:sub-x-squared}
+\end{equation}
+since $2^{2\theta} = 4^\theta > 4 > 1$ for all $\theta > 0$.
+
+Thus, for $Y = \sum_{i=1}^{N} X_i^2$, we have
+\begin{equation}
+    Y \sim \subW ( 2 \max_{1\leq i \leq N} \{\theta_i\}, \sum_{i=1}^{N} \nu_i^2 4^{\theta_i})
+    \label{eq:sum-x-squared}
+\end{equation}
+We will call $Y \sim \subW (\theta_b, \nu_b)$ where $\theta_b > 0$ and $\nu_b > 0$ are given by the
+above equation, since we will use $\theta_b$ and $\nu_b$ later.
+
+\item We must assume that $X_1$ and $X_2$ are independent. Otherwise, $X_1X_2$ may not be subW.
+
+If they are independent, then by subW closure lemma (d) from lecture and equation \ref{eq:sub-x-squared},  we have
+
+\begin{equation*}
+    X_1X_2^2 \sim \subW (\theta_1 + 2 \theta_2, \nu_1 \nu_2^2 4^{\theta_2})
+\end{equation*}
+
+and then by scalar multiplication (closure lemma (a)), we have
+\begin{equation*}
+    Y = \alpha X_1X_2^2 \sim \subW (\theta_1 + 2\theta_2, |\alpha| \nu_1 \nu_2^2 4^{\theta_2})
+\end{equation*}
+We note that since $\alpha < 0$, we also have $|\alpha| = -\alpha$.
+
+\item $Y = \norm{X}$ where $X = [X_1, X_2, \dots X_N]^T$ can be rewritten as $Y = (\sum_{i=1}^N X_i^2)^{1/2}$.
+Since this is just $Z^a$ with $Z$ given by (\ref{eq:sum-x-squared}) we can apply equation (\ref{eq:subW-x-to-a}),
+noting this time that since $a = 1/2 < 1$, we have $a^{a\theta} < 1$ for all $\theta > 0$.
+
+\begin{equation*}
+    Y \sim \subW \biggl(
+        \frac{1}{2} \theta_b,
+        \nu_b 
+    \biggr)
+\end{equation*}
+or in terms of $\theta_i$ and $\nu_i$:
+\begin{align*}
+    Y \sim \subW \biggl(&\max_{1 \leq i \leq N} \{\theta_i\},
+        \sum_{i=1}^{N} \nu_i^2 4^{\theta_i}
+    \biggr)
+\end{align*}
+\end{letterenum}
+
+\section{Problem 5}
+
+The optimization problem can be written:
+\begin{align*}
+    &\min_{u \in \mathcal{U}} \phi(u) + \psi(y) \\
+    &\text{subj. to } y = G_u u + G_w w_t \\
+    &t \in \mathcal{T}
+\end{align*}
+
+where
+\begin{align*}
+    \mathcal{U} &= [0, u_{max}] \times [0, u_{max}] \subset \R^2 \\
+    \mathcal{T} &= \N \cup \{0\} \\
+    \phi(u) &= \frac{a_1}{2} \norm{u}^2 \\
+    \psi(y) &= \frac{a_2}{2} \norm{y - r}^2.
+\end{align*}
+
+The gradient of the two components of the cost function are given by:
+\begin{align*}
+    \nabla \phi(u) &= a_1 u \\
+    \nabla \psi(y) &= a_2 (y - r)
+\end{align*}
+
+We can then use the projected gradient method to update the control $u_{t}$
+based on the measurement $y_t$. Assuming that $u_0\in\mathcal{U}$ is given
+and that the measurement $y_t$ is available for all $t \in \mathcal{T}$,
+the algorithm is then:
+\begin{align*}
+    u_{t+1} &=
+        \text{proj}_{\mathcal{U}} \biggl\{u_t - \alpha
+        (\nabla \phi(u_t) + G_u^T \nabla \psi(y_t)) \biggr\} \\
+        &= \text{proj}_{\mathcal{U}} \biggl\{u_t - \alpha
+        (a_1 u_t + a_2 G_u^T (y_t - r)) \biggr\}
+\end{align*}
+
+The error of the algorithm is given by the error of the online projected
+gradient method:
+\begin{equation*}
+    \norm{u_t - u_t^*} = \rho \norm{u_0 - u_0^*} + \frac{1}{1 - \rho} \bar{\sigma}
+\end{equation*}
+where $\bar{\sigma} \in \R$ is the suprenum of the path lengths
+\begin{equation*}
+    \bar{\sigma} = \sup_{\tau > 0} \norm{u_{\tau + 1} - u_\tau}
+\end{equation*}
+and $\rho$ is the maximum Lipschitz constant of the algorithmic map. If we define
+$f_t: \R^2 \to \R$ to be the total cost $f_t(u) = \phi(u) + \psi(G_u u + G_w w_t)$,
+then the algorithmic map is $\mathcal{I} - \nabla f_t$, which has Lipschitz
+constant related to the strong convexity and smoothness coefficients of $f_t$.
+
+Since we have,
+\begin{align*}
+    \nabla f_t(u) &= \nabla \phi(u) + G_u^T \nabla \psi ( G_u u + G_w w_t) \\
+    \nabla^2 f_t(u) &= \nabla^2 \phi(u) + G_u^T \nabla^2 \psi ( G_u u + G_w w_t) G_u \\
+        &= a_1 I + a_2 G_u^T G_u
+\end{align*}
+$f_t$ is $\mu$-strongly convex and $L$-smooth with coefficients
+\begin{align*}
+    L &= \lambda_{max}(a_1 I + a_2 G_u^T G_u) \\
+    \mu &= \lambda_{min} (a_1 I + a_2 G_u^T G_u)
+\end{align*}
+and the algorithmic map has Lipschitz constant
+$\rho = \max\{|1 - \alpha L|, |1 - \alpha \mu|\}$, independent of $t$.
+
+
+
+
+\end{document}
