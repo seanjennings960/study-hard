@@ -189,8 +189,6 @@ def coords_to_geo():
     plt.show()
 
 
-
-
 def total_load():
     loads = np.load(NPZ_FILE)
     total_load_energy = np.sum(loads['power']) * 5/60
