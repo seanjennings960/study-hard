@@ -1,0 +1,496 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5448}
+\title{Homework 3}
+\author{Sean Jennings}
+\date{November 6, 2023}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+\subsection{}
+The equilibrium points of course occur where $\dot{x}_1 = \dot{x}_2 = 0$. Based on the
+system dynamics this implies:
+\begin{equation*}
+    \dot{x}_1 = x_1^2 - 1 = 0
+\end{equation*}
+so that $x_1 = \pm 1$ and 
+\begin{equation*}
+    \dot{x}_2 = -x_2 + x_1^2 = -x_2 + 1 = 0.
+\end{equation*}
+So $x_2 = 1$. Thus, we have two equilibrium points (which we will call $x_1^*$ and $x_2^*$):
+\begin{equation*}
+    x_1^* = \mat{1 \\ 1} \qquad x_2^* = \mat{-1 \\ 1}
+\end{equation*}
+
+The jacobian as a function of $x_1$ and $x_2$ is given by
+\begin{equation*}
+    \nabla f([x_1 x_2]^T) = \mat{
+        2x_1 & 0 \\
+        2x_1 & -1
+    },
+\end{equation*}
+so evaluating at $x_1^*$ and $x_2^*$ yields:
+\begin{align*}
+    \nabla f(x_1^*) &= \mat{
+        2 & 0 \\
+        2 & -1
+    } \\
+    \nabla f(x_1^*) &= \mat{
+        -2 & 0 \\
+        -2 & -1
+    }.
+\end{align*}
+As proven on the previous homework, a 2x2 matrix $A$ has only negative eigenvalues
+when Tr$(A) < 0$ and det$(A) > 0$, and it has at least one positive eigenvalue when
+either Tr$(A) > 0$ or det$(A) < 0$.
+
+Since Tr$(\nabla f(x_1^*)) = 1 > 0$, the linearized system around $x_1^*$ is 
+has a positive eigenvalue and is therefore unstable. For $x_2^*$, we have
+Tr$(\nabla f(x_2^*)) = -3 < 0$ and det$(\nabla f(x_1^*)) = 2 > 0$
+so the linearized system has only negative eigenvalues, and therefore is
+exponentially stable.
+
+So by Lyapunov's first method, $x_1^*$ is locally unstable and $x_2^*$ is
+locally exponentially stable.
+
+\subsection{}
+
+For a quadratic Lyapunov function of the form $\epsilon(x) = x^T P x$ with
+$x\in\R^2$, $P\in\R^{2\times 2}$, we have that $\epsilon$ is a positive
+semi-definite (psd) function when $P$ is a psd matrix. The time derivative
+of $\epsilon$ is given by:
+\begin{align*}
+    \frac{d}{dt}(\epsilon(x)) &= \dot{x}^T P x + x^T P \dot{x} \\
+        &= x^T A^T P x + x^T P A x \\
+        &= x^T (A^T P + P A) x
+\end{align*}
+where $A$ is the state matrix.
+So $d\epsilon/dt$ is negative semi-definite when the matrix $A^TP + PA$ is.
+We solve the Lyapunov equation $A^TP + PA = -Q$, setting $Q$ equal to
+the identity matrix. Denoting $P_{ij}$ as the $ij$-th entry of $P$
+we have:
+\begin{align*}
+    &\mat{
+        P_{11} & P_{12} \\
+        P_{21} & P_{22}
+    } \mat{
+        0 & 1 \\
+        -1 & -2
+    } + 
+    \mat{
+        0 & 1 \\
+        -1 & -2
+    } \mat{
+        P_{11} & P_{12} \\
+        P_{21} & P_{22}
+    } \\
+    &= \mat{
+        -P_{12} & P_{11} - 2 P_{12} \\
+        -P_{22} & P_{21} - 2 P_{22} \\
+    } \mat{
+        -P_{21} &  -P_{22} \\
+        P_{11} - 2 P_{21} & P_{12} - 2 P_{22} \\
+    } \\
+    &= \mat{
+        -(P_{12} + P_{21}) & P_{11} - 2 P_{12} - P_{22} \\
+        P_{11} - 2 P_{12} - P{22} & P_{21} + P_{12} - 4P_{22} \\
+    }  \\
+    &= -I.
+\end{align*}
+Assuming $P$ is symmetric (i.e. $P_{12} = P_{21}$), we have a system
+of three variables and three equations (noting that sinced $PA + A^TP$ is also
+symmetric, one entry of the matrix equation is redundant).
+\begin{equation*}
+    -(P_{12} + P_{21}) = -2P_{12} = -1
+\end{equation*}
+implies that $P_{12} = 1/2$. 
+\begin{equation*}
+    P_{21} + P_{12} - 4P_{22} = 2(1/2) - 4 P_{22} = -1
+\end{equation*}
+implies that $P_{22} = 1/2$. And finally, the off-diagonal entry
+has the equality
+\begin{equation*}
+    P_{11} - 2P_{21} - P_{22} = 0,
+\end{equation*}
+so $P_{11} = 3/2$. So from $Q=I$, we have constructed
+\begin{equation*}
+    P = \frac{1}{2} \mat{
+        3 & 1 \\
+        1 & 1
+    }
+\end{equation*}
+such that $A^TP + PA = -I$ is negative definite. Therefore, the time
+derivative of the Lyapunov function is also negative definite (i.e.
+    $d\epsilon/dt(x) < 0$ for all $x\neq0$ and $d\epsilon/dt(0) = 0$).
+It remains to verify that $P$ is psd. We find the eigenvalues of $P$
+via the characteristic equation:
+\begin{align*}
+    \text{det}(\lambda I - P) &= \text{det}(2\lambda I - 2P) \\
+        &= (2\lambda - 3) (2\lambda - 1) - 1 \\
+        &= (2\lambda)^2 - 4 (2\lambda) + 2 \\
+        &= 0.
+\end{align*}
+The quadratic equation yields
+\begin{align*}
+    2\lambda &= \frac{1}{2} (4 \pm \sqrt{4^2 - 4\cdot 2}) \\
+        &= \frac{1}{2} (4 \pm 2 \sqrt{2}) > 0
+\end{align*}
+so both eigenvalues of $P$ are positive, $P$ is psd, and $\epsilon(x) \geq 0$
+for all $x\in\R^2$.
+
+We emphasize that the preceding constraints for $\epsilon$ and
+$d\epsilon/dt$ are satisfied for all $x\in\R^2$. Furthermore,
+$\epsilon(x)$ is radially unbounded. Therefore, by Lyapunov's second
+theorem, we have that $x^* = [0, 0]^T$ is a globally asymptotically stable
+equilibrium point. 
+
+\subsection{}
+
+\begin{letterenum}
+\item 
+Differentiating $\epsilon_1$ and substituting in the system state equation yields:
+\begin{align*}
+    \frac{d}{dt} \biggl(\epsilon_1(x(t))\biggr)
+        &= x_2 \dot{x_2} + \dot{x}_1 \sin x_1 \\
+        &= x_2 ( -x_2 - \sin x_1) + x_2 \sin x_1 \\
+        &= -x_2^2.
+\end{align*}
+Similarly for $\epsilon_2$, we have
+\begin{align*}
+    \frac{d}{dt} \biggl(\epsilon_2(x(t))\biggr)
+        &= \frac{1}{2} \dot{x}_1 x_1 + \frac{1}{2} (x_1 \dot{x}_2 + \dot{x}_1 x_2)
+            + \dot{x}_2 x_2 + \dot{x}_1 \sin x_1 \\
+        &= \frac{1}{2} \dot{x}_1 (x_1 + x_2 + 2 \sin x_1)
+            + \frac{1}{2} \dot{x}_2 ( x_1 + 2x_2) \\
+        &= \frac{1}{2} x_2 (x_1 + x_2 + 2 \sin x_1)
+            + \frac{1}{2} (-x_2 - \sin x_1) ( x_1 + 2x_2) \\
+        &= \frac{1}{2} \biggl[
+            (x_1 x_2 + x_2^2 + 2x_2 \sin x_1) -
+                (x_1 x_2 + 2 x_2^2 + x_1 \sin x_1 + 2 x_2 \sin x_1)
+        \biggr] \\
+        &= \frac{1}{2} ( - x_2^2 - x_1\sin x_1)
+\end{align*}
+
+\item For $\epsilon_1$, we have $\epsilon_1(x) \geq 0$ for all $x\in\R^2$ since
+$1/2 x_2^2 \geq 0$ for all $x_2\in \R$ and $-\cos(x_1 \geq -1)$ implies that
+$1 - \cos x_1 \geq 0$ for all $x_1 \in \R$. Similarly, we have
+$d\epsilon_1/dt(x) \leq 0$ for all $x \in \R^2$. So $x^* = [0, 0]^T$ is a
+marginally stable equilibrium point.
+
+However, for any $\delta > 0$, the open ball centered around $x^*$ with radius
+$\delta$ (denoted $\mathcal{B}(x^*, \delta)$) has point
+$x=[\delta/2, 0]^T \in \mathcal{B}(x^*, \delta)$ such that
+$d\epsilon_1/dt(x) = 0$. Therefore, there does not exist a ball around $x^*$ such
+that $x^*$ is the unique zero of $d\epsilon_1/dt$. In other words,
+$d\epsilon_1/dt(x) = 0$ does not imply that $x = x^*$, and no further
+claims about asymptotic stability can be made using this Lyapunov candidate
+function.
+
+For $\epsilon_2$, we can factor terms to make the function's positive
+semi-definiteness more evident:
+\begin{align*}
+    \epsilon_2([x_1, x_2]^T) &= 1 - \cos x_1 + \frac{1}{4} ( x_1^2 + 2 x_1x_2 + x_2^2)
+        + \frac{1}{4} x_2^2 \\
+        &= 1 - \cos x_1 \frac{1}{4} (x_1 + x_2)^2 + \frac{1}{4} x_2^2
+\end{align*}
+Thus, by similarly arguments as $\epsilon_1$ we have for all $x\in\R^2$
+that $epsilon_2(x) \geq 0$.
+
+We look next at $d\epsilon_2/dt$. We have for $0 \leq x_1 < \pi$ that $x_1 \geq 0$
+and $\sin x_1 \geq 0$ so that $-x_1 \sin x_1 \leq 0$. Similarly, for
+$-\pi < x_1 \leq 0$, we have $x_1 \leq 0$ and $\sin x_1 \leq 0$ so that again
+$- x_1 \sin x_1 \leq 0$. And of course, $-x_2 \leq 0$ for all $x_2\in\R$.
+Therefore, for any $x\in\mathcal{B}(x^*, \pi)$, we have $d\epsilon_2/dt(x) \leq 0$.
+
+To check for asymptotic stability, we verify that $x^*$ is the only zero
+of $d\epsilon_2/dt$ within $\mathcal{B}(x^*, \pi)$. We have that
+$d\epsilon_2/dt=0$ implies $x_2^2 = 0$ and $x_1 \sin x_1 = 0$. Thus, $x_2$ must
+be 0.  Furthermore, we have $x_1 \sin x_1 = 0$ whenever $x_1 = n \pi$ for some
+integer $n$. However, for any $n\neq0$, we have
+$[0, n\pi]\notin \mathcal{B}(x^*, \pi)$. Thus, $n=0$, and $x = x^* = [0, 0]^T$
+is the only zero of $d\epsilon_2/dt$ within the $\pi$ of $x^*$, and
+\begin{equation*}
+    \frac{d\epsilon_2}{dt} (x) = 0 \Rightarrow x = x^*.
+\end{equation*}
+Clearly, the converse is also true. Thus, by Lyapunov's second method,
+$x^*$ is a locally asymptotic equilibrium point.
+
+Since there exists $x \in \R^2 \backslash \mathcal{B}(x^*, \pi)$ where
+\begin{equation*}
+    \frac{d\epsilon_2}{dt} > 0,
+\end{equation*}
+(e.g. any $x = [x_1, x_2]^T$ with $x_2=0$, $\pi < x_1 < 2\pi$),
+Lyapunov's 2nd method with $\epsilon_2$ as a candidate function
+does not imply global asymptotic stability of $x^*$.
+
+
+
+
+
+
+
+\end{letterenum}
+
+\section{Problem 2}
+
+\subsection{}
+\newcommand{\reach}{\mathcal{R}}
+\newcommand{\contr}{\mathcal{C}}
+
+\begin{letterenum}
+\item 
+The system in question is LTI so
+\begin{equation}
+    \reach(x_0, [0, t]) = \Phi(t, 0) x_0 + R(\contr(A, B))
+    \label{eq:reachability}
+\end{equation}
+where
+\begin{equation*}
+    A = \mat{
+        -1 & 1 \\
+        1 & -1 \\
+    } \qquad B = \mat{
+        1 \\ 1
+    }
+\end{equation*}
+To compute the reachable set, we first find the controllability matrix:
+\begin{equation*}
+    \contr(A, B) = \mat{
+        1 & 0 \\
+        1 & 0
+    }.
+\end{equation*}
+Its range is linear combinations of its columns so that
+\begin{equation*}
+    R(\contr(A, B)) = \biggl\{
+        a \mat{1 \\ 1}: a \in \R
+    \biggr\}
+\end{equation*}
+
+Next, we find the state transition matrix.
+We can verify that $A$ is diagonizable in the form $A = PDP^{-1}$ where
+\begin{equation*}
+    P = \mat{
+        1 & 1 \\
+        1 & -1
+    } \qquad D = \mat{
+        0 & 0 \\
+        0 & -2
+    } \qquad P^{-1} = \frac{1}{2} \mat{
+        1 & 1 \\
+        1 & -1
+    }.
+\end{equation*}
+Thus, the state transition matrix $\Phi(t_1, t_0)$ can be computed
+to be following:
+\begin{align}
+    \Phi(t_1, t_0) = e^{A(t_1, t_0)} &= P e^{D(t_1 - t_0)} P^{-1} \\
+        &= \frac{1}{2} \mat{
+            1 + e^{-2(t_1 - t_0)} & 1 - e^{-2(t_1 - t_0)} \\
+            1 - e^{-2(t_1 - t_0)} & 1 + e^{-2(t_1 - t_0)}
+        }
+        \label{eq:state-transition}
+\end{align}
+
+Thus, the first term in the reachability equation (\ref{eq:reachability})
+is given by:
+\begin{align*}
+    \Phi(1, 0) \mat{-1/2 \\ -1} &= \frac{1}{2} \mat{
+        1 + e^{-2} & 1 - e^{-2} \\
+        1 - e^{-2} & 1 + e^{-2}
+    } \mat{-1/2 \\ -1} \\
+    &= -\frac{1}{4} \mat{
+        1 + e^{-2} + 2(1 - e^{-2}) \\
+        1 - e^{-2} + 2(1 + e^{-2})
+    } \\
+    &= -\frac{1}{4} \mat{
+        3 - e^{-2} \\
+        3 + e^{-2} \\
+    } \\
+    &= -\frac{3}{4} \mat{1 \\ 1} + \frac{e^{-2}}{4} \mat{1 \\ -1}
+\end{align*}
+Finally, we can compute the reachable set of interest:
+\begin{align*}
+    \reach(\mat{-1/2 & -1}^T, [0, 1]) &= 
+        -\frac{3}{4} \mat{1 \\ 1} + \frac{e^{-2}}{4} \mat{1 \\ -1}
+            + \biggl\{a \mat{1 \\ 1}: a \in \R\biggr\} \\
+        &= \biggl\{
+            \biggl(a - \frac{3}{4}\biggr) \mat{1 \\ 1}
+            + \frac{e^{-2}}{4} \mat{1 \\ -1}:
+            a \in \R
+        \biggr\}
+\end{align*}
+Taking $a = \frac{3}{4}$ in the previous equation we see that
+$\frac{e^{-2}}{4} \mat{1 \\ -1} \in \reach(\mat{-1/2 & -1}^T, [0, 1])$.
+
+
+\item The control that takes us to the desired point
+at $t=1$, is given by:
+\begin{equation}
+    u(t) = B^T \Phi(1, t)^T v
+    \label{eq:control}
+\end{equation}
+where $v$ is the vector such that
+\begin{align}
+    W_\reach(0, 1) v &= x(1) - \Phi(1, 0) x(0) \\
+        &= \frac{e^{-2}}{4} \mat{1 \\ -1} - \Phi (1, 0) x(0) \mat{-1/2 \\ -1} \\
+        &= \mat{3/4 \\ 3/4}.
+        \label{eq:grammian-solution}
+\end{align}
+$W_\reach(0, 1)$ is the reachability grammian from $t=0$ to $t=1$, and is
+given by:
+\begin{equation*}
+    W_\reach(0, 1) = \int_{0}^{1} \Phi(1, \tau) B B^T \Phi(1, \tau)^T d\tau
+\end{equation*}
+It's easy to see from the symmetry of the state transition matrix in
+equation (\ref{eq:state-transition}) that 
+\begin{equation}
+    \Phi(1, t) B = \mat{1 \\ 1}.
+    \label{eq:pb-simplified}
+\end{equation}
+Therefore, the grammian is given by:
+\begin{align*}
+    W_\reach(0, 1) &= \int_{0}^{1} \mat{1 \\ 1} \mat{1 & 1} d\tau \\
+        &= \mat{1 & 1 \\ 1 & 1}
+\end{align*}
+Thus, if $v = [v_1, v_2]^T$, equation (\ref{eq:grammian-solution}) gives
+$v_1 + v_2 = 3/4$. Using equation (\ref{eq:pb-simplified}),
+equation (\ref{eq:control}) simplifies to a final solution:
+\begin{equation*}
+    u(t) = \mat{1 & 1} \mat{v_1 \\ v_2} = 3/4.
+\end{equation*}
+\end{letterenum}
+
+\subsection{}
+
+\begin{letterenum}
+\item
+We take a similar approach to the previous problem. Now, our system
+is 1-dimensional with
+\begin{equation*}
+    A = \mat{-1} \qquad B = \mat{1}.
+\end{equation*}
+The state transition matrix is then given by:
+\begin{equation*}
+    \Phi(t_1, t_0) = e^{A(t_1 - t_0)} = e^{-(t_1 - t_0)} = e^{t_0 - t_1}
+\end{equation*}
+We will denote the time at which the system is controlled to $x_1$ as
+$t_1$ (to avoid confusion with functions of time $t$), The reachability
+grammian from $t=0$ to $t=t_1$ is given by:
+\begin{align*}
+    W_\reach(0, t_1) &= \int_{0}^{t_1}
+            \Phi(t_1, \tau) B B^T \Phi(t_1, \tau)^T d\tau \\
+        &= \int_{0}^{t_1} e^{\tau - t_1} \cdot 1 \cdot 1 e^{\tau - t_1} d\tau \\
+        &= \int_{0}^{t_1} e^{2(\tau - t_1)} d\tau \\
+        &= \frac{1}{2} e^{2(\tau - t_1)} \eval_0^{t_1} \\
+        &= \frac{1}{2} (1 - e^{-2 t_1}) \\
+\end{align*}
+
+Again, we will select the control by the following relation:
+\begin{equation*}
+    u(t) = B^T \Phi(t_1, t)^T v
+\end{equation*}
+where $v$ is such that
+\begin{equation*}
+    W_\reach(0, t_1) v = x_1 - \Phi(t_1, 0) x(0) = x_1
+\end{equation*}
+(since $x(0) = 0$). Inverting the 1d-matrix, we find that $v$ is given by
+\begin{equation*}
+    v = \frac{2x_1}{1 - e^{-2t_1}}
+\end{equation*}
+so that $u$ is
+\begin{align}
+    u(t) &= e^{t - t_1} \biggl(\frac{2x_1}{1 - e^{-2t_1}}\biggr) \\
+        &= \frac{2e^{t- t_1} x_1}{1 - e^{-2t_1}}
+        \label{eq:best-control}
+\end{align}
+
+To check this control is correct, we will plug the control into 
+the solution for $x(t)$ and verify that $x(t_1)$ is indeed $x_1$.
+
+\begin{align*}
+    x(t) &= \Phi(t, 0) x(0) + \int_0^t \Phi(t, \tau) B u(\tau) d\tau \\
+        &= \int_0^t \Phi(t, \tau) B u(\tau) d\tau \\
+        &= \int_0^t e^{\tau - t} \biggl(
+            \frac{2e^{\tau - t_1}x_1}{1 - e^{-2t_1}}
+        \biggr) d\tau \\
+        &= \int_{0}^{t} 2 e^{2(\tau - t)} d\tau \frac{x_1}{1 - e^{-2t_1}} \\
+        &=  e^{2(\tau - t)}\eval_0^t \frac{x_1}{1 - e^{-2t_1}} \\
+        &= \frac{1 - e^{-2t}}{1 - e^{2t_1}} x_1.
+\end{align*}
+So at $t=t_1$ we have:
+\begin{equation*}
+    x(t_1) = \frac{1 - e^{-2t_1}}{1 - e^{2t_1}} x_1 = x_1.
+\end{equation*}
+
+\item The control computed in the previous part of the problem is not
+unique. Since the grammian is full-rank, the entirety of $\R$ is reachable
+at any time (with unlimited control effort). For example, we can use
+a similar computation to find a control that moves from $x(0) = 0$ to
+$x(t_1/2) = 2x_1$, and then to $x(t_1) = x_1$. Since the range of 
+the reachability grammian is $\R$, this control exists, has $x(t_1) = x_1$,
+and is clearly different from the control given in the previous part.
+
+\item The system is no longer fully controllable. Clearly (\ref{eq:best-control})
+can be selected with sufficiently large $x_1$ that the limit on $|u(t)|$ is
+exceeded. To find the range of the $x(t)$ we take the absolute
+value of the solution for $x(t)$:
+\begin{align*}
+    |x(t)| &= \biggl|
+        \int_{0}^{t} \Phi(t, \tau) B u(\tau) d\tau
+    \biggr| \\
+    &\leq \int_{0}^{t} e^{\tau - t} |u(\tau)| d\tau \\
+    &\leq \int_{0}^{t} e^{\tau - t} d\tau \\
+    &\leq e^{\tau - t} \eval_0^t = 1 - e^{-t}.
+\end{align*}
+So at time $t$ the reachable set, $\reach(0, [0, t])$ is the closed
+interval $[-(1 - e^{-t}), 1 - e^{-t}]$.
+
+\subsection{}
+
+To check whether the LTI system we look at the controllability matrix:
+\begin{equation*}
+    \mathcal{C}(A, B) = \mat{
+        B & | & AB & | & A^2B
+    }
+\end{equation*}
+
+First, we compute $AB$:
+\begin{align*}
+    AB &= \mat{
+        7 & -2 & 6 \\
+        2 & -3 & 2 \\
+        -2 & -2 & 1 \\
+    } \mat{
+        1 & 1 \\
+        1 & -1 \\
+        1 & 0 \\
+    }  \\
+    &= \mat{
+        -3 & -5 \\
+        -3 & 5 \\
+        -3 & 0 \\
+    }.
+\end{align*}
+We note that the first column of $AB$ is -3 times the first column of
+$B$, and likewise the second column is -5 times the second column of $B$. 
+Since the columns of $AB$ are linear combinations of the columns of $B$,
+the columns of $A^2B = A(AB)$ are as well.
+
+Therefore, the column rank of $\mathcal{C}(A, B)$ is equal to the column
+rank of $B$ which is 2. Since the rank of $\mathcal{C}(A, B)$ 
+is less than the state dimension of 3, the controllability matrix is
+not full-rank and therefore the system is not fully controllable.
+
+\end{letterenum}
+
+
+
+\end{document}
