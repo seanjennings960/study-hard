@@ -1,0 +1,400 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5478}
+\title{Midterm}
+\author{Sean Jennings}
+\date{October 31, 2023}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+
+\begin{letterenum}
+    \item A twice continuously differentiable function $f: \R^n \to \R$ is
+        $\mu$-strongly convex if and only if
+        \begin{equation*}
+            y^T \nabla^2 f(x) y \geq \mu \norm{y}^2
+        \end{equation*}
+        for all $x,y \in \R^n$ [Sidford Notes 2020]. If $y=0$ the inequality
+        is trivially satisfied. Assume $y\neq 0$ and divide both sides by $\norm{y}^2$
+        to obtain
+
+        \begin{equation*}
+            \frac{y^T \nabla^2 f(x) y}{\norm{y}^2} \geq \mu
+        \end{equation*}
+        The left hand side is the Rayleigh coefficient,
+        and which is lower-bounded as follows [Beck14, Lemma 1.11]:
+        \begin{equation*}
+            \frac{y^T \nabla^2 f(x) y}{\norm{y}^2} \geq \lambda_{min} (\nabla^2 f(x)).
+        \end{equation*}
+        The preceding equation becomes an equality when $y$ is the eigenvector
+        corresponding to $\lambda_{min}(\nabla^2 f(x))$ since
+        \begin{equation*}
+            y^T \nabla^2 f(x) y = y^T \lambda_{min}(\nabla^2 f(x)) y
+                = \lambda_{min}(\nabla^2 f(x)) \norm{y}^2.
+        \end{equation*}
+
+        Since the lower bound of the Rayleigh coefficient is attained,
+        $f$ is $\mu$-strongly convex if and only if $\lambda_{min} (\nabla^2f(x)) > 0$.
+
+        For the least square's problem, $f_t$ is indeed twice continuously
+        differentiable with
+        \begin{equation*}
+            \nabla f_t(x) = A^T(Ax - b_t)
+        \end{equation*}
+        and
+        \begin{equation*}
+            \nabla^2 f_t(x) = A^TA
+        \end{equation*}
+        Therefore, if $\lambda_{min}(A^TA) > 0$, we have $f_t$ is $\mu$-strongly
+        convex with coefficient $\mu = \lambda_{min}(A^TA)$. Otherwise, $f_t$
+        is not $\mu$-strongly convex.
+
+    % \item We will derive the second-order characterization for
+    %     strongly convex functions. The gradient inequality for a strongly
+    %     convex function $f: \R^n \to \R$ is given by:
+    %     \begin{equation*}
+    %         f(y) \geq f(x) + \nabla f(x)^T (y-x) + \frac{\mu}{2} \norm{y - x}^2
+    %     \end{equation*}
+    %     for any $x,y\in\R^n$. Swapping $x$ and $y$, we also have
+    %     \begin{equation*}
+    %         f(x) \geq f(y) - \nabla f(y)^T (y-x) + \frac{\mu}{2} \norm{y - x}^2.
+    %     \end{equation*}
+    %     Adding these two equations yields the fact that the gradient of a $\mu$-strongly
+    %     convex function is strictly monotone.
+    %     \begin{equation*}
+    %         (\nabla f(x) - \nabla f(y))^T (x - y) \geq \mu \norm{x - y}^2
+    %     \end{equation*}
+    %     Taking the change of variables $x = y + h$ for some $h\in\R^n$ and assuming
+    %     that $f$ is twice continuously differentiable, we also have:
+    %     \begin{align*}
+    %         h^T (\nabla f(y + h) - \nabla f(y))
+    %             &= h^T (\nabla f(y + h) - \nabla f(y) - \nabla^2 f(x) h) + h^T \nabla^2 f(y) h \\
+    %             &\geq \norm{h} \norm{\nabla f(y + h) - \nabla f(y) - \nabla^2 f(y) h} + \lambda_{min} (\nabla^2 f(y)) \norm{h}^2,
+    %     \end{align*}
+    %     where the final inequality follows from the fact that the Rayleight quotient is bounded by the minimum and maximum
+    %     eigenvalues [Lemma 1.1 Beck14].
+
+    %     Noting that by the definition of differentiability, we have
+    %     \begin{equation*}
+    %         \lim_{\norm{h} \to 0} \frac{\norm{\nabla f(y + h) - \nabla f(y) - \nabla^2 f(y) h}}{\norm{h}} = 0,
+    %     \end{equation*}
+
+    %     dividing both sides by $\norm{h}^2$ and taking the limit as $\norm{h} \to 0$, 
+    %     it follows that
+    %     \begin{equation}
+    %         \lambda_{min}(\nabla^2 f(x)) \geq 
+    %     \end{equation}
+    %     for all $x$.
+
+    %     For the least square's problem at hand, we have:
+    %     \begin{align*}
+    %         \nabla (f_t(x)) = A^T (Ax - b_t) \\
+    %         \nabla^2 (f_t(x)) = A^T A.
+    %     \end{align*}
+    %     Therefore, $f_t$ is $\mu$-strongly convex iff $\lambda_{min}(A^TA) \geq \mu$. 
+
+    \item Since $\nabla f_t(x) = A^T(Ax - b_t)$, we have
+
+    \begin{align*}
+        \norm{\nabla f_t (x) - \nabla f_t(y)} &= 
+           \norm{A^T(Ax - b_t) - A^T(Ay - b_t)} \\
+           &= \norm{A^TA (x - y)} \\
+           &\leq \norm{A^TA} \norm{x - y}
+    \end{align*}
+    Therefore, the gradient is Lipschitz with constant
+    $L=\norm{A^TA}=|\lambda_{max}(A^TA)|$.
+
+    % \item For a twice continuously differentiable function, $L$-smoothness is
+    %     equivalent to the 2-norm of the hessian being bounded by $L$:
+    %     \begin{equation*}
+    %         \norm{\nabla^2 f(x)} \leq L
+    %     \end{equation*}
+    %     for all $x\in\R^n$ [Theorem 5.12, Beck17]. By definition of an 
+    %     $L$-smooth function, we also have:
+    %     \begin{equation*}
+    %         \norm{\nabla f(x) - \nabla f(y)} \leq L \norm{x - y}
+    %     \end{equation*}
+    %     which is equivalent to the gradient being Lipschitz with constant $L$.
+
+    %     Therefore, the gradient of $f_t$ is $L$-Lipschitz if and only if
+    %     \begin{equation*}
+    %         \norm{\nabla^2 f_t(x)} = \norm{A^TA} = |\lambda_{max}(A^TA)|
+    %     \end{equation*}
+
+    %     Since $A^TA$ is symmetric, it's norm is given by
+    %     $\norm{A^TA} = \lambda_{max} (A^TA)$.
+
+    \item Since the the optimization problem is unconstrained (the domain is $R^n$),
+        we have
+        \begin{equation}
+            \nabla f_t(x_t^*) = A^T (A x_t^* - b_t) = 0
+            \label{eq:stationarity}
+        \end{equation}
+        since stationarity is a necessary condition [Theorem 7.9 Beck14].
+    
+        Since we now assume that $f_t$ is $\mu$-strongly convex, we have
+        $\lambda_{min} (A^TA) > 0$. Therefore, $A^TA$ is full-rank and
+        invertible (note if we were to have $d < n$, we would have a contradiction,
+        since $A^TA$ can have rank at most $d$). We can solve then solve the
+        equation (\ref{eq:stationarity}) for $x_t^*$:
+        \begin{equation*}
+            x_t^* = (A^TA)^{-1} A^Tb_t
+        \end{equation*}
+
+        Then, the drift in the optimal solution as a function of time is related
+        to the change in the $b_t$ by:
+        \begin{align*}
+            \sigma_t &= \norm{x_t^* - x_{t-1}^*} \\
+                &= \norm{(A^TA)^{-1}A^T b_t - (A^TA)^{-1} A^T b_{t-1}} \\
+                &\leq \norm{(A^TA)^{-1} A^T} \norm{b_t - b_{t-1}} \\
+                &= \norm{(A^TA)^{-1} A^T} \xi_t
+        \end{align*}
+
+    \item We will use the online gradient descent algorithm defined as follows:
+    \begin{equation}
+        x_{t+1} = x_t + \alpha \nabla f_t(x_t)
+    \end{equation}
+    The tracking bound of the online gradient descent algorithm is given
+    by:
+    \begin{equation*}
+        \norm{x_t - x_t^*} \leq \rho^t \norm{x_0 - x_0^*}
+            + \sum_{i=0}^{t-1} \rho^{t - 1 - i} \sigma_i \\
+    \end{equation*}
+    where $\rho = \max\{|1 - \alpha L|, |1 - \alpha \mu\}$. This result follows
+    from the tracking bound given in lecture [Module 2, Slide 13], by noting that
+    the convexity, smoothness coefficients, and step size do not depend on time,
+    allowing us to convert the product of distinct Lipschitz coefficient to the
+    exponents $\rho^{t-1}$ and $\rho^{t-1-i}$.
+
+    For the algorithm to converge and track the optimal solution, we must
+    have $\rho < 1$. Therefore the step size should be chosen so that
+    \begin{align*}
+        | 1 - \alpha L | &< 1 \\
+        -(1 - \alpha L) &< 1 \\
+        1 - \alpha L &> -1 \\
+        \alpha &< 2 / L
+    \end{align*}
+    and similarly, so that we also have that $\alpha < 2 / \mu$.
+    But since $\mu < L$, we
+    also have $2 / \mu > 2 / L$, and the upper bound on step-size to obtain
+    convergence is determined solely by the smoothness coefficient:
+    \begin{equation*}
+        \alpha < \frac{2}{L}.
+    \end{equation*}
+
+    \item Given that $A_t$ is diagonal (and thus symmetric), we now have:
+    \begin{align*}
+        (A_t^TA_t)^{-1} &= \text{diag}([a_{0,t}^2, \dots, a_{n,t}^2]) \\
+            &= \text{diag}([1/a_{0,t}^2, \dots, a_{n,t}^2]) \\
+    \end{align*}
+    and
+    \begin{align*}
+        (A_t^TA_t)^{-1} A^T &= \text{diag}([1/a_{0,t}, \dots, a_{n,t}]) \\
+            &= A_t^{-1}
+    \end{align*}
+    Thus, our convergence bound from the previous problem becomes:
+    \begin{align*}
+        \norm{x_t^* - x_{t-1}^*} &= \norm{A_t^{-1} b_t - A_{t-1}^{-1} b_{t-1}} \\
+            &= \norm{A_t^{-1} b_t - A_{t-1}^{-1} b_t
+                                    + A_{t-1}^{-1} b_t - A_{t-1}^{-1} b_{t-1}} \\
+            &\leq \norm{(A_t^{-1} - A_{t-1}^{-1}) b_t} + \norm{A_{t-1}^{-1} \xi_t} \\
+            &\leq \norm{(A_t^{-1} - A_{t-1}^{-1})} \norm{b_t}
+                + \norm{A_{t-1}} \xi_t
+    \end{align*}
+
+    We can bound this further by considering the suprenums of time-varying
+    parameters. Define the following variables:
+    \begin{align*}
+        \Delta \bar{A} :&= \sup_{\tau > 1} \norm{A_t^{-1} - A_{t-1}^{-1}} \\
+            &= \sup_{\tau > 1} \max_{0\leq i \leq n}
+                \{|1 / a_{i,t} - 1 / a_{i,t-1}\} \\
+        \bar{a} :&= \sup_{\tau > 0} {A_t^{-1}} \\
+            &= \sup_{\tau > 0} \max_{0\leq i \leq n} \{
+                |1 / a_{i,t}|
+            \} \\
+        \bar{b} :&= \sup_{\tau > 0} b_t \\
+        \bar{\xi} :&= \sup_{\tau > 0} \xi_t
+    \end{align*}
+    
+    Our final bound is then
+    \begin{equation*}
+        \norm{x_t^* - x_{t-1}^*} \leq \bar{a} \bar{\xi} + \Delta \bar{A} \bar{b}.
+    \end{equation*}
+\end{letterenum}
+
+\section{Problem 2}
+
+\begin{letterenum}
+    \item We start by defining the maps $\hat{F}: \R^n \to \R^n$ and
+    $F: \R^n \to \R^n$ such that:
+    \begin{align*}
+        \hat{F}_t(x) = \text{proj}_{\X} \{x - \eta \hat{\nabla}f_t(x)\} \\
+        F_t(x) = \text{proj}_{\X} \{x - \eta \nabla f_t(x)\}
+    \end{align*}
+    Therefore the algorithmic map can be written $x_t = \hat{F}_t(x_{t-1})$.
+    The optimum depends on the true gradient, rather than 
+    the approximate, and is a fixed point of $F_t$. To see this, note that
+    if $\text{proj}_\X \{x_t^* - \eta \nabla f_t(x_t^*)\} = x_t^*$, we have
+    for any $y\in\X$
+    \begin{align*}
+        (x_t^* - x_t^* - \eta \nabla f_t(x_t^*))^T (y - x_t^*) \leq 0 \\
+        \nabla f_t(x_t^*)^T (y - x_t^*) \geq 0 \\
+    \end{align*}
+    by [Theorem 9.8 Beck14]. $x_t^*$ is therefore a stationary point and
+    the optimal solution of the problem $\min_{x\in\X} f_t(x)$ [Theorem 9.7 Beck].
+    Therefore, $x_t^* = F_t(x_t^*)$.
+
+    The single-step tracking bound is derived as follows:
+    \begin{align*}
+        \norm{x_t - x_t^*} &= \norm{\hat{F}_t(x_{t-1}) - x_t^*} \\
+            &= \norm{\hat{F}_t(x_{t-1}) - F_t(x_{t-1}^*)
+                                        + F_t(x_{t-1}^*) - F_t(x_t^*)} \\
+            &\leq \norm{\hat{F}_t(x_{t-1}) - F_t(x_{t-1}^*)} +
+                \norm{F_t(x_{t-1}^*) - F_t({x_t^*})} \\
+            &\leq \rho \norm{x_{t-1} - x_{t-1}^*} + \eta \norm{e_t} + \rho
+                \norm{x_{t-1}* - x_t^*} \\
+            &= \rho \norm{x_{t-1} - x_{t-1}^*} + \eta \norm{e_t} + \rho \sigma_t \\
+    \end{align*}
+
+    where we have defined $\sigma_t = \norm{x_t - x_{t-1}}$. $\rho$ is the
+    Lipschitz constant of the algorithmic map, again given by:
+    \begin{equation*}
+        \rho = \max\{|1 - \alpha \mu|, |1 - \alpha L|\}
+    \end{equation*}
+
+    The second inequality in the single step bound uses the following relation:
+    \begin{align*}
+        \norm{\hat{F}_t(x_{t-1}) - F_t(x_{t-1}^*)} &=
+            \norm{\text{proj}_\X \{x_{t-1} - \eta \nabla f_t(x_{t-1}) - \eta e_t\} -
+                \text{proj}_\X \{x_{t-1}^* - \eta \nabla f_t(x_{t-1}^*)\}} \\
+            &\leq \norm{(x_{t-1} - \eta \nabla f_t(x) - \eta e_t) -
+                (x_{t-1}^* - \eta \nabla f_t(x_{t-1}^*))} \\
+            &\leq \norm{x_{t-1} - \eta \nabla f_t(x) - (x_{t-1}^* -
+                \eta \nabla f_t(x_{t-1}^*))} + \eta \norm{e_t} \\
+            &\leq \rho \norm{x_{t-1} - x_{t-1}^*} + \eta \norm{e_t}.
+    \end{align*} 
+    We have used the fact that
+    $\hat{\nabla} f_t(x_{t-1}) = \nabla f_t(x_{t-1}) + e_t$ in the first
+    equality, as well the nonexpansiveness of the
+    projection operator in the first inequality.
+
+    The multi-step bound proceeds by iterating upon the single-step bound:
+    \begin{align*}
+        \norm{x_t - x_t^*} &\leq \rho \biggl(
+            \rho \norm{x_{t-2} - x_{t-2}^*} + \eta \norm{e_{t-1}} +
+                \rho \sigma_{t-1}
+        \biggr) \\
+            &\qquad + \eta \norm{e_t} + \rho \sigma_t \\
+        &= \rho^2 \norm{x_{t-2} - x_{t-2}^*} + \rho \eta \norm{e_{t-1}}
+            + \rho^2 \sigma_{t-1} \\
+            &\qquad + \eta \norm{e_t} + \rho \sigma_t \\
+        &\leq \rho^t \norm{x_0 - x_0^*} + \sum_{i=1}^{t} \rho^{t-i} \eta \norm{e_i}
+            + \sum_{i=1}^{t} \rho^{t-i+1} \sigma_i
+    \end{align*}
+    From this result, we see that the requested terms $D_t$ and $E_t$ are
+    \begin{align*}
+        D_t &= \sum_{i=1}^t \rho^{t-i+1} \sigma_i \\
+        E_t &= \sum_{i=1}^t \rho^{t-i} \eta \norm{e_i} \\
+    \end{align*}
+
+    \item The suprenum in the limit as $t$ approaches infinity is the sum
+    of the $\limsup$ of individual terms. Since each $\sigma_i < \bar{\sigma}$,
+    we can pull $\bar{\sigma}$ outside of the summation.
+    For $D_t$, we have
+    \begin{align*}
+        \limsup_{t\to\infty} D_t &\leq \limsup_{t\to\infty} \biggl(
+            \sum_{i=1}^t \rho^{t-i+1} 
+        \biggr) \bar{\sigma} \\
+        &= \limsup_{t\to\infty} \biggl(
+            \sum_{j=0}^t \rho^{j+1} 
+        \biggr) \bar{\sigma} \\
+        &\leq \frac{\rho \bar{\sigma}}{1 - \rho}.
+    \end{align*}
+
+    Similarly, for $E_t$, we have
+    \begin{align*}
+        \limsup_{t\to\infty} E_t &\leq \limsup_{t\to\infty} \biggl(.
+            \sum_{i=1}^t \rho^{t-i} 
+        \biggr) \eta \bar{e} \\
+        &= \limsup_{t\to\infty} \biggl(
+            \sum_{j=0}^t \rho^{j} 
+        \biggr) \bar{\sigma} \\
+        &\leq \frac{\bar{e}}{1 - \rho}.
+    \end{align*}
+
+    The $\rho^t \norm{x_0 - x_0^*}$ term goes to zero as $t \to\infty$
+    since $\rho < 1$. Thus, the total $\limsup$ of the error has bound
+    \begin{equation*}
+        \limsup_{t\to\infty} \norm{x_t - x_t^*} \leq
+            \frac{\rho \bar{\sigma}}{1 - \rho} + 
+            \frac{ \bar{e}}{1 - \rho}.
+    \end{equation*}
+
+
+
+\end{letterenum}
+
+
+\section{Problem 3}
+\begin{letterenum}
+    \item We check the Hessian of the function to verify convexity:
+    \begin{align*}
+        \nabla f([x_1, x_2]^T) &= \mat{
+            \frac{1}{x_2} \\
+            - \frac{x_1}{x_2^2}
+        } \\
+        \nabla^2 f([x_1, x_2]^T) &= \mat{
+            0 & - \frac{1}{x_2} \\
+            - \frac{1}{x_2} & \frac{2x_1}{x_2^3}
+        } = \frac{1}{x_2^3} \mat{
+            0 & - x_2^2 \\
+            -x_2^2 & 2x_1 \\
+        }
+    \end{align*}
+
+    The determinant of the hessian is $1/x_2^3 (0 - x_2^4) < 0$, since
+    $x_2 > 0$ implies $x_2^3 > 0$ and $x_2^4 > 0$. Thus, the
+    Hessian is not positive semidefinite [Proposition 2.20, Beck14],
+    and therefore $f$ is not convex [Theorem 7.12, Beck14].
+
+    \item Since $f$ is the piecewise maximum of two functions, it is
+        convex if its interior functions are.
+
+        As in Problem 1, the interior functions are convex if
+        $A_1^T A_1 \succeq 0$ and $A_2^T A_2 \succeq 0$. Thus, $f$
+        is convex when both these condition holds. If on the other
+        hand $A_1^T A_1$ and $A_2^T A_2$ are both negative definite, $f$
+        is not convex.
+
+    \item We will show $f$ is not convex by counterexample. Take $p = 1/2$,
+        $n=2$. Then, we have
+        \begin{equation*}
+            f(x) = (\sqrt{x_0} + \sqrt{x_1})^2
+        \end{equation*}
+        We will evaluate at $x = [2, 0]^T$ and $y=[0,2]^T$:
+        \begin{align*}
+            f(x) &= (\sqrt{2} + 0)^2 = 2 \\
+            f(y) &= (0 + \sqrt{2})^2 = 2
+        \end{align*}
+        However, $f$ evaluated at the point $\lambda x + (1 - \lambda y)\in\R^2$,
+        taking $\lambda=0.5$, is given by
+        \begin{equation*}
+            f(1/2 [2, 0]^T + 1/2 [0, 2]^T) = f([1, 1]^T)
+                = (\sqrt{1} + \sqrt{1})^2 = 4.
+        \end{equation*}
+        while $\lambda f(x) + (1 - \lambda) f(y) = 2$.
+
+        Thus, $f(\lambda x + (1 - \lambda)y) > \lambda f(x) + (1 - \lambda) f(y)$,
+        and $f$ is not convex by the definition of a convex function
+        [Def 7.1 Beck14].
+\end{letterenum}
+
+
+\end{document}
