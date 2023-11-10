@@ -14,7 +14,7 @@ POINTS = [
 
 def main():
     input_data = {
-        'attributes': 'dni',
+        'attributes': 'ghi',
         'interval': '30',
         'include_leap_day': 'true',
         'api_key': API_KEY,

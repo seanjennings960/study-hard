@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import geopandas
 
+from data import total_seconds
+
 # DATASET_DIR = Path(
 #     "/home/sean/data/power_systems/renewables_course/Project2/datasets")
 DATASET_DIR = Path(
@@ -14,6 +16,7 @@ EXCEL_FILENAME = DATASET_DIR / "project2_load_profile.csv"
 NPZ_FILE = DATASET_DIR / "project_2_load_profile.npz"
 GEOJSON_FILE = DATASET_DIR / "gis" / "SD_county_jurisdictions.geojson"
 NPZ_DNI_FILE = DATASET_DIR / 'dni.npz'
+CSV_GHI_FILE = DATASET_DIR / 'ghi.csv'
 
 def subtract_10_year(dt: str):
     mdy = dt.split(" ")[0]
@@ -103,8 +106,8 @@ def load_geojson():
     return geo
 
 
-def load_dni_data():
-    dni_path = DATASET_DIR / 'dni_data'
+def load_solar_data():
+    dni_path = DATASET_DIR / 'ghi_data'
     time = None
     dnis = []
     coords = []
@@ -126,7 +129,7 @@ def load_dni_data():
                 ))
                 for i in range(0, len(data))]
             )
-        dnis.append(np.array(data["DNI"]))
+        dnis.append(np.array(data["GHI"]))
         coords.append((lat, lon))
     # Create multidim array
     print('Time dtype:', time.dtype)
@@ -139,10 +142,18 @@ def load_dni_data():
     # print(data.columns)
 
 def convert_dni_to_npz():
-    time, dnis, coords = load_dni_data()    
+    time, dnis, coords = load_solar_data()    
     print("Saving to NPZ")
     np.savez_compressed(NPZ_DNI_FILE, time=time, dnis=dnis, coords=coords)
     print("Successfully saved")
+
+def convert_solar_to_csv():
+    time, ghi, _ = load_solar_data()
+    print("Saving to txt")
+    time_min = total_seconds(time - time[0]) / 60
+    np.savetxt(CSV_GHI_FILE, np.c_[time_min, np.mean(ghi, axis=-1)], delimiter=',')
+    print("Successfully saved")
+
 
 
 def plot_load_vs_solar():
@@ -212,9 +223,9 @@ def total_load():
 
 def main():
     # coords_to_geo()
-    total_load()
+    # total_load()
     # print("DATASET_DIR exists:", DATASET_DIR.exists())
-    # convert_dni_to_npz()
+    convert_solar_to_csv()
     # convert_excel_to_npz(EXCEL_FILENAME , NPZ_FILE)
     # check_datetimes(data['time'])
     # plot_load(time, power)
