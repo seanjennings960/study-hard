@@ -1,0 +1,286 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5407}
+\title{Homework 4}
+\author{Sean Jennings}
+\date{November 15, 2023}
+
+\begin{document}
+\maketitle
+
+\newcommand{\dolperMWh}{\text{ \$/MWh}}
+\newcommand{\perh}{\text{ /hr}}
+
+\section{Problem 1}
+\begin{letterenum}
+\item Locational marginal pricing is the marginal price of electricity at a given bus a power
+    system. Marginal price is the additional cost per unit of energy that results from
+    the operating costs of generation (e.g. fuel prices). Constraints of the transmission
+    system limit the amount of power that can be passed between buses, which means that
+    prices between different buses may not fully equalize. This is called congestion.
+
+\item The market clearing price is the price of electricity which meets the 
+    demand of the system. Since the amount of power generated
+    must be equal to the demand (which in the US, is generally inelastic to price),
+    the market clearing price is determined by the marginal cost of power generation,
+    which in realistic scenarios will vary as a function of generation/demand.
+\item
+    \begin{enumerate}
+    
+    \item Since the marginal cost at node 1 is less than that at node 2, it is
+    cheapest to export as much power as possible to node 2. Since the capacity
+    of the transmission line (500 MW) is less than the generation capacity at node 1
+    (900 MW) minus the demand at node 1 (250 MW), the transmission line is the
+    limiting factor. The flow on the line should therefore be 500 MW.
+
+    \item Any additional power at node 1 is met entirely by the generation at node 1,
+        so at node 1 the LMP is equal to the marginal cost of node 1 generation:
+        \$20/MWh. Since the transmission line is operating at capacity, any additional
+        power must be met by the generation at node 2. Therefore, the LMP at node
+        2 is equal to the price of generation at node 2: \$45/MWh.
+
+    \item We have 750 MW of generation at node 1 and 450 MW of generation at node 2
+        so the total generation costs are:
+        \begin{equation*}
+            C_{gen} = 750 \MW \cdot 20\dolperMWh + 450 \MW \cdot 45\dolperMWh = \$35,250 \perh
+        \end{equation*}
+
+    \item The amount charged per unit of energy demanded at each node is the LMP,\
+        which we will denote $\pi_1$ and $\pi_2$. The total charged at each node, $E_1$
+        and $E_2$, is the demand times the LMP:
+        \begin{align*}
+            E_1 &= \pi_1 \cdot D_1 = 20\dolperMWh \cdot 250\MW = \$5,000 \perh \\
+            E_2 &= \pi_2 \cdot D_2 = 45\dolperMWh \cdot 950\MW = \$42,750 \perh \\
+        \end{align*}
+
+    \item The profit of the system operator is the amount collected from payments
+        of consumers minus the generation costs:
+        \begin{equation*}
+            E_1 + E_2 - C_{gen} = \$12,500  \perh
+        \end{equation*}
+    \end{enumerate}
+\item 
+    \begin{enumerate}
+        \item Without the transmission constraint, the amount exported from node
+            1 to node 2 is now limited by the generation capacity of generator 1.
+            So generator 1 will operate at capacity of 900 MW. This results
+            in 900 MW minus 250 MW = 650 MW exported to node 1 (and flowing over
+            the line). Then, 300 MW
+            is required from generator 2 to meet demand at node 2.
+
+        \item Now, since generator 1 is running at capacity, Any additional
+            load on the system must be met by generator 2. Transmission is no
+            longer a constraint so the LMP at both nodes is equal to the
+            marginal cost of generator 2: 45\$/MW.
+    \end{enumerate}
+\end{letterenum}
+
+\section{Problem 2}
+
+\begin{letterenum}
+\item When the line is disconnected, the demand must be met entirely by local generation
+    so that $P_A = D_A$ and $P_B = D_B$. Thus, the price of electricity at each
+    node is:
+    \begin{align*}
+        MC_A = 20 + 0.2 \cdot 2000 = 420 \dolperMWh \\
+        MC_B = 15 + 0.3 \cdot 1000 = 315 \dolperMWh \\
+    \end{align*}
+    The flow $F_{AB}$ is 0, of course.
+
+\item Since electricity can be transmitted at will, $P_A$ and $P_B$ will be 
+    determined such that the marginal cost of generation is equalized,
+    and the total demand is met:
+    \begin{align*}
+        P_A + P_B &= D_T := D_A + D_B = 3000 \MW \\
+        MC_A &= MC_B
+    \end{align*}
+    where $D_T$ is denotes the total demand. From these equations,
+    we can first solve for the power output at A and B:
+    \begin{align*}
+        20 + 0.2 P_A &= 15 + 0.3 P_B \\
+        5 + 0.2 (D_T - P_B) &= 0.3 P_B \\
+        0.5 P_B &= 5 + 0.2 D_T \\
+        P_B &= 2(5 + 0.2 \cdot 3000) \\
+            &= 1210 \MW \\
+        P_A = D_T - P_B = 1790 \MW.
+    \end{align*}
+    Then, the LMP at each node is same and equal to the marginal cost:
+    \begin{equation*}
+        LMP_A = LMP_B = MC_B = MC_A = (20 + 0.2 \cdot 1790) \dolperMWh = 378 \dolperMWh .
+    \end{equation*}
+
+    The line flow can be found via conservation of power at either node:
+    \begin{align*}
+        F_{AB} &= P_A - D_A = 1790 \MW - 2000 \MW = -210 \MW \\
+               &= D_B - P_B = 1000 \MW - 1210 \MW = -210 \MW
+    \end{align*}
+    where $F_{AB} < 0$ indicates that power is flowing from node $B$ to node $A$.
+
+\item Since the generation capacity at $A$ is less than the amount which equalizes
+    the marginal cost, generator $A$ will run at capacity and the marginal price
+    will determined by $MC_B$. With $P_A = 1000 \MW$, we have $P_B = 2000$ MW, so
+    that:
+    \begin{equation*}
+        LMP_A = LMP_B = MC_B = 15 + 0.3 \cdot 2000 = 615 \dolperMWh.
+    \end{equation*}
+    The flow between the lines is:
+    \begin{equation*}
+        F_{AB} = P_A - D_A = -1000 \MW
+    \end{equation*}
+
+\item With the constraint on generator $B$, we now have generator $B$ running
+    at capacity and the marginal cost determined by $A$:
+    \begin{equation*}
+     P_A = D_T - P_B = 3000 \MW - 900 \MW = 2100 \MW.
+    \end{equation*}
+    The LMPs are
+    \begin{equation*}
+        LMP_A = LMP_B = MC_A = 20 + 0.2 \cdot 2100 = 440 \dolperMWh
+    \end{equation*}
+    and the flow is
+    \begin{equation*}
+        F_{AB} = P_A - D_A = 2100 \MW - 2000 \MW = 100 \MW.
+    \end{equation*}
+    where $F_{AB} > 0$ now indicates that power is flowing from A to B.
+
+    It makes sense that the LMP is lower than in part (c) since the marginal
+    cost for generator $A$ increases at a slower rate than that of generator $B$
+    (and we are far above the limit where the higher fixed cost is relevant).
+
+
+\section{Problem 3}
+% The problem does not specify whether the constraints given are constraints on
+% active power or apparent power. Since reactances of the transmission lines
+% are specified and "transmission losses" usually refers to losses due to resistivity
+% rather than reactance, we will assume that reactive needs to be supplied. We will
+% assume the constraints given are apparent power for generation and active
+% power for transmission.
+
+\begin{letterenum}
+\item Let $P_1$ and $P_2$ be the power output of G1 and G2, respectively.
+Since the marginal cost of G1 is less than that of G2, we first consider the
+case where G2 is turned off entirely, i.e. $P_1 = 420 \MW$ and $P_2 = 0 \MW$.
+
+Let $F_{ij}$ be the power flowing from bus $i$ to bus $j$, and $X_{ij}$ be the line impedance
+between bus $i$ and bus $j$. Since no power is generated or consumed at bus 2, we have
+$F_{12} = F_{23}$. We define $F_{123} := F_{12} = F_{23}$ as the power flowing
+from bus 1 to 2 to 3, to make this equivalence
+evident.
+
+Per the figure, we also have
+$X_{12} = X_{23} = X_{13} = 0.1$ p.u. Let $X_{123} = X_{12} + X_{23} = 0.2$ p.u.
+be the sum of the series line impedances from bus 1 to 2 to 3.
+The power is transmitted is divided between the 
+transmission lines the power divider formula, which is derived from
+Kirchoff's voltage and current laws:
+\begin{align*}
+    F_{123} &= \frac{X_{12}}{X_{123} + X_{13}} P_1 = \frac{0.1}{0.3} P_1 \\
+        &= \frac{1}{3} P_1 \\
+        &= \frac{1}{3} (420 \MW) = 140 \MW \\
+    F_{13} &= \frac{X_{123}}{X_{123} + X_{13}} \\
+        &= \frac{2}{3} P_1 \\
+        &= \frac{2}{3} (420 \MW) = 280 \MW
+\end{align*}
+
+Since this violates the maximum power constraints for line 13, we must commit
+to running G2. To minimize costs, we will run with G2 at minimum power:
+$P_2 = 150$ MW. Then, $P_1$ is given by:
+\begin{equation*}
+    P_1 = D_T - P_2 = 420 \MW - 150 \MW = 270 \MW.
+\end{equation*}
+Now, the flow through transmission lines is:
+\begin{align*}
+    F_{123} &= \frac{1}{3} (270 \MW) = 90 \MW \\
+    F_{13} &= \frac{2}{3} (270 \MW) = 180 \MW.
+\end{align*}
+Transmission lines constraints are no longer violated, so we have found the
+optimal dispatch.
+
+\item Since the system is running within transmission constraints and generation
+constraints for G1, the electricity price (i.e.
+marginal cost) is determined by the marginal cost of G1, the least expensive generator,
+at \$20/MWh.
+
+\item The total variable generation cost is given by:
+\begin{align*}
+    C_{gen} &= P_1 MC_1 + P_2 MC_2 \\
+        &= 270 \MW \cdot 20 \dolperMWh + 150 \MW \cdot 35 \dolperMWh \\
+        &= \$ 10,650 \perh
+\end{align*}
+\end{letterenum}
+
+\section{Problem 4}
+\begin{letterenum}
+    \item The coined term that describes this diagram is "the duck curve."
+        Between 2011 and 2016, the amount of distributed PV in the CAISO
+        system increased significantly, resulting in a decrease
+        in observed load during the day from the utility's perspective.
+        However, a decrease in PV output (increase in load) when the sun goes down
+        coincides with the evening peak in load (when people get home, start
+        cooking dinner, and turn the lights on).
+
+        This is an issue for grid operators because it increases the ramp
+        rate of power generation. Since the ramp rate of any given generator is
+        limited,
+        this may require a larger number of generators to turn online 
+        to obtain a sufficient ramping capacity. This translates
+        to higher fixed costs for the grid as well as increased challenges
+        in generator startup coordination for operators.
+
+    \item Demand response is a good countermeasure because it can help reduce the
+        overall evening peak, provide smoothing to the demand curve, and reduce
+        the peak ramp rate. One DR service would be distributed battery
+        energy storage. The grid could request that customers charge the battery during
+        the middle of the day when PV output is high, and discharge during the evening
+        peak, thus smoothing out the demand curve. This option would be particularly
+        ideal because it does not require electricity consumers to change
+        their behavior (e.g. not allowing people to turn on their microwave when
+        they want to), apart from the initial capital investment.
+        
+
+        \indent Delayed EV charging and "smart thermostats" are two other DR services that
+        would be particularly effective, given that each represent a substantial
+        porportion of total demand (or projected future demand in the case of EV
+        charging). These are somewhat less ideal than a battery dedicated
+        to DR, since the modification of demand could conflict with
+        consumer preferences: the EV might not be charged when the user wants to
+        drive, or the house might be too warm/cold. Although more challenging to implement
+        than the battery storage case,
+        there is still a range DR curves which do not conflict with consumer preferences.
+        For EV charging, many customers have generally predictable driving patterns
+        (e.g. to and from work every day) and so charging during the day when
+        they are at work and PV output is high, would likely not affect many people,
+        most of the time. (However, when an unexpected trip does occur,
+        the consumer would likely appreciate insight into their current state of
+        EV charge and a convenient way to short-circuit the DR limitations.)
+        
+        \indent Similarly, there are a range of temperatures at which people are
+        comfortable and thermal inertia can provide a degree of demand smoothing.
+        So for instance, on a hot day,
+        smart thermostats could front-load air-conditioning output during the day to drive the
+        temperature down to the lower comfort limit, before the PV output drops.
+        Then, the power requirement to maintain temperature under the upper
+        temperature limit is lower later on, resulting in an overall
+        decrease in peak evening demand. However, the tension between 
+        smart thermostat DR and consumer
+        comfort will impose limitations on the amount peak demand reduction
+        that can be achieved.
+
+
+\end{letterenum}
+    
+
+
+
+
+
+
+\end{letterenum}
+
+
+\end{document}
