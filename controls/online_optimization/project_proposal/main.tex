@@ -1,0 +1,251 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+\usepackage{amsthm}
+
+\def\one{\mbox{1\hspace{-4.25pt}\fontsize{12}{14.4}\selectfont\textrm{1}}} % 11pt    
+
+\class{ECEN 5478}
+\title{Project Proposal}
+\author{Sean Jennings}
+\date{November 10, 2023}
+
+\begin{document}
+\maketitle
+
+\section{Context}
+
+% Grid-level battery energy storage systems (BESSs) are projected to expand
+% substantially by 2025. 
+
+
+
+% With increased penetration of non-dispatchable renewable generation resources,
+% energy storage solution will play a key role in the future of the power grid.
+% Battery energy storage systems BESS are playing an increasingly large
+% as the price of lithium ion batteries drops. In particular, a number
+% of utility-scale storage projects have recently been installed or are
+% in the project pipeline within the US, especially in states such as
+% California with high renewable penetration.
+
+% Fires at BESS facilities, such at the Elkhorn BESS (September 2022) in Moss Landing, CA,
+% and the McMicken BESS (April 2019) in Surprise, AZ, suggest that the
+% commercialization of grid-level BESS technology remains in a nascent state. 
+
+% Within a deregulated energy market, 
+% We will look at energy arbitrage oppurtunites for grid-level BESS plants within
+% the deregulated wholesale energy market.
+
+% Maximizing profitability of individual BESS plants is key to incentivizing
+% the construction of additional energy storage.
+
+% TODO:
+% need to check how bidding works: model this??
+% especially do we denote the suggested power capacity of the bid?
+
+Due to the inherent variability of renewable generation resources, 
+energy storage systems (ESSs) are expected to play an increasingly important role 
+in the future power grid. Within a deregulated energy market, prices are lower
+during periods of high renewable generation since the marginal cost of
+renewable generation is relatively small compared to traditional fuel-based sources.
+Conversely, during periods of low renewable production and high load, prices
+are relatively elevated. This price differential represents an economic
+oppurtunity for ESSs.
+
+Market projections show that a large portion of the overall battery capacity in the
+future will be stored in EVs. However, a variety of factors limit the dispatchability
+of EVs as an ESS (e.g. EV owner driving patterns, the physical location of the EV
+relative to EV charging infrastructure). Therefore, it is likely that utility-scale
+stationary ESSs will represent an important asset in ensuring technical and
+economic feasibility in a transition to power system with high penetrations of
+renewable resources.
+
+In particular, a number of grid-level battery energy storage (BESS) plants are
+currently being (and planned to be) installed in the US, particularly in California and Texas.
+The lifetime of batteries are limited by electrochemical degradation which limits
+the economic utility which they provide.
+For this project, we propose the consideration of the operational optimization of a BESS
+in a energy time-shifting (arbitrage) application.
+
+\section{Problem Formulation}
+
+Consider an ESS unit which participates in a real-time energy market which is sufficiently
+competitive that the bidding behavior of the unit has no effect upon price of energy
+within the market (i.e. the unit can choose to purchase or sell energy at market price at will).
+The market dispatches load/generation requests every $\Delta t$ minutes. We will
+refer to the market dispatch action as a "market step." Suppose that at each market step $t$,
+the unit has a perfect forcast of market prices per MWh, $p_t$, over the next $T$ market steps,
+where $t,T\in\N$, $p_t\in\R_{\geq0}^T$.
+
+Let $\hat{u}_t\in\hat{\U}$ be a prediction of the power (in MW) discharged/charged by the unit
+at times $t\in\hat{\mathcal{T}}:=[t, \dots, t+T]$. Suppose the power of the battery at each $t$
+limited by $\U:=[\underbar{P}, \bar{P}]$,
+so that $\hat{\U}$ is given by $\hat{\U} = \U \times (T \text{\it times}) \dots \times \U$, with
+$\underbar{P}, \bar{P} \in \R$, $\underbar{P} < 0 < \bar{P}$.
+
+Assume the battery degrades at a rate porportional to $\norm{u_t}^2$, so that
+the monetary cost of a charge/discharge action (capital costs of the battery amortized over its
+lifetime) is also porportional to $\norm{\hat{u}_t}^2$, with proportionality\footnote{
+    A more realistic would be that the degradation rate is proportional to
+    $\lVert u \rVert_1$; however, this results in a cost function that is neither smooth
+    nor strongly convex.
+} constant $\gamma$.
+Let $\hat{\Phi}_t: \hat{\U} \to \R$ be the predicted cost of operation over the forcast horizon $T$
+(negative values of $\hat{\Phi}_t$ indicate a net profit). Then, $\hat{\Phi}_t$ is given by
+\begin{equation*}
+    \hat{\Phi}_t(u) = \gamma \norm{u}^2 - p^T u / \Delta t.
+\end{equation*}
+
+Let $\X:=[\underbar{E}, \bar{E}]$ be the battery capacity limits with $\underbar{E}\in\R_{\geq0}$
+indicating the minimum allowed capacity, and $\bar{E}\in\R_{\geq0}$ the maximum capacity,
+$\underbar{E} < \bar{E}$.
+Let $x_t\in\X$ be the state of charge (SoC) of the battery at time $t$. Assume the battery has
+unit efficiency so that the discretized system dynamics are given by
+\begin{equation*}
+    x_{t+1} = x_t - \Delta t u_t
+\end{equation*}
+where $u_t\in\U$ is the battery power at time $t$, and is taken from the first element
+of the control prediction $\hat{u}_t$ which is recomputed at each $t$.
+
+We will solve the following time-varying optimization problem. Given SoC $x_t \in \X$,
+\begin{align*}
+    (P) \qquad &\min_{u \in \hat{U}} \hat{\Phi}_t(u) \\
+        & \text{subj. to} \\
+        & \qquad x_{\tau + 1} = x_\tau - \Delta t u_\tau \\
+        & \qquad x_\tau \in \X \text{ for each } \tau \in \hat{\mathcal{T}}
+\end{align*}
+where $u_\tau$ is the $(\tau - t)$th entry of $u$.
+
+% We propose the following as potential extensions to increase the challenge of the problem:
+% \begin{enumerate}
+%     \item Additionally providing frequency control services
+%         (need to decide what timescale to model freq control on)
+%     \item precisely model degradation costs (violates strong convexity/smoothness conditions)
+%     \item Representation of distributed control aspects (plant-level vs module-level BMS)
+%     \item Modeling of low-level LiPo mechanics
+% \end{enumerate}
+
+\section{Preliminary Analysis}
+
+One technically intriguing component of this problem is the nontrivial constraints imposed
+by the SoC upon the control prediction $\hat{u}$. Our initial analysis proceeds as follows.
+
+Consider the more general case of an discrete LTI system given by:
+\begin{equation}
+    x_{t + 1} = A x_t + B u_t
+    \label{eq:lti-system}
+\end{equation}
+where $x_t\in \R^{N_x}$, $u_t\in\R^{N_u}$ for each $t$, $A\in\R^{N_x \times N_x}$
+$B \in \R^{N_x \times N_u}$, and $N_x,N_u\in\N$ are the state and control dimensions
+repectively.
+
+Then, given a control $u_\tau$, for each $\tau \in [t, \dots, t + T - 1]$, we have
+\begin{equation}
+    x_{\tau + 1} = A^{\tau + 1 - t} x_t + \sum_{i=t}^{\tau} A^{\tau - i} B u_i
+    \label{eq:integrator}
+\end{equation}
+
+\begin{proof}
+    We prove by induction. The base case of $\tau = t$ holds since
+    (\ref{eq:integrator}) reduces to (\ref{eq:lti-system}).
+
+    Suppose that (\ref{eq:integrator}) holds for $\tau$, then
+    \begin{align*}
+        x_{\tau + 2} &= A x_{\tau + 1} + Bu_{\tau + 1} \\
+            &= A \biggl(
+            A^{\tau + 1 - t} x_t + \sum_{i=t}^\tau A^{\tau - i} B u_i
+        \biggr) + B u_{\tau + 1} \\
+        &= A^{\tau + 2 - t} x_t + \biggl(\sum_{i=t}^\tau A^{(\tau + 1) - i} B u_i\biggr) + B u_{\tau + 1}\\
+        &= A^{\tau + 2 - t} x_t + \sum_{i=t}^{\tau + 1} A^{(\tau + 1) - i} B u_i.
+    \end{align*}
+    So (\ref{eq:integrator}) also holds for $\tau + 1$.
+\end{proof}
+
+We rewrite (\ref{eq:integrator}) in matrix form:
+\begin{equation*}
+    \hat{x} := \mat{
+        x_{t + 1} \\
+        x_{t + 2} \\
+        \vdots \\
+        x_{t + T}
+    } = \mat{
+        B & 0 & \cdots & 0 \\
+        AB & B & \cdots & 0 \\
+        \vdots & \vdots & \ddots & \vdots \\
+        A^{T - 1} & A^{T - 2} & \cdots & B
+    } \mat{
+        u_t \\ u_{t+1} \\ \vdots \\ u_{T - 1}
+    } + \mat{
+        A \\ A^2 \\ \vdots \\ A^T
+    } x_t
+\end{equation*}
+
+Putting $A = 1$ and $B = - \Delta t$, we have
+\begin{equation*}
+    \hat{x} = \Gamma \hat{u} + \one x_t
+\end{equation*}
+
+
+where $\hat{x}$ are the predicted states from $t+1$ to $T+1$,
+$\Gamma \in \R^{T \times T}$ is lower triangular matrix with all non-zero entries
+equal to $-\Delta t$, and $\one$ is the vector of ones. 
+
+Since we have the following constraints on $\hat{x}$,
+\begin{equation*}
+    \one \underbar{E} \leq \hat{x} \leq \one \bar{E},
+\end{equation*}
+
+we can define $\hat{U}_{t, \X}$, the SoC-imposed constraints at time $t$, as
+\begin{equation*}
+    \hat{U}_{t,\X} = \biggl\{
+        \hat{u} \in \R^T: \mat{\Gamma \\ -\Gamma} \hat{u} \leq
+            \mat{\one (\bar{E} - x_t) \\ \one (x_t - \underbar{E})}
+    \biggr\}.
+\end{equation*}
+We can then consider the constraints entirely in terms of the predicted control:
+$\hat{u} \in \hat{\U}' := \hat{\U} \cap \hat{\U}_{t,\X}$. This set is a convex polytope, so
+the optimization problem is convex ($\Phi_t$ is $\gamma$-strongly convex and $\gamma$-smooth).
+
+However, since the constraints on each entry $u_\tau$ of $\hat{u}$ are not independent
+of other entries, the author is not aware of a closed form of the projection
+function $\text{proj}_{\hat{\U}'}$ for a general convex polytope. So, it's possible that to
+use the projected gradient method to solve the problem $(P)$, we will need to solve the
+optimization subproblem
+\begin{equation*}
+    (P') \qquad \text{proj}_{\hat{\U}'}(u) = \text{arg}\min_{v\in\hat{\U}'}
+        \norm{u - v}
+\end{equation*}
+at each timestep.
+
+Even with perfect forecasts, the problem is still time-varying when we consider
+a finite time horizon, $T$, for the price prediction. Further analysis will bound the path length
+of the optimal solution, $u_t^*$, to problem $P$. If we make some assumptions about the expected
+shape of the price curve, it may be possible to make some claims about the 
+time horizon, $T$, which minimizes the path length.
+
+Additionally, as the time horizon approaches infinity, the problem ceases to be 
+time-varying. A comparison between $u_t^*$ and the solution to the infinite horizon problem
+$u^*$ may yield additional insights, particularly when the price curve, $p$, has some components
+of periodicity.
+
+We also note that there should be some observability of the true battery degradation rates,
+espeically over sufficiently long timescales. In this case, we could assume that the cost function
+$\Phi_t(u)$ has some error associated with it. Then, the true cost function could be learned
+(e.g. by fitting the $\gamma$ term to observations of the voltage over time).
+
+\section{Preliminary Ideas for Simulation}
+
+To validate the concept, we will compare the performance of
+our online optimization algorithm compared to a baseline algorithm,
+using locational marginal prices (LMPs) downloaded from an
+energy market, such as CAISO.
+
+Using realistic estimates for costs (e.g. based on costs of commerically available
+Lithium-ion batteries or actual costs for existing BESS facilities)
+and expected degradation rates should
+give a sense of the economic profitability of such a BESS plant.
+
+\end{document}
