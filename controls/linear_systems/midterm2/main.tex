@@ -1,0 +1,544 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5448}
+\title{Midterm 2}
+\author{Sean Jennings}
+\date{December 5, 2023}
+
+\newcommand{\obs}{\mathcal{O}}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+To construct a quadratic Lyaponov function, we solve the Lyaponov equation:
+\begin{equation*}
+    PA + A^T P = -Q
+\end{equation*}
+where $A$ is the state dynamics matrix, $P$ is the symmtric matrix for the Lyaponov function,
+and $Q$ is some positive definite matrix. Let $Q$ be the identity, and $P_{ij}$ denote
+the $ij$th entry of $P$. Then,
+\begin{align*}
+    \mat{
+        P_{11} & P_{12} \\
+        P_{12} & P_{22}
+    } \mat{
+        -1 & 5 \\
+        1 & -10 \\
+    } + \mat{
+        -1 & 1 \\
+        5 & -10
+    } \mat{
+        P_{11} & P_{12} \\
+        P_{12} & P_{22}
+    } &= \mat{
+        -1 & 0 \\
+        0 & -1 \\
+    } \\
+    \mat{
+        -P_{11} + P_{12} & 5 P_{11} - 10 P_{12} \\
+        -P_{12} + P_{22} & 5 P_{12} - 10 P_{22} \\
+    } + \mat{
+        -P_{11} + P_{12} & -P_{12} + P_{22} \\
+        5 P_{11} - 10 P_{12} & 5 P_{12} - 10 P_{22} \\
+    } &= \mat{
+        -1 & 0 \\
+        0 & -1 \\
+    }
+\end{align*}
+yields the following system of equations:
+\begin{align*}
+    2(-P_{11} + P_{21}) &= -1 \\
+    5 P_{11} - 11 P_{12} + P_{22} &= -1 \\
+    10 P_{12} - 20 P_{12} &= -1.
+\end{align*}
+Converting this to the matrix form $Ax = b$ where $x = [P_{11}, P_{12}, P_{22}]^T$,
+and solving via matrix inversion (with a computer) yields the solution:
+\begin{equation*}
+    P = \frac{1}{22} \mat{
+        21.2 & 10.2 \\
+        10.2 & 6.2 \\
+    }
+\end{equation*}
+
+We can check the eigenvalues of $P$ (again plugging into Python), and find
+\begin{align*}
+    \lambda_1(P) &\approx 1.198 \\
+    \lambda_2(P) &\approx 0.0472
+\end{align*}
+so $P$ is a positive definite matrix and $\epsilon(x)$ is a positive definite
+function on $\R^2$. This also implies that $\epsilon$ is radially unbounded. By satisfying
+the Lyaponov equation, we have
+\begin{align*}
+    \dot{\epsilon}(x) &= x^T P \dot{x} + \dot{x}^T P x  \\
+        &= x^T (PA + A^T P) x \\
+        &= - x^T Q x \\
+        &= - \norm{x}.
+\end{align*}
+So, $\dot{\epsilon}(x)$ is a negative definite function on the domain of $\R^2$.
+Thus, by Lyaponov's second method, the conditions for a globally asymptotically
+stable equilibrium are satisfied.
+
+\section{Problem 2}
+
+\begin{letterenum}
+\item We will define $x\in \R^2$ to be
+\begin{equation*}
+    x := \mat{
+        x_1 \\ \tilde{x}_2
+    }.
+\end{equation*}
+We can then rewrite the system in matrix form:
+\begin{equation*}
+    \dot{x} = \mat{
+        -K & K \\
+        K & -K
+    } x + \mat{1 \\ 0} u
+\end{equation*}
+or with $K=1$:
+\begin{equation*}
+    \dot{x} = \mat{
+        -1 & 1 \\
+        1 & -1
+    } x + \mat{1 \\ 0} u
+\end{equation*}
+
+\newcommand{\contr}{\mathcal{C}}
+Since our system is LTI, we can look at the the controllability matrix, $\contr(A, B)$
+to determine controllability. We compute the controllability matrix to be:
+\begin{equation*}
+    \contr(A, B) = \mat{B & AB} = \mat{
+        1 & -1 \\
+        0 & 1 \\
+    }.
+\end{equation*}
+Clearly, $\contr(A, B)$ is full rank and therefore our system is controllable.
+
+To find the matrix in controllable canonical form (CCF), we first determine the characteristic 
+polynomial:
+\begin{align*}
+    I\lambda - A &= \mat{
+        \lambda + 1 & -1 \\
+        - 1 & \lambda + 1 \\
+    } \\
+    \det (I\lambda - A) &= (\lambda + 1)^2 - 1 = \lambda^2 + 2 \lambda
+\end{align*}
+
+The CCF system $(A', B')$ is determined uniquely by the characteristic polynomial to be
+\begin{equation*}
+    A' = \mat{
+        0 & 1 \\
+        0 & -2
+    } \qquad B' = \mat{
+        0 \\ 1
+    }
+\end{equation*}
+The transformation $P$ which brings the system into CCF is then given by:
+\begin{align*}
+    P &= \contr(A', B') \contr(A, B)^{-1} \\
+        &= \mat{
+            0 & 1 \\
+            1 & -2 \\
+        } \mat{
+            1 & 1 \\
+            0 & 1
+        } \\
+        &= \mat{
+            0 & 1 \\
+            1 & -1 \\
+        }
+\end{align*}
+
+\item To find the control input which drives the system from state
+$x(0) = [3, 1]^T$ to $x(1) = [4, 3]^T$, we look at the minimum
+effort controller:
+\begin{equation*}
+    u(\tau) = B^T \Phi^T(1, \tau) v
+\end{equation*}
+where $v\in\R^2$ is the vector such that
+\begin{equation*}
+    x(1) - \Phi(1, 0) x(0) = W_R(0, 1) v
+\end{equation*}
+with $\Phi(t, t_0): \R \times \R \to \R^{2\times 2}$ representing
+the state transition matrix and $W_R(0, 1)$ representing
+the reachability grammian on the interval $[t_0, t_1] =[0, 1]$.
+
+We must therefore compute the state transition matrix and reachability
+grammian. First, the state transition matrix is found by 
+diagonalization of the $A$ matrix:
+\begin{equation*}
+    A = \mat{
+        -1 & 1 \\
+        1 & -1
+    } = PDP^{-1} \qquad P = \mat{
+        1 & 1 \\
+        -1 & 1
+    } \qquad D = \mat{
+        -2 & 0 \\
+        0 & 0
+    }
+\end{equation*}
+The state transition matrix is then given by:
+\begin{align*}
+    \Phi(t, t_0) = e^{A(t - t_0)} &= P e^{D(t-t_0)} P^{-1} \\
+        &= \mat{
+            1 & 1 \\
+            -1 & 1
+        } \mat{
+            e^{-2(t-t_0)} & 0 \\
+            0 & 1
+        } P^{-1} \\
+        &= \mat{
+            e^{-2(t-t_0)} & 1 \\
+            -e^{-2(t-t_0)} & 1 \\
+        } \frac{1}{2} \mat{
+            1 & -1 \\
+            1 & 1 \\
+        } \\
+\end{align*}
+and a final expression for the state transition matrix of
+\begin{equation}
+        \Phi(t, t_0) = \frac{1}{2} \mat{
+            1 + e^{-2(t - t_0)} & 1 - e^{-2(t - t_0)} \\
+            1 - e^{-2(t - t_0)} & 1 + e^{-2(t - t_0)}
+        }
+        \label{eq:state-transition}
+\end{equation}
+is obtained.
+
+Then, we can compute the reachability grammian. We will define
+the variable $a := e^{-2(t - t_0)}$ to simplify the exposition:
+\begin{align*}
+    W_R(0, 1) &= \int_{0}^{1} \Phi(1, \tau) B B^T \Phi^T(1, \tau) d\tau \\
+        &= \int_{0}^{1} \Phi(1, \tau) \mat{1 \\ 0} \mat{1 & 0} \Phi^T(1, \tau) d\tau \\
+        &= \int_{0}^{1} \frac{1}{2} \mat{
+            1 + a & 1 - a \\
+            1 - a & 1 + a
+        } \mat{1 & 0 \\ 0 & 0} \Phi^T(1, \tau) d\tau \\
+        &= \frac{1}{4} \int_{0}^{1} \mat{
+            1 + a & 0 \\
+            1 - a & 0 
+        } \mat{
+            1 + a & 1 - a \\
+            1 - a & 1 + a \\
+        } d\tau \\
+        &= \frac{1}{4} \int_{0}^{1} \mat{
+            (1 + a)^2 & (1 + a)(1 - a) \\
+            (1 + a)(1 - a) & (1 - a)^2 \\
+        } d\tau.
+\end{align*}
+We next define the variables $b,c,d\in\R$ to be the integral of the following matrix components:
+\begin{align*}
+    b :&= \int_{0}^{1} (1 + a)^2 d\tau  \\
+        &= \int_{0}^{1} 1 + 2 e^-2(1 - \tau) + e^{-4(1 - \tau)} d\tau \\
+        &= \tau + e^{-2(1-\tau)} + \frac{1}{4} e^{-4(1-\tau)} \eval_{\tau = 0}^1 \\
+        &= (1 + 1 + \frac{1}{4}) - (e^{-2} + e^{-4}) \\
+        &= \frac{9}{4} - e^{-2} - e^{-4} \\
+    c :&= \int_{0}^{1} (1 + a)(1 - a) d\tau  \\
+        &= \int_{0}^{1} 1 - e^{-4(1 - \tau)} d\tau \\
+        &= \tau - \frac{1}{4} e^{-4(1-\tau)} \eval_{\tau = 0}^1 \\
+        &= (1 - \frac{1}{4}) - (\frac{1}{4} e^{-4}) \\
+        &= \frac{3}{4} - \frac{1}{4} e^{-4} \\
+    d :&= \int_{0}^{1} (1 - a)^2 d\tau  \\
+        &= \int_{0}^{1} 1 - 2 e^-2(1 - \tau) + e^{-4(1 - \tau)} d\tau \\
+        &= \tau - e^{-2(1-\tau)} + \frac{1}{4} e^{-4(1-\tau)} \eval_{\tau = 0}^1 \\
+        &= (1 - 1 + \frac{1}{4}) - (-e^{-2} + e^{-4}) \\
+        &= \frac{1}{4} + e^{-2} - e^{-4}
+\end{align*}
+The grammian on the desired interval is then given by:
+\begin{equation*}
+    W_R(0, 1) = \frac{1}{4} \mat{
+        b & c \\
+        c & d \\
+    }
+\end{equation*}
+Define $\Delta$ to be the determinant of the grammian:
+\begin{equation*}
+    \Delta := \text{det}(W_R(0, 1)) = \frac{1}{16} (bd - c^2)
+\end{equation*}
+The inverse of the grammian is then given by:
+\begin{equation*}
+    W_R(0, 1)^{-1} = \frac{1}{4\Delta} \mat{
+        d & -c \\
+        -c & b \\
+    }
+\end{equation*}
+Finally, we can find an expression for the control input:
+\begin{align*}
+    u(t) &= B^T \Phi^T(1, \tau) W_R(0, 1)^{-1} \biggl[
+        x(1) - \Phi(1, 0) x(0)
+    \biggr] \\
+    &= \mat{1 & 0} \mat{
+        1 + a & 1 - a \\
+        1 - a & 1 + a \\
+    } \frac{1}{4\Delta} \mat{
+        d & -c \\
+        -c & b
+    } \biggl(
+        \mat{4 \\ 3} - \mat{
+            1 + e^{-2} & 1 - e^{-2} \\
+            1 - e^{-2} & 1 + e^{-2} \\
+        } \mat{3 \\ 1}
+    \biggr) \\
+    &= \frac{1}{4\Delta} \mat{1 + a & 1 - a} \mat{
+        d & -c \\
+        -c & b
+    } \mat{
+        -2 e^{-2} \\
+        2e^{-2} - 1
+    } \\
+    &= \frac{1}{4\Delta} \mat{
+        (d - c) + (d + c) a & (b - c) - (b + c) a
+    } \mat{
+        -2e^{-2} \\
+        2e^{-2} - 1
+    }  \\
+    &= \frac{1}{4\Delta} \biggl(
+        2e^{-2}(b - d) - b + c + [ b + c - 2e^{-2}(b + 2c + d)]a
+    \biggr) \\
+    &\approx -14.62 + 29.15 a \\
+    &= -14.62 + 29.15 e^{-2(1 - t)}
+\end{align*}
+
+\end{letterenum}
+
+\section{Problem 3}
+
+\begin{letterenum}
+
+\item To show observability of an LTI system, we can check the nullspace
+of the observability matrix. If the observability matrix $\obs(A, C)$ is
+full column rank, then the null space is $\{0\}$ and the system is 
+observable. $\obs(A, C)$ is given by
+\begin{equation*}
+    \obs(A, C) = \mat{
+        C \\ CA
+    } = \mat{
+        1 & 0 \\
+        -1 & 1 \\
+    }.
+\end{equation*}
+We see that the columns of $\obs(A, C)$ are linearly independent and
+therefore the nullspace is trivial and the system is observable.
+
+\item The transfer function of the system is given by:
+\begin{equation*}
+    G(s) = C(sI - A)^{-1} B.
+\end{equation*}
+So we can first compute $(sI - A)^{-1}$:
+\begin{equation*}
+    (sI - A)^{-1} = \mat{
+        s + 1 & - 1 \\
+        -1 & s + 1 \\
+    } = \frac{1}{s(s+2)} \mat{
+        s + 1 & 1 \\
+        1 & s + 1 \\
+    }
+\end{equation*}
+and therefore the transfer function is:
+\begin{align*}
+    G(s) &= C (sI - A)^{-1} B \\
+        &= \mat{1 & 0} \biggl(
+            \frac{1}{s(s+2)} \mat{
+                s + 1 & 1 \\
+                1 & s + 1 \\
+            }
+        \biggr) \mat{
+            1 \\ 0
+        } \\
+        &= \frac{s + 1}{s(s+2)}
+\end{align*}
+
+\item To reconstruct the states on the given interval, it suffices to 
+determine the initial condition $x(0)$, since the states are given
+by the LTI system solution
+\begin{equation}
+    x(t) = \Phi(t, 0) x(0) + \int_{0}^{t} \Phi(t, \tau) B u(\tau) d\tau.
+    \label{eq:system-solution}
+\end{equation}
+
+To find the initial state, we note that $y(t) = Cx(t)$. We can substitute the
+previous expression and subtract by the known integral control input term, to
+define $\tilde{y}$, the control output compensating for the input:
+\begin{align}
+    \tilde{y}(t) :&= y(t) - C \int_{0}^{t} \Phi(t, \tau) B u(\tau) d\tau \label{eq:tilde-y}\\
+        &= C \Phi(t, 0) x(0)
+\end{align}
+Multiplying both sides by $\Phi^T(t, 0) C^T$ and integrating over the interval $[0, t]$ relates
+$\tilde{y}$ to the observability grammian $M_O(0, t)$:
+\begin{equation*}
+    \int_{0}^{t} \Phi^T(\tau, 0) C^T \tilde{y}(\tau) d\tau = M_O(0, t) x(0)
+\end{equation*}
+Since the system is observable, $M_O(0, t)$ is invertible over all time intevals.
+Thus, the initial condition can be derived from the following expression:
+\begin{equation}
+    x(0) = M_O(0, 1)^{-1} \int_{0}^{1}\Phi^T(\tau, 0) C^T \tilde{y}(\tau) d\tau
+    \label{eq:init-cond}
+\end{equation}
+
+We must therefore evaluate the grammian and the integral involving $\tilde{y}$ to compute the
+output. We start with the definition for $\tilde{y}$ in equation (\ref{eq:tilde-y}), taking
+$u(\tau) = 1$ and noting that left multiplication of $\Phi(t, 0)$ by $C=\mat{1 & 0}$ along with right multiplication
+by $B = \mat{1 & 0}^T$ takes its top left element:
+\begin{align*}
+    \tilde{y}(t) &= y(t) - \int_{0}^{t} C\Phi(t, \tau) B d\tau \\
+        &= y(t) - \int_{0}^{t} 1 + e^{-2(t - \tau)} d\tau \\
+        &= y(t) - \biggl[
+            \tau + \frac{1}{2} (e^{-2(t-\tau)})
+        \biggr]\eval_{\tau=0}^t \\
+        &= y(t) - (t + \frac{1}{2} - \frac{1}{2}e^{-2t})
+\end{align*}
+
+A simplification of terms in $y(t)$ (omitted for the sake of time) yields
+\begin{equation*}
+    y(t) = \frac{5}{4} + \frac{1}{2} t + \frac{3}{4} e^{-2t}
+\end{equation*}
+resulting in a final expression for $\tilde{y}$:
+\begin{align*}
+    \tilde{y}(t) &= \frac{3}{4} + \frac{1}{2}t + \frac{3}{4} e^{-2t} \\
+        &= \frac{1}{4}(3 - 2t + 5e^{-2t})
+\end{align*}
+The integral term is then found (again omitting tedious computation):
+\begin{equation*}
+    \int_{0}^{1} \Phi^T(\tau, 0) C^T \tilde{y}(\tau) d\tau =
+        \frac{1}{32} \mat{
+            27 - 10 e^{-2} - 5 e^{-4} \\
+            9 - 10 e^{-2} + 5 e^{-4} \\
+        }
+\end{equation*}
+The observability grammian is computed as follows:
+\begin{align*}
+    M_O(0, 1) &= \int_{0}^{1} \Phi^T(\tau, 0) C^T C \Phi(\tau, 0) d\tau \\
+        &= \int_{0}^{1} \frac{1}{2} \mat{
+            1 + e^{-2\tau} & 1 - e^{-2\tau} \\
+            1 - e^{-2\tau} & 1 + e^{-2\tau} \\
+        } \mat{
+            1 & 0 \\
+            0 & 0
+        } \Phi(\tau, 0) d\tau \\
+        &= \frac{1}{4} \int_{0}^{1} \mat{
+            1 + 2e^{-2\tau} + e^{-4\tau} & 1 - e^{-4\tau} \\
+            1 - e^{-4\tau} & 1 - 2e^{-2\tau} + e^{-4\tau}
+        } \\
+        &= \frac{1}{4} \mat{
+            \tau - e^{-2\tau} - \frac{1}{4} e^{-4\tau}  & \tau + \frac{1}{4}e^{-4\tau} \\
+            \tau + \frac{1}{4}e^{-4\tau} & \tau + e^{-2\tau} - \frac{1}{4} e^{-4\tau}
+        } \\
+        &= \frac{1}{4} \mat{
+            \frac{9}{4} - e^{-2} - \frac{1}{4}e^{-4} & \frac{3}{4} + \frac{1}{4} e^{-4} \\
+            \frac{3}{4} + \frac{1}{4} e^{-4} & \frac{1}{4} + e^{-2} - \frac{1}{4} e^{-4}
+        }
+\end{align*}
+
+We now end our symbolic endeavours and evaluate $x(0)$ via equation (\ref{eq:init-cond}) with
+the aid of a computer:
+\begin{equation*}
+    x(0) \approx \mat{
+        2.078 \\
+        -1.5782
+    }
+\end{equation*}
+The state as a function of time is therefore given by equation (\ref{eq:system-solution}), with
+state transition matrix given by (\ref{eq:state-transition}) and $x(0)$ given by the previous
+equation.
+
+
+
+
+
+
+
+\end{letterenum}
+
+\section{Problem 4}
+
+\begin{letterenum}
+\item We recompute the observability matrix with $C = \mat{1 & -1}$:
+\begin{equation*}
+    \obs (A, C) = \mat{
+        1 & -1 \\
+        -2 & 2 \\
+    }
+\end{equation*}
+and we can see that the nullspace is now nontrivial. The unobservable
+subspace is equal to the nullspace of the observability matrix
+for LTI systems and is therefore given by:
+\begin{align*}
+    \mathcal{U}0(t_0, t_1) &= \mathcal{N}(\obs(A, C)) \\
+        &= \biggl\{
+            x \in \R^2: \obs(A, C)x = 0
+        \biggr\} \\
+        &= \biggl\{
+            x\in\R^2: x = \mat{1 \\ 1} \alpha, \alpha \in \R
+        \biggr\}
+\end{align*}
+This unobservable subspace represents the set of $[x_1, \tilde{x}_2]$
+with $x_1 = \tilde{x}_2$. That is, $x_1$ and $x_2$ are exactly $d$
+distance apart. Given the trucks are $d$ apart, the position
+of each truck is determined by $x_1$ alone. However, since we only
+have relative measurements between the trucks, the absolute
+position in space cannot be determined from the measurements.
+We can determine positions only in relative terms. Any change 
+in position which affects both trucks equally cannot be observed.
+
+\item To find the transfer function, we use the value of $(sI - A)^{-1}$
+computed in part 3b, but consider the new $C$ matrix:
+\begin{align*}
+    G(s) &= C(sI - A)^{-1} B \\
+        &= \mat{1 & -1} \biggl(
+            \frac{1}{s(s+2)} \mat{
+                s + 1 & 1 \\
+                1 & s + 1
+            }
+        \biggr) \mat{1 \\ 0} \\
+        &= \frac{1}{s(s+2)} \mat{1 & -1} \mat{s + 1 \\ 1} \\
+        &= \frac{s}{s(s+2)} = \frac{1}{s+2}
+\end{align*}
+
+We note that since one of the polynomial terms cancelled out, the
+minimum realization is now just a first order system, given by:
+\begin{align*}
+    \dot{x} &= -2x + u \\
+    y &= x
+\end{align*}
+with $x,u,y \in \R$.
+
+\item In Homework 4, we proved that two initial conditional are output
+equivalent iff their difference belongs to the nullspace of the
+observability grammian. For an LTI system, we have
+\begin{equation*}
+    \mathcal{N}(\obs(A, C)) = \mathcal{N}(M_0([t_0, t_1]))
+\end{equation*}
+where $M_0([t_0, t_1])$ is the observability grammian on the interval
+$[t_0, t_1]$. So it suffices to check that the difference between
+the given initial conditions $x(0)\in\R^2$ and $x'(0)\in\R^2$ belongs to the
+nullspace of the observability matrix:
+\begin{align*}
+    \obs(A,C) (x'(0) - x(0)) &= \mat{
+        1 & -1 \\
+        -2 & 2
+    } \biggl(
+        \mat{3 \\ 1} - \mat{2 \\ 0}
+    \biggr) \\
+    &= \mat{
+        1 & -1 \\
+        -2 & 2
+    } \mat{1 \\ 1} \\
+    &= \mat{0 \\ 0}
+\end{align*}
+\end{letterenum}
+
+
+
+
+
+
+
+
+
+\end{document}

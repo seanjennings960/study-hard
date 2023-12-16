@@ -1,0 +1,538 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5448}
+\title{Homework 4}
+\author{Sean Jennings}
+\date{November 30, 2023}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+\subsection{}
+
+\newcommand{\contr}{\mathcal{C}}
+
+\begin{letterenum}
+\item Take as a simple counter-example:
+    \begin{equation*}
+        A = \mat{
+            0 & 1 \\
+            1 & 0
+        } \qquad B = \mat{
+            0 \\ 1
+        }.
+    \end{equation*}
+    Clearly, $\mathcal{C}(A, B) = \mat{0 & 1 \\ 1 & 0}$ is full rank, and
+    thus $(A, B)$ is controllable. On the other hand, we have:
+    \begin{equation*}
+        A^2 = \mat{
+            1 & 0 \\
+            0 & 1
+        }
+    \end{equation*}
+    so that the controllability matrix for the system $(A^2, B)$ is given by:
+    \begin{equation*}
+        \mathcal{C}(A^2, B) = \mat{B & A^2 B} = \mat{0 & 0 \\ 1 & 1}.
+    \end{equation*}
+    With a row of zeros, $\contr(A^2, B)$ is clearly not full-rank, so the system
+    $(A^2, B)$ is not controllable, and thus the premise is disproven by
+    counterexample.
+
+\item The statement is true. Even with an additional $k(t)$ term in the system,
+    the controllability of $(A, B)$ ensures that the inhomogenous system
+    \begin{equation*}
+        \dot{x} = Ax + Bu + k(t)
+    \end{equation*}
+    is also controllable. To see this, we modify the solution to the inhomogenous
+    LTI system to include the $k(t)$ term:
+    \begin{equation*}
+        x(t) = \Phi(t, t_0) x(t_0) + \int_{t_0}^{t} \Phi(t, \tau) \bigl[
+            B u(\tau) + k(t)
+        \bigr] d\tau
+    \end{equation*}
+    where we have replaced $Bu(\tau)$ in the standard equation with
+    $Bu(\tau) + k(\tau)$. $\Phi(t, t_0)$ is the state transition matrix.
+    Extracting the $k(\tau)$ term from the integral yields:
+    \begin{equation*}
+        x(t) = \biggl[
+            \Phi(t, t_0) x(t_0) + \int_{t_0}^t \Phi(t, \tau) k(\tau) d\tau
+        \biggr] + \int_{t_0}^{t} \Phi(t, \tau) B u(\tau) d\tau.
+    \end{equation*}
+
+    Let $x_1 \in \R^n$ be an arbitrary state we'd like to reach at time $t_1 > t_0$.
+    Subtract the term in the brackets from both sides of the equation, and 
+    define the left-hand side as $\Delta x \in \R^n$:
+    \begin{equation*}
+        \Delta x := x_1 - \Phi(t_1, t_0) x(t_0) -
+            \int_{t_0}^{t} \Phi(t, \tau) k(\tau) d\tau.
+    \end{equation*}
+    Since the system $(A, B)$ is controllable, the range of the grammian
+    $R(W([t_0, t_1]))$ (where $R$ denotes the range) is all of $\R^n$, and we have
+    $\Delta x \in R(W([t_0, t_1]))$.
+
+    Let $v$ be the vector such that $\Delta x = W([t_0, t_1]) v$.
+    Then, the controller $u(t)$
+    \begin{equation*}
+        u(t) = B^T \Phi^T(t, t_0) v
+    \end{equation*}
+    will bring the system from the arbitrary position $x(t_0)$ to any
+    other position $x_1$ at time $t_1 > t_0$.
+
+\item Yes, since the system is controllable, there exists a control $u$
+    that brings the system to any $x_1 \in \R^n$ at any time $t_1$. Put
+    $x_1 = 0_n$ and $t = 1$, and let $v$ be the vector that satisfies:
+    \begin{equation*}
+        v = W([0, 1])^{-1} (x(1) - \Phi(1, 0) x(0)).
+    \end{equation*}
+    (The grammian $W([0, 1])$ is invertible since it is a square matrix and
+    controllability of $(A, B)$ implies it is full rank.)
+
+    Then, the control
+    \begin{equation*}
+        u(t) = \biggl\{
+            \begin{array}{ll}
+                B^T \Phi(t, 0) v &\qquad \text{if } 0 \leq t < 1 \\
+                0   &\qquad \text{otherwise}
+            \end{array}
+        \biggr.
+    \end{equation*}
+    will bring the system to rest at $t=1$, and it will remain at rest,
+    since
+    \begin{equation*}
+        \dot x(t) = A 0_n + B 0_n = 0_n
+    \end{equation*}
+    for all $t \geq 1$.
+
+\item While the system can be brought to any $\bar{x} \in \R^n$ at time $t=1$,
+    it is not necessarily possible to maintain that state, even though the 
+    system is controllable.
+
+    To see this, put $x = \bar{x}$ and $\dot x = 0$ into the state equation:
+    \begin{equation*}
+        0 = A \bar{x} + Bu
+    \end{equation*}
+    This equation can only hold if $A \bar{x}$ lies in the range of $B$. 
+
+    Take the following example:
+    \begin{equation*}
+        A = \mat{0 & 1 \\ -1 & 0} \qquad B = \bar x = \mat{0 \\ 1}.
+    \end{equation*}
+    Then the controllability matrix is given by:
+    \begin{equation*}
+        \mathcal{C}(A, B) = \mat{0 & 1 \\ 1 & 0}
+    \end{equation*}
+    and is clearly full rank. However,
+    \begin{equation*}
+        A \bar{x} = \mat{1 \\ 0} \notin R\biggl(\mat{0 \\ 1}\biggr) = R(\bar x)
+    \end{equation*}
+    so that $x = \bar x$ implies that $\dot{x} \neq 0$. So although
+    $\bar{x}$ can be reached at even an infinite sequence of times
+    $\{t_i \}_{i \in \N}$ with $t_{i+1} > t_i \geq 1$,
+    it cannot be held there for all $t \geq 1$.
+
+    The counter-example given could represent an undampened spring-mass system with 
+    spring constant $k=1$. The result can then be explained in terms
+    of mechanical intuition: while the system can be brought to any
+    position at $t=1$, a target position $\bar x$ with non-zero velocity
+    cannot be an equilibrium position. Regardless of the force applied, at the
+    next instant, the mass will have moved.
+\end{letterenum}
+
+\subsection{}
+
+\newcommand{\detr}{\text{det}}
+We first compute the controllability matrix:
+\begin{equation*}
+    \mathcal{C}(A, B) = \mat{
+        1 & 1 & 1 \\
+        1 & -2 & 1 \\
+        1 & -4 & 6
+    }
+\end{equation*}
+Using a computer to find the determinant yields $\detr(\mathcal{C}(A, B)) = -15$.
+Since the determinant is non-zero the matrix is invertible and the system
+is therefore controllable.
+
+To convert to controllable canonical form, given by
+$(A', B') = (PAP^{-1}, PB)$, we begin by finding the characteristic polynomial:
+\begin{align*}
+    \detr(sI - A) &= \detr \biggl(
+        \mat{
+            s - 1 & 0 & 0 \\
+            1 & s + 1 & 0 \\
+            2 & 0 & s + 2 \\
+        }
+    \biggr) \\ 
+    &= (s - 1)(s + 1)(s + 2) \\
+    &= (s - 1)(s^2 + 3s + 2) \\
+    &= s^3 + 2s^2 - s - 2.
+\end{align*}
+Then, $(A', B')$ can be immediately deduced from its coefficients
+\begin{equation*}
+    A' = \mat{
+        0 & 1 & 0 \\
+        0 & 0 & 1 \\
+        2 & 1 & -2 \\
+    } \qquad B' = \mat{0 \\ 0 \\ 1}
+\end{equation*}
+Since the control input is one dimensional, the matrix $P$
+is given by:
+\begin{align*}
+    P &= \contr(A', B') \contr(A, B)^{-1} \\
+        &= \mat{
+            0 & 0 & 1 \\
+            0 & 1 & -2 \\
+            1 & -2 & 5 \\
+        } \mat{
+            1 & 1 & 1 \\
+            1 & -2 & 1 \\
+            1 & -4 & 6
+        }^{-1} \\
+        &= \frac{1}{15} \mat{
+            2 & -5 & 3 \\
+            1 & 5 & -6 \\
+            8 & -5 & 12 \\
+        }
+\end{align*} 
+
+\subsection{}
+
+The controllability matrix is given by:
+\begin{equation*}
+    \contr(A, B) = \mat{1 & 0 \\ 1 & 0}.
+\end{equation*}
+So $v_1 = \mat{1 & 1}^T$ forms a basis for $R(\contr(A, B))$  and $v_2 = \mat{1 & -1}^T$ is one vector such that
+$\{v_1, v_2\}$ spans $\R^2$.
+
+Define $P$ such that $Pv_1 = e_1$ and $Pv_2 = e_2$ where $e_1,e_2$ are
+the standard basis in $\R^2$. We can then find $P$ via the following 
+system of equations:
+\begin{align}
+    P_{11} + P_{12} = 1 \label{eq:P1} \\
+    P_{21} + P_{22} = 0 \label{eq:P2} \\
+    P_{11} - P_{12} = 0 \label{eq:P3} \\
+    P_{21} - P_{22} = 1 \label{eq:P4}.
+\end{align}
+where $P_{ij}$ is the $ij$th entry of $P$.
+Adding (\ref{eq:P1}) and (\ref{eq:P3}), we obtain $P_{11} = P_{12} = 1/2$,
+and similarly adding (\ref{eq:P2}) and (\ref{eq:P4}) yields
+$P_{21} = 1/2$, $P_{22} = -1/2$. Then, $P$ is 
+\begin{equation*}
+    P = \frac{1}{2} \mat{1 & 1 \\ 1 & -1}.
+\end{equation*}
+
+Solving for $PAP^{-1}$ and $PB$ reveals the system in Kalman decomposition form:
+\begin{align*}
+    \dot{x}' &= PAP^{-1} x' + PBu \\
+        &= \mat{0 & 0 \\ 0 & -2} x' + \mat{1 \\ 0}u
+\end{align*}
+
+\section{Observability of Linear Systems}
+\subsection{}
+
+Let $y(t)$ and $y'(t)$ be the output of the given LTV system with initial
+conditions $x(t_0)$ and $x'(t_0)$, respectively. Then, substituting in
+the solution for $x(t)$ and $x'(t)$ into the observation equation, we have:
+\begin{align*}
+    y(t) = C(t)x(t) &= C(t) \biggl[
+        \Phi(t, t_0) x(t_0) + \int_{t_0}^{t} \Phi(t, \tau) B(\tau) u(\tau) d\tau
+    \biggr] \\
+    y'(t) &= C(t) \biggl[
+        \Phi(t, t_0) x'(t_0) + \int_{t_0}^{t} \Phi(t, \tau) B(\tau) u(\tau) d\tau
+    \biggr]
+\end{align*}
+Then, subtracting these two equations, we find
+\begin{equation}
+    y(t) - y'(t) = C(t) \Phi(t, t_0) \biggl[
+        x(t_0) - x'(t_0)
+    \biggr]
+    \label{eq:output-eq}
+\end{equation}
+and therefore $x(t_0)$ and $x'(t_0)$ are output equivalent if and only if
+equation (\ref{eq:output-eq}) is equal to 0. 
+
+($\Rightarrow$) Now, assume that the initial conditions are output equivalent and 
+multiply the observability grammian $M(t_0, t_1) \in \R^{n\times n}$
+by the difference in initial conditions:
+\begin{align*}
+    M(t_0, t_1) (x(t_0) - x'(t_0)) &= \biggl(
+        \int_{t_0}^{t_1} \Phi^T(\tau, t_0) C^T(\tau) C(\tau) \Phi(\tau, t_0) d\tau
+    \biggr) (x(t_0) - x'(t_0)) \\
+    &= \int_{t_0}^{t_1} \Phi^T(\tau, t_0) C^T(\tau) \biggl[
+        C(\tau) \Phi(\tau, t_0) (x(t_0) - x'(t_0))
+    \biggr]d\tau \\
+    &= \int_{t_0}^{t_1} \Phi^T(\tau, t_0) C^T(\tau) (y(\tau) - y'(\tau)) d\tau \\
+    &= 0.
+\end{align*}
+Therefore the difference $(x(t_0) - x'(t_0))$ is in the null space of the grammian.
+
+\newcommand{\nul}{\mathcal{N}}
+
+($\Leftarrow$) Suppose $x(t_0) - x(t_1) \in \nul(M(t_0, t_1))$.
+For any $\eta\in\nul(M(t_0, t_1))$, we have $M(t_0, t_1)\eta = 0_n$ and $\eta^T M(t_0, t_1) \eta = 0$.
+So then,
+\begin{align*}
+    \eta^T M(t_0, t_1) \eta &= \eta \biggl(
+        \int_{t_0}^{t_1} \Phi^T(\tau, t_0) C^T(\tau)
+            C(\tau) \Phi(t, \tau) d\tau
+    \biggr) \eta \\
+    &= \int_{t_0}^{t_1} v^T(\tau) v(\tau) d\tau \\
+    &= \int_{t_0}^{t_1} \norm{v(\tau)}^2 d\tau \\
+    &= 0
+\end{align*}
+where we have defined $v(\tau) := C(\tau) \Phi(\tau, t_0) \eta$.
+The norm is a positive definite function.
+Therefore, for the integral to be zero, we must have $v(\tau) = 0$ for all
+$\tau \in [t_0, t_1]$. Putting $\eta = x(t_0) - x'(t_0)$  and $\tau=t$,
+we have:
+\begin{equation*}
+    C(t) \Phi(t, t_0) \biggl[
+        x(t_0) - x'(t_0)
+    \biggr] = 0
+\end{equation*}
+and by equation (\ref{eq:output-eq}), the initial conditions are 
+output equivalent.
+
+\subsection{}
+
+Let $A_1, A_2 \in\R^{3\times 3}$ be the piecewise constant values of
+$A(t)$ during the first and second time intervals, respectively. We begin by finding
+the jordan form $A_1 = P_1 D_1 P_1^{-1}$ for the first matrix. A computer
+outputs:
+\begin{equation*}
+    P_1 = \frac{1}{\sqrt{2}} \mat{
+        1 & -j & 0 \\
+        1 & j & 0 \\
+        0 & 0 & \sqrt{2} \\
+    } \qquad D_1 = \mat{
+        j & 0 & 0 \\
+        0 & -j & 0 \\
+        0 & 0 & 0 \\
+    }
+\end{equation*}
+where $j := \sqrt{-1}$.
+
+Then, we can find the state transition matrix $\Phi_1(t, 0)$, which is valid
+on the interval $[0, \pi)$:
+\begin{align*}
+    \Phi_1(t, 0) &= P_1 e^{D_1t} P_1^{-1} \\
+        &= \frac{1}{\sqrt{2}} \mat{
+            1 & 1 & 0 \\
+            j & -j & 0 \\
+            0 & 0 & \sqrt{2}
+        } \mat{
+            e^{jt} & 0 & 0 \\
+            0 & e^{-jt} & 0 \\
+            0 & 0 & 1 \\
+        } P_1^{-1} \\
+        &= \frac{1}{\sqrt{2}} \mat{
+            e^{jt} & e^{-jt} & 0 \\
+            je^{jt} & -je^{-jt} & 0 \\
+            0 & 0 & \sqrt{2} \\
+        } \frac{1}{\sqrt{2}} \mat{
+            1 & -j & 0 \\
+            1 & j & 0 \\
+            0 & 0 & \sqrt{2} \\
+        } \\
+        &= \frac{1}{2} \mat{
+            e^{jt} + e^{-jt} & j (e^{-jt} - e^{jt}) & 0 \\
+            -j (e^{-jt} - e^{jt}) & e^{jt} + e^{-jt} & 0 \\
+            0 & 0 & 2
+        } \\
+        &= \mat{
+            \cos(t) & \sin(t) & 0 \\
+            -\sin(t) & \cos(t) & 0 \\
+            0 & 0 & 1
+        }
+\end{align*}
+
+where we have utilized the Euler-related identities:
+\begin{align*}
+    \frac{1}{2} (e^{jt} + e^{-jt}) = \cos(t) \\
+    \frac{j}{2} (e^{-jt} + e^{-jt}) = \sin(t) \\
+\end{align*}
+
+We have that
+\begin{equation*}
+    c \Phi_1(t, 0) = \mat{-\sin(t) & \cos(t) & 0}
+\end{equation*}
+
+and thus the grammian over any subset of the first interval
+$[t_0, t_1] \subseteq [0, \pi]$ is given by:
+\begin{align*}
+    M(t_0, t_1) &= \int_{0}^{t} (\Phi_1^T(\tau, 0) c^T) (c \Phi_1(\tau, 0)) d\tau \\
+        &= \int_{0}^{t} \mat{
+            -\sin(\tau) \\
+            \cos(\tau) \\
+            0
+        } \mat{-\sin(\tau) & \cos(\tau) & 0} d\tau \\
+        &= \int_{0}^{t} \mat{
+            \sin^2(\tau) & -\cos(\tau) \sin(\tau) & 0 \\
+            -\cos(\tau) \sin(\tau) & \cos^2(\tau) & 0 \\
+            0 & 0 & 0
+        } d\tau.
+\end{align*}
+
+Clearly, the observability grammian is not full rank, and
+thus the system is not observable over this interval. 
+
+The computation for the state transition matrix $\Phi_2(t, \pi)$ over the second
+interval $t \in [\pi, 2\pi]$ follows very similarly to the first and can be
+worked out to be:
+\begin{align*}
+    \Phi_2(t, \pi) &= e^{A_2(t - \pi)} \\
+        &= \mat{
+            1 & 0 & 0 \\
+            0 & \cos(t - \pi) & \sin(t - \pi) \\
+            0 & -\sin(t - \pi) & \cos(t - \pi) \\
+        }.
+\end{align*}
+So,
+\begin{equation*}
+    c \Phi_2(t, \pi) = \mat{0 & \cos(t - \pi) & \sin(t - \pi)}
+\end{equation*}
+and the grammian over any subset $[t_0, t_1] \subseteq [\pi, 2\pi]$
+is given by
+\begin{equation*}
+    M(t_0, t_1) = \int_{t_0}^{t_1} \mat{
+        0 & 0 & 0 \\
+        0 & \cos^2(t - \pi) & \cos(t - \pi) \sin(t - \pi) \\
+        0 & \cos(t - \pi) \sin(t - \pi) & \sin^2(t - \pi)
+    }.
+\end{equation*}
+Again, the observability grammian is clearly singular and the system
+is not observable over $[\pi, 2\pi]$.
+
+However, over the interval $[0, 2\pi]$ the grammian is given by:
+\begin{align*}
+    M(0, 2\pi) &= M(0, \pi) + M(\pi, 2\pi)  \\
+        &= \int_{0}^{\pi} \mat{
+            \sin^2(\tau) & -\cos(\tau) \sin(\tau) & 0 \\
+            -\cos(\tau) \sin(\tau) & \cos^2(\tau) & 0 \\
+            0 & 0 & 0
+        } \\
+        &\quad + \int_{\pi}^{2\pi} \mat{
+            0 & 0 & 0 \\
+            0 & \cos^2(t - \pi) & \cos(t - \pi) \sin(t - \pi) \\
+            0 & \cos(t - \pi) \sin(t - \pi) & \sin^2(t - \pi)
+        } \\
+        &= \frac{\pi}{2} \mat{
+            1 & 0 & 0 \\
+            0 & 2 & 0 \\ 
+            0 & 0 & 1
+        }
+\end{align*}
+where the following equalities (which follow from double angle identities)
+were used
+\begin{align*}
+    \int_{0}^{\pi} \cos^2(t) dt = 
+    \int_{\pi}^{2\pi} \cos^2(t - \pi) dt &=  \frac{\pi}{2} \\
+    \int_{0}^{\pi} \sin^2(t) dt = 
+    \int_{\pi}^{2\pi} \sin^2(t - \pi) dt &= \frac{\pi}{2} \\
+    \int_{0}^{\pi} \cos(t) \sin(t) dt = 
+    \int_{\pi}^{2\pi} \cos(t - \pi) \sin(t - \pi) dt &= 0.
+\end{align*}
+
+Thus, the grammian is non-singular and the system is observable over the full
+interval $[0, 2\pi]$ (and quite possibly any subset of $[0, 2\pi]$ which intersects
+both $[0, \pi]$ and $[\pi, 2\pi]$, although this makes the math a fair bit messier).
+
+\section{Transfer Function and Realization}
+\subsection{}
+We rewrite the system in matrix form:
+\begin{align*}
+    \dot{x} &= \mat{
+        0 & 1 \\
+        -3 & -2
+    } x + \mat{-1 \\ 1} u \\
+    y &= \mat{1 & 1} x.
+\end{align*}
+
+Since the system is SISO, taking the Laplace transfer yields:
+\begin{equation*}
+    \hat(y) C(sI - A)^{-1} B \hat{u}
+\end{equation*}
+where $\hat{y}(s) = \mathcal{L}(y(t))$ and $\hat{u}(s) = \mathcal{L}(u(t))$
+are the Laplace domain representations of time-domain signals $y$ and $u$.
+
+We focus first on computing $(sI - A)^{-1}$.
+\begin{align*}
+    sI - A = \mat{
+        s & -1 \\
+        3 & s + 2 \\
+    } \\
+    \detr(sI - a) = s^2 + 2s + 3 \\
+    (sI - a)^{-1} = \frac{1}{s^2 + 2s + 3} \mat{
+        s + 2 & 1 \\
+        -3 & s 
+    } \\
+\end{align*}
+Then, the transfer function $G(s)$ for the system can be computed:
+\begin{align*}
+    G(s) = C(sI - A)^{-1} B &= \frac{1}{s^2 + 2s + 3} \mat{1 & 1} \mat{
+        s + 2 & 1 \\
+        -3 & s 
+    } \mat{-1 \\ 1} \\
+    &= \frac{1}{s^2 + 2s + 3} \mat{s - 1 & s + 1} \mat{-1 \\ 1} \\
+    &= \frac{2}{s^2 + 2s + 3}.
+\end{align*}
+
+\subsection{}
+
+To find a minimum realization, we find coefficients of the numerator
+and denominator:
+\begin{align*}
+    p(s) = p_2 s^2 + p_1 s + p_0 \\
+    p_0 = 1 \qquad p_1 = 3 \qquad p_2 = 2 \\
+    q(s) = s^3 + q_2 s^2 + q_1 s + s_0 \\
+    q_0 = 1 \qquad q_1 = -3 \qquad q_2 = -3
+\end{align*}
+
+The negative of the coefficients of $q$ become the final row of
+the CCF of $A$, and the coefficients of $p$ become the observability
+row vector $C$:
+\begin{align*}
+    A &= \mat{
+        0 & 1 & 0 \\
+        0 & 0 & 1 \\
+        -1 & 3 & 3 \\
+    } &\qquad B &= \mat{0 \\ 0 \\ 1} \\
+    C &= \mat{1 & 3 & 2} &\qquad D &= 0
+\end{align*}
+
+At last, $(A', B', C', D') = (A^T, C^T, B^T, D)$ is the dual system,
+and by duality, will be in OCF:
+\begin{align*}
+    A' &= \mat{
+        0 & 0 & -1 \\
+        1 & 0 & 3 \\
+        0 & 1 & 3 \\
+    } &\qquad B' &= \mat{1 \\ 3 \\ 2} \\
+    C' &= \mat{0 & 0 & 1} &\qquad D' &= 0
+\end{align*}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
