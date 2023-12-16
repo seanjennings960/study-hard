@@ -9,9 +9,9 @@
 \def\one{\mbox{1\hspace{-4.25pt}\fontsize{12}{14.4}\selectfont\textrm{1}}} % 11pt    
 
 \class{ECEN 5478}
-\title{Project Proposal}
+\title{Project Check-in}
 \author{Sean Jennings}
-\date{November 10, 2023}
+\date{December 7, 2023}
 
 \begin{document}
 \maketitle
@@ -77,16 +77,21 @@ competitive that the bidding behavior of the unit has no effect upon price of en
 within the market (i.e. the unit can choose to purchase or sell energy at market price at will).
 The market dispatches load/generation requests every $\Delta t$ minutes. We will
 refer to the market dispatch action as a "market step." Suppose that at each market step $t$,
-the unit has a perfect forcast of market prices per MWh, $p_t$, over the next $T$ market steps,
-where $t,T\in\N$, $p_t\in\R_{\geq0}^T$.
+the unit has a perfect forcast of market prices per MWh, $p_t$, over the lifetime of the
+$ESS$ unit, assumed to be $\bar{T}$ market steps, where $t,\bar{T}\in\N$, $p_t\in\R_{\geq0}^T$.
 
-Let $\hat{u}_t\in\hat{\U}$ be a prediction of the power (in MW) discharged/charged by the unit
-at times $t\in\hat{\mathcal{T}}:=[t, \dots, t+T]$. Suppose the power of the battery at each $t$
+Due to computational constraints, it is clearly not possible to optimize over the
+entire lifetime $T_L$, which in time is likely many years. Therefore, we select moving
+time horizon $\mathcal{T}_t := [t, t + T]$, where $T\in\N$ is the "lookahead time", with $T<<T_L$,
+and $t\in[0, T_L - T]$, is the time at which the prediction is made.
+
+Let $\hat{u}_\tau\in\hat{\U}$ be a prediction of the power (in MW) discharged/charged by the unit
+at times $\tau\in\mathcal{T}_t$. Suppose the power of the battery at each $\tau$
 limited by $\U:=[\underbar{P}, \bar{P}]$,
 so that $\hat{\U}$ is given by $\hat{\U} = \U \times (T \text{\it times}) \dots \times \U$, with
 $\underbar{P}, \bar{P} \in \R$, $\underbar{P} < 0 < \bar{P}$.
 
-Assume the battery degrades at a rate porportional to $\norm{u_t}^2$, so that
+Assume the battery degrades at a rate porportional to $\norm{u_\tau}^2$, so that
 the monetary cost of a charge/discharge action (capital costs of the battery amortized over its
 lifetime) is also porportional to $\norm{\hat{u}_t}^2$, with proportionality\footnote{
     A more realistic would be that the degradation rate is proportional to
@@ -115,10 +120,23 @@ We will solve the following time-varying optimization problem. Given SoC $x_t \i
     (P) \qquad &\min_{u \in \hat{U}} \hat{\Phi}_t(u) \\
         & \text{subj. to} \\
         & \qquad x_{\tau + 1} = x_\tau - \Delta t u_\tau \\
-        & \qquad x_\tau \in \X \text{ for each } \tau \in \hat{\mathcal{T}}
+        & \qquad x_\tau \in \X \text{ for each } \tau \in \mathcal{T}_t
 \end{align*}
-where $u_\tau$ is the $(\tau - t)$th entry of $u$.
+where $u_\tau$ is the $(\tau - t)$th entry of $u$. We note that this problem represents
+merely an approximation of the global problem $P_g$. Given $x_0 \in \X$ minimize:
+\begin{align*}
+    (P_g) \qquad &\min_{u \in \hat{U}} \hat{\Phi}_t(u) \\
+        & \text{subj. to} \\
+        & \qquad x_{t + 1} = x_t - \Delta t u_t \\
+        & \qquad x_t \in \X \text{ for each } t \in [0, T_L]
+\end{align*}
 
+Let $u^* \in \R^{T_L}$ be the solution to $P_g$ and $\hat{u}_t \in \R^T$ be the solution
+to $P$. Then, since we select just the first element, $\hat{u}_{t,0}$, before making a new
+prediction at $t+1$, the distance from the optimal solution, $e_t$, is given by:
+\begin{equation*}
+    e_t := \norm{\hat{u}_{t,0} - u_t^*}
+\end{equation*}
 % We propose the following as potential extensions to increase the challenge of the problem:
 % \begin{enumerate}
 %     \item Additionally providing frequency control services
@@ -128,10 +146,12 @@ where $u_\tau$ is the $(\tau - t)$th entry of $u$.
 %     \item Modeling of low-level LiPo mechanics
 % \end{enumerate}
 
-\section{Preliminary Analysis}
+\subsection{Constraint Reformulation}
 
-One technically intriguing component of this problem is the nontrivial constraints imposed
-by the SoC upon the control prediction $\hat{u}$. Our initial analysis proceeds as follows.
+It is not immediately clear whether the constraints $x_\tau\in\X$, within $P$ and $P_g$ represent
+a convex set. We reformulate constraints into a new set, $\hat{U}_{t,\X}\subseteq \hat{U} \subset \R^T$,
+with dependence on $\X$, which accounts for SoC-imposed constraints and
+will demonstrate the convexity of problems $P$ and $P_g$.
 
 Consider the more general case of an discrete LTI system given by:
 \begin{equation}
@@ -205,47 +225,43 @@ we can define $\hat{U}_{t, \X}$, the SoC-imposed constraints at time $t$, as
             \mat{\one (\bar{E} - x_t) \\ \one (x_t - \underbar{E})}
     \biggr\}.
 \end{equation*}
-We can then consider the constraints entirely in terms of the predicted control:
-$\hat{u} \in \hat{\U}' := \hat{\U} \cap \hat{\U}_{t,\X}$. This set is a convex polytope, so
+This set is a convex polytope, so
 the optimization problem is convex ($\Phi_t$ is $\gamma$-strongly convex and $\gamma$-smooth).
+We can then solve the alternative formulation $P'$:
+
+\begin{align*}
+    (P') \qquad &\min_{u \in \hat{U}_{t,\X}} \hat{\Phi}_t(u) \\
+\end{align*}
+
+\section{Sketch of Algorithm}
+We will use the projected gradient descent method to track the time-varying solution of $P$.
+
+\begin{equation}
+    \hat{u}_{t+1} = \text{proj}_{\hat{U}_{t,\X}} \biggl\{
+        \hat{u}_t - \alpha \Phi_t(\hat{u}_t)
+    \biggr\}
+\end{equation}
+
+with $\alpha\in\R$ as the step-size of the gradient method.
 
 However, since the constraints on each entry $u_\tau$ of $\hat{u}$ are not independent
 of other entries, the author is not aware of a closed form of the projection
-function $\text{proj}_{\hat{\U}'}$ for a general convex polytope. So, it's possible that to
-use the projected gradient method to solve the problem $(P)$, we will need to solve the
-optimization subproblem
+function $\text{proj}_{\hat{\U}'}$ for a general convex polytope. 
+We will need to solve the optimization subproblem
 \begin{equation*}
-    (P') \qquad \text{proj}_{\hat{\U}'}(u) = \text{arg}\min_{v\in\hat{\U}'}
+    (P_{sub}) \qquad \text{proj}_{\hat{\U}'}(u) = \text{arg}\min_{v\in\hat{\U}'}
         \norm{u - v}
 \end{equation*}
 at each timestep.
 
-Even with perfect forecasts, the problem is still time-varying when we consider
-a finite time horizon, $T$, for the price prediction. Further analysis will bound the path length
-of the optimal solution, $u_t^*$, to problem $P$. If we make some assumptions about the expected
-shape of the price curve, it may be possible to make some claims about the 
-time horizon, $T$, which minimizes the path length.
+\section{Next Steps}
 
-Additionally, as the time horizon approaches infinity, the problem ceases to be 
-time-varying. A comparison between $u_t^*$ and the solution to the infinite horizon problem
-$u^*$ may yield additional insights, particularly when the price curve, $p$, has some components
-of periodicity.
-
-We also note that there should be some observability of the true battery degradation rates,
-espeically over sufficiently long timescales. In this case, we could assume that the cost function
-$\Phi_t(u)$ has some error associated with it. Then, the true cost function could be learned
-(e.g. by fitting the $\gamma$ term to observations of the voltage over time).
-
-\section{Preliminary Ideas for Simulation}
-
-To validate the concept, we will compare the performance of
-our online optimization algorithm compared to a baseline algorithm,
-using locational marginal prices (LMPs) downloaded from an
-energy market, such as CAISO.
-
-Using realistic estimates for costs (e.g. based on costs of commerically available
-Lithium-ion batteries or actual costs for existing BESS facilities)
-and expected degradation rates should
-give a sense of the economic profitability of such a BESS plant.
+For the next steps on this project, we will:
+\begin{enumerate}
+    \item Derive a bound on $e_t$ as a function of the time horizon $T$.
+    \item Implement the above algorithm in Python.
+    \item Pull LMP data from CAISO and interpolate between data points to simulate a faster time-varying
+        problem than the 5-min steps sizes.
+\end{enumerate}
 
 \end{document}
