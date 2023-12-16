@@ -1,0 +1,165 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5417}
+\title{Project}
+\author{Sean Jennings}
+\date{December 9, 2023}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+\begin{letterenum}
+\item The solution of the power flow (including both flow and bus data), 
+with reactive power enforced is shown in figure \ref{fig:with-limits}:
+\begin{center}
+    \includegraphics[width=0.8\linewidth]{pf_with_limits.png}
+    \captionof{figure}{Power flow with limits}
+    \label{fig:with-limits}
+\end{center}
+
+
+\item The solution without limits is shown in figure \ref{fig:without-limits}.
+We notice that the powerflow solution without limits enforced has a bus which
+exceeds the reactive power limits. Indeed, the generator at bus 8 has a limit of 
+24 MVar, which is exceeded by ~0.538 MVar when limits are not enforced. With
+limits, the reactive power output by the other generators (at bus 1, 2, 3, and 6)
+is increased to compensate.
+
+We also note that the reactive power flowing through each line has also changed.
+
+\item The bus results with increased load is shown in figure \ref{fig:higher-load}.
+With the higher power demands, the reactive power limits of every PV bus is
+now reached, and as a result, the slack bus must deliver 73MVar to the system, rather
+than absorbing reactive power from the system's synchronous condensers.
+
+\item A shunt capacitor of ~0.235p.u. at Bus 14 makes the voltage at bus 14 approximately
+1 p.u. This is a vast improvement since without the capacitor, a majority of the nodes have
+a voltage below 0.95 p.u., reaching a minimum of 0.899p.u. at bus 14. With the capacitor,
+the voltages are now generally much closer to 1p.u., with bus 3 now assuming the
+lowest voltage in the system at 0.95p.u.
+
+\item A shunt capacitor of ~0.176p.u. at Bus 13 makes the voltage at bus 13 ~1p.u.
+This placement is less effective than the placement at Bus 14.  13 ~1p.u.
+Since in the capacitor-less case, bus 14 has the lowest voltage, placing it here allows
+the larger sized capacitor to be placed, adding more reactive power support to the
+system.
+
+With the placement at Bus 13, we have bus 14 still at a low voltage: 0.95p.u. and
+buses 9 and 10 are also relatively low, at 0.96p.u.
+
+The low voltage (and thus the superiority of the placement) at Bus 14 can also
+be explained by noting that bus 9 has one of the largest reactive power loads
+on the system, at 23.24 MVar.
+Additionally, bus 14 is far away from any other generators/condensors.
+
+
+
+
+\begin{center}
+    \includegraphics[width=0.8\linewidth]{pf_without_limits.png}
+    \captionof{figure}{Power flow without limits}
+    \label{fig:without-limits}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=0.8\linewidth]{higher_load.png}
+    \captionof{figure}{Power flow with 40\% higher load}
+    \label{fig:higher-load}
+\end{center}
+\end{letterenum}
+
+\section{Problem 2}
+
+\begin{letterenum}
+\item The postive sequence admittance matrix is calculated by taking the "reference"
+$Y_{bus}$ matrix and accounting for the self-admittance which is added by loads
+and generators. Loads are assumed to be constant impedance so that $Y_{L,k}$, the admittance
+due to the load at bus $k$, is calculated as follows:
+\begin{equation*}
+    Y_{L,k} = \frac{S_k^*}{|V_k|^2}
+\end{equation*}
+where $S_k\in\C$ is the complex power of the load and $|V_k|\in \R$ is the magnitude of
+voltage, also at bus $k$.
+
+We assume that all components has equivalent positive and negative sequence admittances
+so that $Y_{bus}^{(+)} = Y_{bus}^{(-)}$: the positive and negative sequence admittance 
+matrices are also equal.
+
+The zero-sequence admittance matrix is calculated from line data. Zero sequence current
+does not flow through delta-delta or Yg-delta transformers, so only a self-admittance is added
+to the Yg side of those transformers. We assume that loads and the Yg-grounded generator are
+all well-grounded so that their zero-sequence admittance is equal to the positive sequence.
+Delta-connected generators also do not yield 0-sequence admittance.
+
+Final matrices are shown in figure \ref{fig:admittance-matrices}
+
+\begin{center}
+    \includegraphics[width=0.8\linewidth]{admittance_matrices.png}
+    \captionof{figure}{Positive and Negative Sequence admittance matrices}
+    \label{fig:admittance-matrices}
+\end{center}
+
+\item Short-circuit fault currents and voltages at each bus are displayed in figure
+    \ref{fig:faults}. The 3-phase fault is more severe. As a result of the lower overall
+    impedance to ground (all 3 phases have 0 impedance rather than just 1), the fault
+    currents are significantly higher.
+
+\begin{center}
+    \includegraphics[width=0.8\linewidth]{fault_voltages_and_currents.png}
+    \captionof{figure}{Fault voltages and currents for 3-phase and line-to-ground faults}
+    \label{fig:faults}
+\end{center}
+
+\item Currents in lines (9-14) and (13-14) are shown in Figure \ref{fig:fault_currents}.
+The circuit breaker in line 9-14 should have a symmetric interrupting current
+less than 3000A, say 2500A, and a single phase interrupting current of less than 1250A.
+In line 13-14, the break's symmetric interrupting current should be no more than
+2200A and a single phase interrupting current no more than 950A.
+
+
+\begin{center}
+    \includegraphics[width=0.8\linewidth]{fault_currents_in_line.png}
+    \captionof{figure}{Fault currents in lines 14-9 and 14-13 for both faults}
+    \label{fig:fault_currents}
+\end{center}
+
+\end{letterenum}
+
+\section{Problem 3}
+\begin{letterenum}
+\item Results from running the continuation power flow for
+both parts a. and b. are shown in Figure \ref{fig:cpf}.
+\item 
+\item The continuation power flow makes the case for adding the capacitor
+even stronger. From Figure \ref{fig:cpf}, we can see that when line
+3-4 goes offline, the curves (both with and without the capacitor)
+move to the left. This means, for example, that without the capacitor
+any loads between ~4.5-5 MW can be met with the line, but if the line
+goes off, the powerflow will fail to converge and the system will
+go unstable.
+
+On the other hand, with the capacitor, the curves have moved to the
+right, meaning higher loads can be sustained both with and without
+the line. In fact, the system with the capacitor and line 3-4 offline
+can handle almost as much load at bus 14 as the system without the
+capacitor and {\it with} line 3-4!
+
+
+\begin{center}
+    \includegraphics[width=0.8\linewidth]{continuation_power_flow.png}
+    \captionof{figure}{Continuation Power flow for parts a. and b.}
+    \label{fig:cpf}
+\end{center}
+
+\end{letterenum}
+
+
+
+
+\end{document}
