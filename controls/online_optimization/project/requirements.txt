@@ -1,0 +1,4 @@
+isodata
+matplotlib
+numpy
+itertools>=3.12
