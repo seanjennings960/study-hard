@@ -93,11 +93,9 @@ $\underbar{P}, \bar{P} \in \R$, $\underbar{P} < 0 < \bar{P}$.
 
 Assume the battery degrades at a rate porportional to $\norm{u_\tau}^2$, so that
 the monetary cost of a charge/discharge action (capital costs of the battery amortized over its
-lifetime) is also porportional to $\norm{\hat{u}_t}^2$, with proportionality\footnote{
-    A more realistic would be that the degradation rate is proportional to
-    $\lVert u \rVert_1$; however, this results in a cost function that is neither smooth
-    nor strongly convex.
-} constant $\gamma$.
+lifetime) is also porportional to $\norm{\hat{u}_t}^2$, with proportionality
+constant $\gamma\in\R$, $\gamma>0$.
+
 Let $\hat{\Phi}_t: \hat{\U} \to \R$ be the predicted cost of operation over the forcast horizon $T$
 (negative values of $\hat{\Phi}_t$ indicate a net profit). Then, $\hat{\Phi}_t$ is given by
 \begin{equation*}
@@ -146,7 +144,16 @@ prediction at $t+1$, the distance from the optimal solution, $e_t$, is given by:
 %     \item Modeling of low-level LiPo mechanics
 % \end{enumerate}
 
-\subsection{Constraint Reformulation}
+
+\section{Problem Analysis}
+
+We begin by noting that the gradient of the hessian is indeed differentiable.
+Its hessian is given by:
+\begin{equation*}
+    \nabla^2 \Phi_t(u) = \gamma
+\end{equation*}
+and therefore the cost function is both $L$-smooth and $\mu$-strongly convex, with
+$L = \mu = \gamma$.
 
 It is not immediately clear whether the constraints $x_\tau\in\X$, within $P$ and $P_g$ represent
 a convex set. We reformulate constraints into a new set, $\hat{U}_{t,\X}\subseteq \hat{U} \subset \R^T$,
@@ -233,7 +240,7 @@ We can then solve the alternative formulation $P'$:
     (P') \qquad &\min_{u \in \hat{U}_{t,\X}} \hat{\Phi}_t(u) \\
 \end{align*}
 
-\section{Sketch of Algorithm}
+\section{Algorithm}
 We will use the projected gradient descent method to track the time-varying solution of $P$.
 
 \begin{equation}
@@ -244,24 +251,146 @@ We will use the projected gradient descent method to track the time-varying solu
 
 with $\alpha\in\R$ as the step-size of the gradient method.
 
-However, since the constraints on each entry $u_\tau$ of $\hat{u}$ are not independent
-of other entries, the author is not aware of a closed form of the projection
-function $\text{proj}_{\hat{\U}'}$ for a general convex polytope. 
-We will need to solve the optimization subproblem
-\begin{equation*}
-    (P_{sub}) \qquad \text{proj}_{\hat{\U}'}(u) = \text{arg}\min_{v\in\hat{\U}'}
-        \norm{u - v}
-\end{equation*}
-at each timestep.
+We use Dykstra's algorithm\cite{boyle_method_1986} to
+compute the projection onto the convex polytope (as represented by an
+intersection of convex half-spaces) in iterative form.
+Unfortunately, empirical results demonstrate
+an issue of high computation time: the original paper provides only proof of
+convergence in infinite time and \cite{bauschke_dykstras_2020} describes
+conditions which induce "stalling" (algorithm does not converge in finite time).
+The author did eventually find that a closed form solution, in fact, does exist
+\cite{rutkowski_closed-form_2017}, but left himself with insufficient time to
+implement this alternative algorithm.
 
-\section{Next Steps}
+The cost function is $L$-smooth and $\mu$-strongly convex and
+the control constraints $\hat{U}_{t,\X}$
+are convex for each $t$. Then, assuming we selected $\alpha$ such that it is
+in the interval $(0, 2/L) = (0, 2/\gamma)$, our algorithm follows the
+assumptions of the online projected gradient method and
+its convergence follows from the proofs presented in lecture.
 
-For the next steps on this project, we will:
+\section{Simulation Results}
+
+To setup our simulation, we performed the following steps:
 \begin{enumerate}
-    \item Derive a bound on $e_t$ as a function of the time horizon $T$.
-    \item Implement the above algorithm in Python.
-    \item Pull LMP data from CAISO and interpolate between data points to simulate a faster time-varying
-        problem than the 5-min steps sizes.
+    \item Pulled LMP data from the CAISO "OASIS" API,
+    \item Estimated the degradation parameter $gamma$ based on rough life-time
+        capital cost assumptions, and
+    \item Selected $\alpha$ based on theoretical and empirical results.
 \end{enumerate}
+
+We chose our battery parameters to model the BESS plant in Moss Landing, which
+currently has a 300MW battery 4 duration (1200 MWh). $\bar{P} = \underbar{P} = 300$,
+$\bar{E} = 1200$, and a depth of discharge of 10\% so that $\underbar{E} = 120$.
+
+% We selected $\gamma$ under very rough financial/operational assumptions
+% similar to how a BESS might be
+% scoped out in industry. Assume the battery is charged/discharged at a rate of
+% 0.25C discharge rate
+% (battery is discharged at rate which causes it to discharge in 4hr), 1 cycle/day,
+% with lifetime, $T_L$, of 20 years. Assuming a constant average cycle rate, $r$ of
+% 1 cycle/day, we have a number lifetime
+% cycle equal to $n_c := rT_L$.  Assuming capital expenditure $C_{cap}$ at
+% rates of $300$\$ per MW of battery power and $350$\$ per MW of battery energy,
+% we define the depreciation ("aging") function $A: \R \to \R$
+% to be the dollar value of degradation that occurs within a single timestep (of
+% duration $\Delta t$), as a function of the battery power $u$, and define
+% it as equivalent to the first term of our cost function:
+% \begin{align*}
+%     A(u) :&= \frac{1}{2} \gamma \norm{u}^2 \\
+% \end{align*}
+
+% We then can equate the total cost of 
+
+
+
+
+We picked the stepsize $\alpha$ initially as to minimize the Lipschitz coefficients
+of the algorithmic map, $\rho$, which is given by:
+\begin{equation*}
+    \rho = \max\{|1 - \alpha L|, |1 - \alpha \mu|\} = |1 - \alpha \gamma|
+\end{equation*}
+Taking $\alpha = 1/\gamma$ results in the projection algorithm based on
+Dykstra to fail to converge in any reasonable number of iterations. We
+find that the empirically determined value of $\alpha=1$ results in
+the projection converging (close) to the set $\U_{t, \X}$.
+
+Our numerical results, displayed in Figure \ref{fig:control-and-cost},
+show some promise. We see that that both predicted and actual SoC values remain
+within constraints, and that in a very rough sense, the battery is discharged
+when prices are higher.
+
+However, the cost function indicates that something is clearly wrong. The cost
+of our optimal solution $u^*$ is higher than the solution that we have found!
+
+\begin{center}
+    \includegraphics[width=1\linewidth]{Control_and_cost.png}
+    \captionof{figure}{
+        Battery commanded power (top left), S.o.C (bottom left), Location Marginal
+        Prices (top right), Cost function evaluations (bottom right).
+        Predictions of battery command and SoC are overlayed at a select number
+        of timesteps
+    }
+    \label{fig:control-and-cost}
+\end{center}
+
+Running our algorithm iteratively at a single time-step (to verify 
+that we converge on the non-time-varying problem) hints at the issue. As seen
+in Figure \ref{fig:fixed-cost-iter}, the cost function does not decrease
+monotonically indicating that our algorithmic map is not contractive.
+The author remains suspicious of his implementation of the projection operator.
+
+\begin{center}
+    \includegraphics[width=1\linewidth]{optimizing_u_star.png}
+    \captionof{figure}{
+        Algorithm run for a few iterations on $\Phi_t$
+        over a variety fixed $t$.
+    }
+    \label{fig:fixed-cost-iter}
+\end{center}
+
+
+\section{Aside on Cost Function Selection}
+We note that this assumption is a rather brash over-simplification. Aging
+of Li batteries is a rather complex phenomenon.
+SEI growth and Lithium plating are two major low-level mechanisms which cause
+aging and are affected by a host of parameters, including chemical
+composition, temperature, and discharge rate \cite{sedge_lithium_2021}.
+
+The charge rate affects the internal battery temperature
+which in turn affects the rate of internal degradation-related chemical reaction.
+For instance, in Nickel Manganese Cobalt (NMC) batteries, lithium plating
+is the dominant mechanism at low temperatures, and SEI growth is dominant
+at high termperatures \cite{waldmann_temperature_2014}. Furthermore,
+there have been reports of significant termperature gradients within the
+individual containers of utility-scale BESS plant \cite{graf_what_2022},
+which suggests that a non-uniform discharge rate between cells
+within a particular container based on thermal modeling could present an
+avenue to improve battery life. Of course, interactions with the design
+and control of the associated thermal management system is also at play.
+
+There exist quite a wealth of papers which use model-predictive control (MPC)
+based on electrochemical models to improve battery performance. For instance,
+\cite{klein_optimal_2011} reports using MPC to achieve a 50\% reduction in
+minimal charging time compared to a standard constant current/constant
+voltage controller (in simulation). Other research constrains the internal
+"overpotential" state to limit SEI-related aging \cite{suthar_optimal_2013}.
+
+The above represents a preliminary literature review on capacity degradation
+mechanisms, which was conducted over the course of this project.
+The author is very interested MPC-based controllers, but his initial
+sense is that many of the existing MPC literature does not take into account
+errors in modeling. We expect that some of the techniques which integrate
+feedback optimization and machine learning,
+which were presented within this course, could represent an oppurtunity
+to converge towards more accurate capacity fade models. This remains
+a prospect for future investigation.
+
+
+
+
+
+\bibliographystyle{plain} % We choose the "plain" reference style
+\bibliography{OnlineOptProj} % Entries are in the refs.bib file
 
 \end{document}

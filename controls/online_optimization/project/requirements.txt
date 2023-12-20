@@ -1,4 +1,5 @@
 isodata
 matplotlib
 numpy
-itertools>=3.12
+pandas
+dykstra
