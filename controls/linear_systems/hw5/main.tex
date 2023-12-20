@@ -1,0 +1,424 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5448}
+\title{Homework 5}
+\author{Sean Jennings}
+\date{December 19, 2023}
+\newcommand{\control}{\mathcal{C}}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+\subsection{}
+We note that the system is already in the Kalman Decomposition form (KDF):
+\begin{equation}
+    \dot{x} = \mat{
+        A_{11} & A_{12} \\
+        0 & A_{22}
+    } x + \mat{
+        B_1 \\ 0
+    } u
+    \label{eq:kdf}
+\end{equation}
+with
+\begin{align*}
+    A_{11} &= \mat{0 & 1 \\ 0 & 0} \qquad A_{12} = \mat{2 \\ 3} \\
+    A_{22} &= \mat{-1} \qquad B_1 = \mat{0 \\ 1}.
+\end{align*}
+$A_{22}$ is Hurwitz so the uncontrollable subsystem is exponentially stable
+and the system is therefore feedback stabilizable.
+
+Furthermore, we note that the controllable subsystem is already in controllability
+canonical form (CCF).
+
+To find $K\in\R^{1\times 3}$, we first decompose it into $K = \mat{K_1 K_2}$, with
+$K_1 \in \R^{1 \times 2}$, $K_2\in\R$ so that the closed-loop system with $u=-Kx$
+is given by:
+\begin{equation*}
+    \dot{x} = \mat{
+        A_{11} - B_1 K_1 & A_{12} - B_1 K_2 \\
+        0 & A_{22}
+    } x
+\end{equation*}
+Since $K_2$ does not affect the eigenvalues of our closed loop system, we arbitrarily
+set it to 0 and will select $K_1 = [k_0, k_1]$ ($k_0,k_1\in\R$) such that the poles of 
+the controllable subsystem are $\lambda = \lambda_{1,2} = -1$. Thus, the desired characteristic polynomial
+is given by $(\lambda + 1)^2 = \lambda^2 + 2\lambda + 1$. The characteristic polynomial
+of matrix $A_{11} - B_1K_1$ is given by:
+\begin{equation*}
+    \det(\lambda I - (A_{11} - B_1K_1)) = \det{\lambda I - \mat{0 & 1 \\ -k_0 & -k_1}} = \lambda^2 + k_1 \lambda + k_0
+\end{equation*}
+
+Therefore, we select $k_0 = 1$, $k_1=2$ to achieve the desired poles, yielding a final result of
+\begin{equation*}
+    K = \mat{1 & 2 & 0}
+\end{equation*}
+so that the feedback-stabilized closed-loop system has eigenvalues $\lambda_{1,2,3} = -1$.
+
+We verify in Python that all eigenvalues of the matrix $A - BK$ are -1.
+
+\subsection{}
+\begin{letterenum}
+\item The controllability matrix of the system $(A, B)$ is given by:
+\begin{equation*}
+    \control(A, B) = \mat{
+        1 & -1 & 2 \\
+        -1 & 2 & 0 \\
+        1 & -1 & 0
+    }
+\end{equation*}
+which has determinant det$(\control(A, B)) = -2$, so the system is controllable and
+there exists an invertible $P\in\R^{3\times 3}$ such that the system $(A', B') = (PAP^{-1}, PB)$
+is in CCF.
+
+In python, we determine the characteristic polynomial is:
+\begin{equation*}
+    \lambda^3 + \lambda^2 - 2
+\end{equation*}
+which implies that the CCF system is:
+\begin{equation*}
+    A' = \mat{
+        0 & 1 & 0 \\
+        0 & 0 & 1 \\
+        2 & 0 & -1
+    } \qquad B' = \mat{0 \\ 0 \\ 1}
+\end{equation*}
+with $P$ given by:
+\begin{equation*}
+    P = \control(A', B') \control(A, B)^{-1} = \frac{1}{2}\mat{
+        1 & 0 & -1 \\
+        -1 & 2 & 3 \\
+        1 & 0 & 1
+    }.
+\end{equation*}
+\item 
+Let $z = Px$ be the change of coordinates into CCF. In terms of the change of coordinates,
+we have $u = -Kx = -KP^{-1}z$. Then, the closed-loop
+dynamics of $(A', B')$ are given by:
+\begin{equation*}
+    \dot{z} = A'z - B'u = A'z - B'KP^{-1}z = (A' - B'KP^{-1})z.
+\end{equation*}
+We select $K = \mat{k_0 & k_1 & k_2}P$ with $k_0,k_1,k_2\in\R$ so that the characteristic polynomial (c.poly.)
+is given by:
+\begin{equation*}
+    \det(A' - B'\mat{k_0 & k_1 & k_2} (PP^{-1})) = \det\biggl(\mat{
+        0 & 1 & 0 \\
+        0 & 0 & 1 \\
+        2 - k_0 & -k_1 & -1 - k_2
+    }\biggr) = \lambda^3 + (1 + k_2) \lambda ^2 + k_1 \lambda + (k_0 - 2)
+\end{equation*}
+We place the poles so that the c.poly. is given by:
+\begin{equation*}
+    (\lambda + 1)(\lambda + (2 - i))(\lambda + (2 + i)) = \lambda^3 + 5\lambda^2 + 9\lambda + 5
+\end{equation*}
+Equating the polynomials, the gain matrix, $K'\in\R^{1\times 3}$, in the change of coordinate system is:
+\begin{equation*}
+    K' := \mat{k_0 & k_1 & k_2} = \mat{7 & 9 & 4}
+\end{equation*}
+\item 
+Converting back to the original coordinate system, we have
+\begin{equation*}
+    K = K'P = \mat{1 & 9 & 12}
+\end{equation*}
+\end{letterenum}
+
+
+\subsection{}
+Define $x\in\R^3$ such that $x:=\mat{x_1 & x_2 & x_3}^T$ and the function $f: \R^3 \times \R \to \R^3$
+to be the given system dynamics, such that $\dot{x} = f(x,u)$. Clearly, $f(0_3, 0) = 0$ so that 
+$x^* = 0_3$ and $u^*=0$ is an equilibrium point for the system. To see that the system is unstable with $u = 0$, we check
+the eigenvalues of the linearized system with $\tilde{x} := x - x^* = x$, $\tilde{u} = u - u^* = u$:
+\begin{align*}
+    \dot{\tilde{x}} &= \dot{x} \approx \nabla_x f(x^*, u^*) \tilde{x} + \nabla_u f(x^*, u^*) \tilde{u} \\
+        &= \mat{
+            -1 & 2x_2 & 0 \\
+            0 & -1 + x_3 & x_2 \\
+            x_2 & x_1 & 1
+        } \eval_{x_1=x_2=x_3=0} \tilde{x} + \mat{1 \\ -1 \\ 1} \tilde{u} \\
+        &= \mat{
+            -1 & 0 & 0 \\
+            0 & -1 & 0 \\
+            0 & 0 & 1
+        } \tilde{x} + \mat{1 \\ -1 \\ 1} \tilde{u} \\
+        &=: A\tilde{x} + B \tilde{u}
+\end{align*}
+where we have defined the matrix $A\in\R^{3\times 3}$ and $B\in\R^3$ as the dynamics matrix and control matrix of the linearized system,
+respectively.  The eigenvalues of $A$ are $\lambda_{1,2} = -1$ and $\lambda_{3} = 1$. Since $A$ has a positive
+eigenvalue, by Lyapunov's first theorem, the equilibrium point $x^*$ is locally unstable with $u=0$.
+
+To stabilize the system, we look to convert it to CCF. However, the controllability matrix, given by:
+\begin{equation*}
+    \control(A, B) = \mat{
+        0 & 0 & 0 \\
+        1 & -1 & 1 \\
+        1 & 1 & 1
+    }
+\end{equation*}
+is singular and we must first find the $P_1\in\R^{3\times 3}$ s.t. the system given by $y=P_1\tilde{x}$ is in KDF.
+
+We select $P_1$ such that:
+\begin{align*}
+    P_1 v_1 := P_1 \mat{0 \\ 1 \\ 0} = e_1 = \mat{1 \\ 0 \\ 0} \\
+    P_1 v_2 := P_1 \mat{0 \\ 0 \\ 1} = e_2 = \mat{0 \\ 1 \\ 0} \\
+    P_1 v_3 := P_1 \mat{1 \\ 0 \\ 0} = e_3 = \mat{0 \\ 0 \\ 1}
+\end{align*}
+where we have defined $v_1,v_2\in\R^3$ such that $\{v_1, v_2\}$ forms a basis for
+$\control(A, B)$ and
+$v_3\in\R^3$  such that $\{v_1,v_2,v_3\}$ forms a basis for $\R^3$. It is easy to see that
+\begin{equation*}
+    P_1 = \mat{
+        0 & 1 & 0 \\
+        0 & 0 & 1 \\
+        1 & 0 & 0
+    }
+\end{equation*}
+satisfies the above equations. Our KDF system $(A_{11}, A_{12}, A_{22}, B_1)$
+(as defined by eq. \ref{eq:kdf})
+has
+\begin{equation*}
+    A_{11} = \mat{
+        -1 & 0 \\
+        0 & 1
+    } \qquad A_{22} = \mat{-1} \qquad B_1 = \mat{1\\1}
+\end{equation*}
+$A_{22}$ is again Hurwitz so the system is feedback stabilizable.
+
+Let intervible $P_2\in\R^{2\times2}$ be the change coordinate matrix which brings
+the system $(A_{11}, B_1)$ to the CCF form $(A', B')$.
+The c.poly. of $A_{11}$ is
+$(\lambda + 1)(\lambda - 1) = \lambda^2 - 1$, so $A'$ is given by:
+\begin{equation*}
+    A' = \mat{
+        0 & 1 \\
+        1 & 0
+    }.
+\end{equation*}
+$P_2$ is:
+\begin{equation*}
+    P_2 = \control(A', B') \control(A_{11}, B_1)^{-1} = \frac{1}{2} \mat{
+        -1 & 1 \\
+        1 & 1
+    }
+\end{equation*}
+and $B' = \mat{0 & 1}^T$.
+
+Now, we have coordinate shifts $P_1$ and $P_2$ which convert the original system
+to KDF and then the controllable KDF subsystem to CCF. We next design a feedback
+gain for the CCF system and shift it back to our original coordinate system.
+
+Let $z = P_2 y_1$ be the state vector of the CCF system, where $y_1\in\R^2$ contains
+the controllable states of $y$. Let $K_1,K'\in\R^{1\times 2}$ be the gain
+matrices of the KDF subsystem $(A_{11}, B_1)$ and the CCF system $(A', B')$, respectively. 
+We relate $K_1$ and $K'$ to the gain matrix $K\in\R^{1 \times 3}$ of our original system
+by $K = \mat{K_1 & 0} P_1$ and $K' = K_1 P_2$, so that our feedback $u=Kx$ converted
+to CCF is:
+\begin{align*}
+    u = Kx &= KP_1^{-1}y \\
+        &= \mat{K_1 & 0} y \\
+        &= \mat{K_1 P_2^{-1} z & 0} \\
+        &= \mat{K' z & 0}.
+\end{align*}
+Then, with $K' = \mat{k_0 & k_1}$, our CCF system has closed-loop dynamics:
+\begin{align*}
+    \dot{z} &= (A' + B'\mat{k_0 & k_1}) z \\
+        &= \mat{
+            0 & 1 \\
+            k_0 + 1 & k_1
+        }
+\end{align*}
+which has c.poly. $\lambda^2 - k_1 \lambda - (k_0 + 1)$. Selecting eigenvalues
+$\lambda_{1,2} = -1$ yields a desired c.poly. of $(\lambda + 1)^2 = \lambda^2 + 2\lambda + 1$.
+Thus, we have
+\begin{align*}
+    k_0 + 1 = -1 \Rightarrow k_0 = -2 \\
+    k_1 = -2,
+\end{align*}
+and we can now apply change of coordinate matrices to compute $K_1$ and $K$:
+\begin{align*}
+    K_1 &= \mat{-2 & -2} P_2 = \mat{0 & -2} \\
+    K &= \mat{K_1 & 0} P_1 = \mat{0 & -2 & 0} P_1 \\
+      &= \mat{0 & 0 & -2}.
+\end{align*}
+It is easy enough to see that the matrix $A + BK$ given by
+\begin{equation*}
+    A + BK = \mat{
+        -1 & 0 & 0 \\
+        0 & -1 & 0 \\
+        0 & 0 & 1
+    } + \mat{
+        0 \\ 1 \\ 1
+    } \mat{0 & 0 & -2}
+    = \mat{
+        -1 & 0 & 0 \\
+        0 & -1 & -2 \\
+        0 & 0 & -1
+    },
+\end{equation*}
+has the desired poles $\lambda_{1,2,3} = -1$ (since the eigenvalues of a triangular matrix are its diagonal entries).
+
+Thus, the linearized system $A, B$ (about the origin) is globally exponentially stable which implies that the nonlinear system $f$
+is asymptotically stable around the origin.
+
+\section{Problem 2}
+\subsection{}
+To design a Luenberger observer, we must find an $L\in\R^3$ such that the matrix $A + LC$ has the desired eigenvalues.
+But this is equivalent to finding a feedback matrix $K\in\R^{1\times 3}$
+for the dual system $(A^T, C^T)$ with closed-loop dynamics $A^T + C^T K$, when
+we equate $K=L^T$ (since for any square matrix $H$, $H$ and $H^T$ have the same eigenvalues).
+
+We therefore follow the same steps as to find a feedback matrix $K$ for dual
+system $(A^T, C^T)$ with:
+\begin{equation*}
+    A^T = \mat{
+        0 & 0 & 1 \\
+        1 & 0 & 0 \\
+        0 & 1 & 0
+    } \qquad C^T = \mat{1 \\ 0 \\ 0}.
+\end{equation*}
+Let $(A', C')$ be the CCF system, given by:
+\begin{equation*}
+    A' = \mat{
+        0 & 1 & 0 \\
+        0 & 0 & 1 \\
+        1 & 0 & 0
+    } \qquad C' = \mat{0 \\ 0 \\ 1}.
+\end{equation*}
+and
+\begin{equation*}
+    P = \control(A', C')\control(A^T, C^T)^{-1} = \mat{
+        0 & 0 & 1 \\
+        0 & 1 & 0 \\
+        1 & 0 & 0
+    }
+\end{equation*}
+Let $K = \mat{k_0 & k_1 & k_2} P$ so that the closed-loop system has c.poly:
+\begin{equation*}
+    \det(\lambda I - (A' + C' \mat{k_0 & k_1 & k_2})) = \mat{
+        0 & 1 & 0 \\
+        0 & 0 & 1 \\
+        k_0 + 1 & k_1 & k_2 
+    } = \lambda^3 - k_2 \lambda^2 - k_1 \lambda - (k_0 + 1)
+\end{equation*}
+The desired c.poly. is $\lambda^3 + 5\lambda^2 + 9\lambda + 5$. Solving for
+$k_0$, $k_1$, and $k_2$ and equating to the observer gain $L$, we have:
+\begin{equation*}
+    L = K^T = P^T \mat{k_0 \\ k_1 \\ k_2} = \mat{
+        0 & 0 & 1 \\
+        0 & 1 & 0 \\
+        1 & 0 & 0
+    } \mat{-6 \\ -9 \\ -5} = \mat{-5 \\ -9 \\ -6}.
+\end{equation*}
+The observer is given by the system:
+\begin{align*}
+    \dot{\hat{x}} = A\hat{x} + Bu - L (y - \hat{y}) \\
+    \hat{y} = C \hat{x}.
+\end{align*}
+
+\subsection{}
+\begin{letterenum}
+\item We divide the pendulum equation by $m\ell^2$, define $x\in\R^2$ to be
+$x = \mat{\theta & \dot{\theta}}^T$, and define $f: \R^2 \times \R \to \R^2$ to be
+the system dynamics given by:
+\begin{equation*}
+    \dot{x} = f(\mat{\dot{\theta} \\ \ddot{\theta}}, u) := \mat{\dot{\theta} \\ -10 \sin\theta} + \mat{0 \\ 1} u
+\end{equation*}
+The jacobian w.r.t. $x$ and $u$ are given by:
+\begin{equation*}
+    \nabla_x f(x, u) = \mat{0 & 1 \\ -10\cos\theta & 0} \qquad \nabla_u f(x, u) = \mat{0 \\ 1}
+\end{equation*}
+so that linearized system ($\tilde{x} := x - x^*$, $\tilde{u} = u - u^*$) about the equilibrium
+$x^* := \mat{\pi & 0}^T, u^* := 0$ is given by:
+\begin{align*}
+    \dot{\tilde{x}} &\approx \nabla_x f(x^*, u^*) \tilde{x} + \nabla_u f(x^*, u^*) \tilde{u} \\
+        &= A \tilde{x} + B \tilde{u}
+\end{align*}
+with observation $\tilde{y}$ given by:
+\begin{equation*}
+    \tilde{y} := y - y^* = Cx - Cx^* = C\tilde{x}
+\end{equation*}
+where
+\begin{align*}
+    A = \mat{
+            0 & 1 \\
+            10 & 0
+        } \qquad B = \mat{0 \\ 1} \qquad C = \mat{1 & 0}.
+\end{align*}
+
+By the separation theorem, we can begin by designing an observer with gain $L\in\R^{2\times 2}$
+such that the dual system $(A^T, C^T)$ is feedback stable with poles $\lambda_{1,2} = -2$ (
+    c.poly of $\lambda^2 + 4 \lambda + 4)$.
+
+Converting to CCF system $(A', C')$, we find $L$:
+\begin{align*}
+    A' :&= PA^TP^{-1} = \mat{0 & 1 \\ 10 & 0} \\
+    C' :&= PC^T = \mat{0 \\ 1} \\
+    P :& = \mat{0 & 1 \\ 1 & 0} \\
+    L^T :&= \mat{\ell_0 & \ell_1} P \\
+    \det(I\lambda - (A' + C' \mat{\ell_0 \ell_1})) &= \lambda^2 - \ell_1 - (10 - \ell_0) \\
+    \ell_0 &= -14 \\
+    \ell_1 &= -4 \\
+    L &= P^T \mat{\ell_0 \\ \ell_1} = \mat{\ell_1 \\ \ell_0} = \mat{-4 \\ -14}.
+\end{align*}
+Since the primal system $(A, B)$ is equal to the CCF-shifted dual system $(A', C')$
+we can take $K = \mat{k_0 & k_1}$ with $k_0 = \ell_0$ and $k_1 = \ell_1$ so that
+\begin{equation*}
+    K = \mat{-14 & -4}
+\end{equation*}
+
+\item The closed loop system of the linearized system (writing $\tilde{x} = x$ and $\tilde{u} = u$ for brevity)
+w/ both observer and feedback is given by:
+\begin{align*}
+    \dot{x} = Ax + Bu \\
+    y = Cx \\
+    \dot{\hat{x}} = A\hat{x} + Bu - L(y - \hat{y}) \\
+    \hat{y} = C\hat{x}
+    u = K\hat{x}
+\end{align*}
+We define the error $e\in\R^2$ as $e:=x - \hat{x}$, which has dyanmics given by:
+\begin{align*}
+    \dot{e} &= \dot{x} - \dot{\hat{x}} \\
+        &= Ax + Bu - (A\hat{x} + Bu - LC(x - \hat{x})) \\
+        &= (A + LC) e.
+\end{align*}
+The state dynamics w.r.t. to the error is given by:
+\begin{equation*}
+    \dot{x} = Ax + Bu = Ax + BK \hat{x} = Ax + BK(x + e).
+\end{equation*}
+Stacking state and estimation error results in closed loop system dynamics of:
+\begin{equation*}
+    \mat{
+        \dot{x} \\ \dot{e}
+    } = \mat{
+        A + BK & BK \\
+        0 & A+LC
+    } \mat{x \\ e}
+    =: M\mat{x \\ e}.
+\end{equation*}
+
+So the linearized closed-loop dynamics has eigenvalues given by:
+\begin{equation*}
+    \text{eig}(M) = \text{eig}(A + BK) \cup \text{eig}(A + LC).
+\end{equation*}
+
+Since we designed $A + BK$ and $A + LC$ to each have both eigenvalues equal to -2,
+the matrix $M$ is Hurwitz, and the linearized system is globally exponentially stable.
+Therefore by Lyapunov's first method, the
+equilibrium point $x^* = \mat{\pi & 0}^T$ is locally asymptotically stable.
+\end{letterenum}
+
+
+
+
+
+
+
+
+
+
+\end{document}
