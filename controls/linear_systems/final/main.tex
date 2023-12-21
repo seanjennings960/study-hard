@@ -1,0 +1,408 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5448}
+\title{Final Exam}
+\author{Sean Jennings}
+\date{December 20, 2023}
+
+\begin{document}
+\maketitle
+\newcommand{\control}{\mathcal{C}}
+
+\section{Problem 1}
+\begin{letterenum}
+\item With $u=0$ the system is driven by it's natural dynamics as given by the state transition equation:
+\begin{equation}
+    x(t) = \Phi(t, 0) x(0)
+    \label{eq:natural-dyn}
+\end{equation}
+where $\Phi: \R \times \R \to \R^{3 \times 3}$ is the state transition matrix (s.t.m.). Since the system
+is LTI, the s.t.m. is given by the matrix exponential $\Phi(t_1, t_0) = e^{A(t_1 - t_0)}$. To compute
+the matrix exponential, we first use Python to compute the jordan form of $A$, the matrices $P,J\in\R^{3\times 3}$
+($P$ invertible) such that $A = PJP^{-1}$:
+\begin{equation*}
+    P = \mat{
+        -1 & -1 & 1 \\
+        1 & 0 & 1 \\
+        0 & 1 & 1
+    } \qquad J = \text{Diag}\biggl(\mat{
+        -1.5 \\ -1.5 \\ 0
+    }\biggr)
+\end{equation*}
+where $D = \text{Diag}(v)$ denotes the diagonal matrix $D\in\R^{n\times n}$
+with diagonal components given by vector $v\in\R^n$.
+
+The s.t.m. is then given by:
+\begin{align}
+    \Phi(t_1, t_0) &= e^{A(t_1 - t_0)} \\
+        &= e^{PJP^{-1}(t_1 - t_0)} \\
+        &= Pe^{J(t_1 - t_0)} P^{-1} \\
+        &= P \mat{
+            e^{-1.5(t_1 - t_0)} & 0 & 0 \\
+            0 & e^{-1.5(t_1 - t_0)} & 0 \\
+            0 & 0 & 1
+        } P^{-1} \\
+        &= P \biggl(
+            \mat{
+                0 & 0 & 0 \\
+                0 & 0 & 0 \\
+                0 & 0 & 1
+            } + \mat{
+                1 & 0 & 0 \\
+                0 & 1 & 0 \\
+                0 & 0 & 0
+            } e^{-1.5(t_1 - t_0)}
+        \biggr) P^{-1} \\
+        &= \frac{1}{3} \biggl(
+            \one_{3\times 3} + \mat{
+                2 & -1 & -1 \\
+                -1 & 2 & -1 \\
+                -1 & -1 & 2
+            } e^{-1.5(t_1 - t_0)}
+        \biggr)
+    \label{eq:stm}
+\end{align}
+where $\one_{3 \times 3}$ denotes the 3x3 matrix of all ones.
+
+Combining equations \ref{eq:natural-dyn} and \ref{eq:stm} yields an expression for $x(t)$.
+
+\item To check the controllability, we look at the controllability matrix:
+\begin{equation*}
+    \control(A, B) = \mat{
+        1 & -1 & 1.5 \\
+        0 & 0.5 & -0.75 \\
+        0 & 0.5 & -0.75 \\
+    }
+\end{equation*}
+since the third column is a linear combination of the second, we can see that the controllability
+matrix is singular and thus the system is not controllable.
+
+For the given initial condition $x(0)\in\R^3$, the reachable set over the interval
+$[0, 1]$ is related by the range
+of the reachability grammian.
+For LTI systems, the reachability grammian and controllability matrix have the same range, so
+the set of reachable points, $\mathcal{R}(x(0), [0, 1])$, is given by:
+\begin{equation*}
+    \mathcal{R}(x(0), [0, 1]) = \Phi(1, 0)x(0) + R(\control(A, B))
+\end{equation*}
+where $R(M)$ denotes the range of a given matrix $M$.
+
+Evaluating equation \ref{eq:stm} at $t_1=1$ and $t_0=0$ yields:
+\begin{equation*}
+    \Phi(1, 0) = e^{A(1 - 0)} \approx \mat{
+        0.482 & 0.259 & 0.259 \\
+        0.259 & 0.482 & 0.259 \\
+        0.259 & 0.259 & 0.482
+    }
+\end{equation*}
+and then multiplying by $x(0)$, we have:
+\begin{equation*}
+    \Phi(1, 0) x(0) = \Phi(1, 0) \mat{1 \\ 1/2 \\ 0} = \mat{0.612 \\ 0.5 \\ 0.388}
+\end{equation*}
+Since vectors $v_1 = \mat{1 & 0 & 0}^T$ and $v_2 = \mat{2 & -1 & -1}^T$ form a basis for
+$R(\control(A, B))$, we find the reachable set is:
+\begin{equation*}
+    \mathcal{R}(x(0), [0, 1]) = \biggl\{
+        \mat{0.612 \\ 0.5 \\ 0.388} + \alpha v_1 + \beta v_2: \alpha,\beta\in\R
+    \biggr\}
+\end{equation*}
+
+\item With non-zero control action our state solution becomes:
+\begin{equation*}
+    x(t) = \Phi(t, 0)x(0) + \int_{0}^{t} \Phi(t, \tau) B u(\tau) d\tau
+\end{equation*}
+To compute $x(t=2)$, we separate the integral into intervals where $u(t)$ is the piecewise constant.
+In the second equality, we notice an equivalence between the integrals and pull out terms accordingly:
+\begin{align*}
+    x(2) &= \Phi(2, 0)x(0) + \int_{0}^{1} \Phi(2, \tau) B d\tau + \int_{1}^{2} \Phi(2, \tau) B \biggl(\frac{1}{2}\biggr) d\tau \\
+        &= \Phi(2, 0)x(0) + \Phi(2, 1) \int_{0}^{1} \Phi(1, \tau) B d\tau
+            + \frac{1}{2} \int_{1}^{2} \Phi(2, \tau) B d\tau \\
+\end{align*}
+We define $\delta_u\in\R^3$ as the first integral term in the above equation, and note that a coordinate
+shift of $\eta = \tau + 1$ yields the first and second integrals equivalent:
+\begin{equation*}
+    \delta_u := \int_{0}^{1} \Phi(1, \tau) B d\tau 
+        = \int_{0}^{1} e^{A(1 - \tau)} B d\tau
+        = \int_{1}^{2} e^{A(2 - \eta)} B d\eta
+        = \int_{1}^{2} \Phi(2, \tau) B d\tau
+\end{equation*}
+Evaluating, we find (again using eq. \ref{eq:stm}):
+\begin{align*}
+    \delta_u &= \int_{0}^{1} \frac{1}{3} \biggl(
+        \mat{1 \\ 1 \\ 1} + \mat{2 \\ -1 \\ -1} e^{-1.5(1 - \tau)} 
+    \biggr)d\tau \\
+    &= \frac{1}{3} \biggl(
+        \mat{\tau \\ \tau \\ \tau} + \frac{1}{1.5} \mat{2 \\ -1 \\ -1} e^{-1.5(1 - \tau)}
+    \biggr)\eval_{\tau=0}^1 \\
+    &= \frac{1}{3} \biggl(
+        \mat{1 \\ 1 \\ 1} + \frac{1}{1.5} \mat{2 \\ -1 \\ -1} (1 - e^{-1.5})
+    \biggr) \\
+    &\approx \mat{
+        0.678 \\ 0.161 \\ 0.161
+    }
+\end{align*}
+
+Our state at $t=2$, is then found to be:
+\begin{align*}
+    x(2) &= \Phi(2, 0) x(0) + \biggl(\Phi(2, 1) + \frac{1}{2} I_{3\times 3}\biggr)
+            \delta_u \\
+        &= \mat{
+            0.367 & 0.317 & 0.317 \\
+            0.317 & 0.367 & 0.317 \\
+            0.317 & 0.317 & 0.367
+        } \mat{1 \\ 1/2 \\ 0} + \biggl(
+            \mat{
+                0.482 & 0.259 & 0.259 \\
+                0.259 & 0.482 & 0.259 \\
+                0.259 & 0.259 & 0.482
+            } + \frac{1}{2} I_{3\times 3}
+        \biggr) \mat{
+            0.678 \\ 0.161 \\ 0.161
+        } \\
+        &= \mat{
+            1.275 \\ 0.875 \\ 0.85
+        }
+\end{align*}
+where $I_{3\times 3}$ denotes the 3x3 identity matrix.
+\end{letterenum}
+
+\section{Problem 2}
+
+\begin{letterenum}
+\item The controllability matrix is given by:
+\begin{equation*}
+    \control(A, B) = \mat{B & AB & A^2B} = \mat{
+        1 & 1 & 1 \\
+        0 & -1 & -2 \\
+        1 & 1 & 2 \\
+    }.
+\end{equation*}
+We have $\det(\control(A, B)) = -1$, so it is full rank
+and the system is controllable.
+
+The observability matrix is given by:
+\begin{equation*}
+    \mathcal{O}(A, C) = \mat{C \\ CA \\ CA^2} = \mat{
+        0 & 0 & 1 \\
+        0 & -1 & 1 \\
+        0 & -2 & 2
+    }
+\end{equation*}
+The second and third rows are linearly dependent and so the observability matrix
+is not full rank and the system is not observable.
+
+\item The transfer function, $G(s)$ which satisfies $\hat{y} = G(s) \hat{u}$ is given by:
+\begin{align*}
+    G(s) &= C (sI - A)^{-1} B \\
+        &= \mat{0 & 0 & 1} \mat{
+            \frac{1}{s-1} & 0 & 0 \\
+            0 & \frac{s-1}{s^2 - 2s} & \frac{-1}{s^2 - 2s} \\
+            0 & \frac{-1}{s^2 - 2s} & \frac{s-1}{s^2 - 2s} \\
+        } \mat{1 \\ 0 \\ 1} \\
+        &= \frac{1}{s^2 - 2s} \mat{0 & -1 & s-1} \mat{1 \\ 0 \\ 1} \\
+        &= \frac{s - 1}{s^2 - 2s}
+\end{align*}
+
+\item The minimum realization can be found from the numerator and denominator
+of $G(s)$. We have the coefficients $p = \mat{-1 & 1}$ and $q = \mat{0 & -2}$
+so that a realization in controllability canonical form is:
+\begin{align*}
+    \dot{x} = \mat{
+        0 & 1 \\
+        0 & 2 \\
+    } x + \mat{0 \\ 1} u \\
+    y = \mat{-1 & 1} x
+\end{align*}
+
+\end{letterenum}
+
+\section{Problem 3}
+\begin{letterenum}
+\item We find the equilibrium by examination. We see that $\dot{x}_3 = 3$
+implies that $x_3 = 0$, $\dot{x}_2=0$ implies $x_2 = 0$, and $\dot{x}_1 = 0$
+implies that $x_1 = \pm1$. So we have two equilibrium points, which we 
+will call $x_0^*$ and $x_1^*$ given by:
+\begin{equation*}
+    x_0^* = \mat{1 \\ 0 \\ 0} \qquad x_1^* = \mat{-1 \\ 0 \\ 0}.
+\end{equation*}
+\item The jacobian w.r.t. and as a function of $x\in\R^3$ is given by:
+\begin{equation*}
+    \nabla f(x) = \mat{
+        2x_1 & 3x_2 & 0 \\
+        x_3 & -1 & x_1 \\
+        0 & 0 & -2
+    }
+\end{equation*}
+So evaluated at the equilibrium points we have:
+\begin{align*}
+    \nabla f(x_0^*) = \mat{
+        2 & 0 & 0 \\
+        0 & -1 & 1 \\
+        0 & 0 & -2
+    } \\
+    \nabla f(x_1^*) = \mat{
+        -2 & 0 & 0 \\
+        0 & -1 & -1 \\
+        0 & 0 & -2
+    }
+\end{align*}
+Since these are both upper triangular matrices, the eigenvalues
+are the diagonal entries. Since $x_0^*$ has a positive eigenvalue,
+it is unstable, and $x_1^*$ has all negative eigenvalues, so it
+is locally exponentially stable.
+
+\item To find a $K$ which stabilizes the equilibrium $x_0^*$ with
+the control $u=Kx$, we use the linearized system $\tilde{x} := x - x_0^*$
+with dynamics:
+\begin{equation*}
+    \dot{\tilde{x}} = \biggl(\mat{
+        2 & 0 & 0 \\
+        0 & -1 & 1 \\
+        0 & 0 & -2
+    } + \mat{1 & 1 & 0} K \biggr) \tilde{x}
+\end{equation*}
+We see that this matrix is not controllable since it can be expressed
+in the Kalman Decomposition form (KDF):
+\begin{equation*}
+    A_{11} = \mat{
+        2 & 0 \\
+        0 & -1
+    } \qquad A_{12} = \mat{0 \\ 1} \qquad A_{22} = \mat{-2}
+    \qquad B_1 = \mat{1 \\ 1}
+\end{equation*}
+We shift coordinates by
+\begin{equation*}
+    P = \control(A', B') \control(A_{11}, B_1)^{-1} = \frac{1}{3}\mat{
+        1 & -1 \\
+        2 & 1
+    }
+\end{equation*}
+to convert the controllable subsystem $(A_{11}, B_1)$ to CCF form
+$(A', B')$ with
+\begin{equation*}
+    A' = \mat{
+        0 & 1 \\
+        2 & 1
+    } \qquad B' = \mat{0 \\ 1}
+\end{equation*}
+Let $K_1\in\R^{1 \times 2}$ be the first 2 elements of $K$ and let the third
+element (corresponding to the uncontrollable subsystem) be 0: $K = \mat{K_1 & 0}$.
+Furthermore, let $k_0,k_1\in\R$ be such that
+$K_1 = \mat{k_0 & k_1}P$. Then, we can write
+$u$ in terms of $z=P\tilde{x}_{12}$, where $z$ is the shifted
+coordinates of the CCF system and $\tilde{x}_{12}$ denotes the first
+two elements of $\tilde{x}$.
+\begin{align*}
+    u &= K\tilde{x} \\
+        &= \mat{K_1 & 0} \mat{\tilde{x}_{12} \\ \tilde{x}_3} \\
+        &= \mat{K_1 & 0} \mat{P^{-1} \\ \tilde{x}_3} \\
+        &= K_1 P^{-1} z \\
+        &= \mat{k_0 & k_1} z
+\end{align*}
+So the dynamics of the CCF system are:
+\begin{align*}
+    \dot{z} &= A'z + B'u \\
+        &= (A' + B'\mat{k_0 & k_1}) z \\
+        &= \mat{
+            0 & 1 \\
+            2 + k_0 & 1 + k_1
+        } z
+\end{align*}
+Designing poles to be $\lambda_{1,2} = -1$, yields a desired characteristic
+polynomial of $(\lambda+1)^2 = \lambda^2 + 2\lambda + 1$, which implies that
+$k_0 = k_1 = -3$. We then shift the gain matrix back to the coordinates of the
+original system:
+\begin{align*}
+    K_1 &= \mat{-3 & -3} P \\
+        &= \mat{-3 & 0} \\
+    K &= \mat{K_1 & 0} = \mat{-3 & 0 & 0}.
+\end{align*}
+We verify (in Python) that the eigenvalues of the linearized system $A + BK$ 
+are -1, -1, and -2, as designed. This indicates that $x_0^*$ is now locally
+exponentially stable.
+
+\end{letterenum}
+
+\section{Problem 4}
+\begin{letterenum}
+\item We take $z\in\R^2$ to be:
+\begin{equation*}
+    z = \mat{
+        x \\ \dot{x}
+    }.
+\end{equation*}
+Differentiating yields the state space model:
+\begin{align*}
+    \dot{z} = \mat{\dot{x} \\ \ddot{x}} &= \mat{
+        \dot{x} \\
+        \frac{1}{m} (-kx - c\dot{x} + F)
+    } \\
+    &= \mat{
+        0 & 1 \\
+        -\frac{k}{m} & -\frac{c}{m}
+    } \mat{x \\ \dot{x}} + \mat{
+        0 \\ \frac{1}{m}
+    } F \\
+    &=: Az + Bu
+\end{align*}
+where we've defined the matrices $A$ and $B$ as the matrices of
+the preceding equality. The observation $y$ is given by:
+\begin{equation*}
+    y = x = \mat{1 & 0} z =: Cz + Du
+\end{equation*}
+with
+\begin{equation*}
+    C = \mat{1 & 0} \qquad D = \mat{0}
+\end{equation*}
+
+\item With $k=m=1$ and $c=0$, we have:
+\begin{equation*}
+    A = \mat{
+        0 & 1 \\
+        -1 & 0
+    } \qquad B = \mat{0 \\ 1}
+\end{equation*}
+The characteristic polynomial of $A$ is $\lambda^2 + 1$ so that
+eigenvalues are $\lambda_{1,2} = \pm i$. Since the system is linear,
+with $u=0$, $z^*=0$ is clearly an equilibrium point. However, 
+the real part of each eigenvalue $\Re(\lambda_{1,2}) = 0$ which
+(again since the system is linear) implies that $z^*$ is only marginally stable.
+
+\item To minimize the given cost function, we first rewrite it in the form:
+\begin{equation}
+    J(z, u) = \int_{0}^{\infty} z^T(t)Lz(t) + u^T(t)Ru(t) dt
+    \label{eq:cost}
+\end{equation}
+with $L\in\R^{2\times 2}$, $R\in\R$ given by
+\begin{equation*}
+    L = \mat{
+        2 & 1 \\
+        1 & 3
+    } \qquad R = \mat{1}.
+\end{equation*}
+
+We first verify that $L$ is positive definite, by checking it's eigenvalues
+(in Python):
+\begin{equation*}
+    \text{eig}(L) = \{1.382, 3.618\}.
+\end{equation*}
+Since both eigenvalues are positive, $L\succ 0$, and the Algebraic Riccati Equation
+\begin{equation*}
+    A^T K_\infty + K_\infty A + L - K_\infty B R^{-1} B^T K_\infty = 0
+\end{equation*}
+has a unique solution.
+
+Using the "lqr" function of the python-control library,
+we find the $K_1,K_2\in\R$, such that the feedback solution $u=\mat{K_1 & K_2} z$
+minimizes the infinite-horizon cost (eq. \ref{eq:cost}):
+\begin{equation*}
+    K_1 = -0.732 \qquad K_2 = -2.113
+\end{equation*}
+
+\end{letterenum}
+\end{document}
