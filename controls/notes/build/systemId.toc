@@ -1,0 +1,24 @@
+\contentsline {section}{\numberline {1}Digital Signals Background: Convolution}{2}%
+\contentsline {subsection}{\numberline {1.1}Example 1: Delay and Mix}{2}%
+\contentsline {subsection}{\numberline {1.2}Definitions}{2}%
+\contentsline {subsection}{\numberline {1.3}Example 2: Moving window average}{3}%
+\contentsline {subsection}{\numberline {1.4}Impulse response}{3}%
+\contentsline {subsection}{\numberline {1.5}Convolutional modes}{5}%
+\contentsline {subsubsection}{\numberline {1.5.1}Full Mode}{5}%
+\contentsline {subsubsection}{\numberline {1.5.2}Valid Mode}{5}%
+\contentsline {subsubsection}{\numberline {1.5.3}Same Mode}{5}%
+\contentsline {subsection}{\numberline {1.6}Properties of convolutions}{6}%
+\contentsline {subsubsection}{\numberline {1.6.1}Communicative}{6}%
+\contentsline {subsubsection}{\numberline {1.6.2}Associative}{6}%
+\contentsline {subsubsection}{\numberline {1.6.3}Distributive}{6}%
+\contentsline {subsection}{\numberline {1.7}Linearity and Shift-Invariance}{6}%
+\contentsline {subsubsection}{\numberline {1.7.1}Shift Invariance}{6}%
+\contentsline {subsubsection}{\numberline {1.7.2}Linearity}{7}%
+\contentsline {subsubsection}{\numberline {1.7.3}Example 3: Clipping}{7}%
+\contentsline {section}{\numberline {2}Linear Time Invariant Systems}{7}%
+\contentsline {subsection}{\numberline {2.1}Impulse Response, Disturbance, and Transfer Functions}{7}%
+\contentsline {subsubsection}{\numberline {2.1.1}Definitions}{7}%
+\contentsline {subsubsection}{\numberline {2.1.2}Impulse Response}{8}%
+\contentsline {subsubsection}{\numberline {2.1.3}Example}{8}%
+\contentsline {section}{\numberline {3}Simulation and Prediction}{8}%
+\contentsline {section}{\numberline {4}Models of Linear Time-Invariant Systems}{8}%
