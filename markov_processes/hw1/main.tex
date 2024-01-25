@@ -1,0 +1,373 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\usepackage{listings}
+\usepackage{color}
+
+
+\class{APPM 5560}
+\title{Homework 1}
+\author{Sean Jennings}
+\date{January 18, 2024}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+Each event $A$, $B$, and $C$ have probability
+\begin{equation*}
+    {\bf P}(A) = {\bf P}(B) = {\bf P}(C) = \frac{1}{2}
+\end{equation*}
+since they each correspond to 2 out of 4 possible outcomes. The 
+intersection of each pair of events corresponds to the outcome
+that Ball 1 is selected, and thus has probability
+\begin{equation*}
+    {\bf P}(A \cap B) = {\bf P}(A \cap C) = {\bf P}(B \cap C) = \frac{1}{4}.
+\end{equation*}
+Therefore, the conditions for independence
+${\bf P}(A \cap B) = {\bf P}(A) {\bf P}(B)$, etc., for each pair of 
+events. On the other hand, since the selection of Ball 1 implies the
+occurence of each event $A$, $B$, and $C$, we also have
+\begin{equation*}
+    {\bf P}(A \cap B \cap C) = 0.25 \neq {\bf P}(A) {\bf P}(B) {\bf P}(C)
+\end{equation*}
+and thus the events are not altogether independent.
+
+\section{Problem 2}
+
+For $f(x)$ to be a probability distribution, it must satisfy the normalization
+property. Specifically, the integral
+of $f$ over all possible values of $x$ equal to 1:
+\begin{align*}
+    1= \int_{-\infty}^{\infty} f(x)dx &= \int_{1}^{\infty} Cx^{-\gamma} dx \\
+        &= \frac{C}{-\gamma + 1} x^{-\gamma + 1} \eval_{x=1}^{\infty} \\
+        &= \frac{C}{-\gamma + 1} (0 - 1) \\
+        &= \frac{C}{\gamma - 1}.
+\end{align*}
+The value of $C$ for which this holds is $C = \gamma - 1$.
+
+\section{Problem 3}
+
+Let $p_h=0.65$ and $p_s=0.95$ be the probability of a hard and soft serve going in, respectively.
+Let $q_h=0.7$ and $q_s=a$ be the probability of winning the point given the serve went in,
+for a hard and soft serve, resp. Then, the conditional probability of winning the
+point, given the hard serve chosen, is:
+\begin{equation*}
+    {\bf P}(\text{winning } | \text{ hard second serve}) = {\bf P}(\text{winning } | \text{ hard serve went in}) {\bf P}(\text{hard serve went it}) = q_h p_h.
+\end{equation*}
+Similarly, given a soft serve is chosen, the condition probability of winning is
+\begin{equation*}
+    {\bf P}(\text{winning } | \text{ soft second serve}) = q_s p_s = a p_s.
+\end{equation*}
+Thus, the probability of winning with the hard serve is greater than with the soft serve when
+\begin{equation*}
+    a < \frac{q_h p_h}{p_s} = \frac{0.7(0.65)}{0.95} \approx 0.479
+\end{equation*}
+
+\section{Problem 4}
+\begin{letterenum}
+\item Since $X$ is the number of coin flips until tails appears, $X$ is a geometric
+R.V. We can find its MGF via recursion (given the first trial fails, the expectation is 
+equivalent to the unconditional expectation, plus 1):
+\begin{align*}
+    \phi_X(s) &= {\bf E}[e^{sX}] \\
+        &= pe^s + (1 - p) {\bf E}[e^{s(X+1)}] \\
+        &= pe^s + (1 - p)e^s {\bf E}[e^{sX}].
+\end{align*}
+Grouping ${\bf E}[e^{sX}]$ terms yields:
+\begin{equation*}
+    (1 - e^s(1 - p)) {\bf E}[e^{sX}] = pe^s
+\end{equation*}
+so that the MGF is given by:
+\begin{equation*}
+    \phi_X(s) = {\bf E}[e^{sX}] = \frac{pe^s}{1 - e^s(1 - p)}
+\end{equation*}
+
+\item To find first and second moments of $X$, we use the quotient rule to take
+derivatives of the MGF:
+\begin{align*}
+    \phi_X'(s) &= \frac{(1 - e^s(1-p))pe^s - pe^s (-e^s(1-p))}{(1 - e^s(1-p))^2} \\
+        &= \frac{pe^s}{(1 - e^s(1-p))^2}
+\end{align*}
+Putting $s=0$, we have
+\begin{equation*}
+    {\bf E}[X] = \phi_X'(0) = \frac{p}{(1 - (1-p))^2} = \frac{1}{p}
+\end{equation*}
+
+The second derivative of the MGF is given by:
+\begin{align*}
+    \phi_X''(s) &= \frac{(1 - e^s(1-p))^2pe^s - (-e^s(1-p))2(1-e^s(1-p))pe^s}{(1-e^s(1-p))^4} \\
+        &= \frac{pe^s(1 - e^s(1-p))\biggl(1 - e^s(1-p) + 2e^s(1-p)\biggr)}{(1 - e^s(1-p))^4} \\
+        &= \frac{pe^s(1 + e^s(1-p))}{(1 - e^s(1-p))^3}
+\end{align*}
+Thus, the second moment is:
+\begin{equation*}
+    {\bf E}[X^2] = \phi_X''(0) = \frac{p(2-p)}{p^3} = \frac{2-p}{p^2}
+\end{equation*}
+\end{letterenum}
+
+\section{Problem 5}
+
+The PDF of a Poisson distribution with parameter $\lambda$ is given by
+\begin{equation*}
+    f_X(k) = e^{-\lambda} \frac{\lambda^k}{k!}.
+\end{equation*}
+
+Then, its MGF is
+\begin{align*}
+    \phi_X(s) &= {\bf E}[e^{sX}] \\
+        &= \sum_{k=0}^\infty e^{sk} e^{-\lambda} \frac{\lambda^k}{k!} \\
+        &= e^{-\lambda} \sum_{k=0}^\infty \frac{(\lambda e^s)^k}{k!} \\
+        &= e^{-\lambda} e^{\lambda e^s} \\
+        &= e^{\lambda (e^s - 1)}
+\end{align*}
+Now, if $X$ and $Y$ are independent Poisson R.V. with parameters
+$\lambda_1$ and $\lambda_2$, respectively, the MGF of their sum is given by
+\begin{align*}
+    \phi_{X+Y}(s) &= \phi_X(s) \phi_Y(s) \\
+        &= e^{\lambda_1(e^s - 1)} e^{\lambda_2 (e^s - 1)} \\
+        &= e^{\lambda_1 (e^s-1) + \lambda_2(e^s - 1)} \\
+        &= e^{(\lambda_1 + \lambda_2)(e^s - 1)}
+\end{align*}
+
+Since two distributions are identical if and only if their MGFs are equivalent,
+it follows that the sum $X+Y$ is a Poisson distribution with parameter $\lambda_1 + \lambda_2$.
+
+
+\section{Problem 6}
+Since $X$ and $Y$ are independent, their joint PDF, $f_{X,Y}$ is the product of their
+marginal PDFs, $f_X$ and $f_Y$:
+\begin{equation*}
+    f_{X,Y}(x, y) = f_X(x) f_Y(y).
+\end{equation*}
+We find the CDF of $Z$ by integrating over the joint PDF:
+\begin{align*}
+    F_Z(z) = {\bf P}(Z \leq z) &= {\bf P}(Y \leq z X) \\
+        &= \int_{-\infty}^{\infty} \biggl(
+            \int_{-\infty}^{zx} f_{X,Y}(x, y) dy
+        \biggr) dx \\
+        &= \biggl\{
+            \begin{array}{ll}
+                0 &\quad \text{if } z < 0 \\
+                \int_{0}^{\infty} f_X(x) F_Y(xz) dx & \quad \text{otherwise}
+            \end{array}
+        \biggr.,
+\end{align*}
+where $F_Y$ is the marginal CDF of $Y$. Then, simplifying the case where $z \geq 0$, we have:
+\begin{align*}
+    F_Z(z) &= \int_{0}^{\infty} \lambda_1 e^{-\lambda_1 x} \biggl(
+        1 - e^{-\lambda_2zx}
+    \biggr) dx \\
+    &= \biggl(
+        -e^{-\lambda x} + \frac{\lambda_1}{\lambda_1 + \lambda_2 z} e^{-(\lambda_1 + \lambda_2 z)x}
+    \biggr) \eval_{x=0}^\infty \\
+    &= 1 - \frac{\lambda_1}{\lambda_1 + \lambda_2 z} \\
+    &= \frac{\lambda_2 z}{\lambda_1 + \lambda_2 z}.
+\end{align*} 
+
+Using the quotient rule to differentiate yields the PDF
+\begin{align*}
+    f_Z(z) = \frac{dF_Z(z)}{dz} &= \frac{
+        (\lambda_1 + \lambda_2z) \lambda_2 - (\lambda_2 z) \lambda_2
+    }{(\lambda_1 + \lambda_2z)^2} \\
+    &= \frac{\lambda_1 \lambda_2}{(\lambda_1 + \lambda_2 z)^2}
+\end{align*}
+which holds when $z\geq0$. For $z<0$, $f_Z(z) = 0$.
+
+\section{Problem 7}
+
+\begin{letterenum}
+\item
+Since on day 0 the weather is $A$, we have
+\begin{align*}
+    P_0(A) &= 1 \\
+    P_0(B) = P_0(C) &= 0 \\
+\end{align*}
+
+We express $P_n(B)$ recursively in terms of the weather on day $n-1$. Let
+$p=0.9$ be the probability that the weather alternates between $A$ and $B$. Since
+only weather $A$ on day $n-1$ can possibly result in weather $B$ on day $n$, the
+total probability law implies:
+\begin{equation*}
+    P_n(B) = {\bf P}(A \text{ transitions to } B | A \text{ on day } n - 1)
+        {\bf P}(A \text{ on day } n-1) = p P_{n-1}(A)
+\end{equation*}
+and by symmetry we have
+\begin{equation*}
+    P_n(A) = p P_{n-1}(B).
+\end{equation*}
+We enumerate the first few days
+\begin{align*}
+    P_1(A) = 0 &\qquad P_1(B) = p \\
+    P_2(A) = p^2 &\qquad P_2(B) = 0 \\
+\end{align*}
+and, by inspection, see that
+\begin{align*}
+    P_n(A) &= \biggl\{
+        \begin{array}{ll}
+            0 &\quad \text{if }n\text{ is odd} \\
+            p^n &\quad \text{otherwise}
+        \end{array}
+    \biggr. \\
+    P_n(B) &= \biggl\{
+        \begin{array}{ll}
+            p^n &\quad \text{if }n\text{ is odd} \\
+            0 &\quad \text{otherwise}
+        \end{array}
+    \biggr.
+\end{align*}
+A formal proof by induction is straightforward and omitted.
+
+\item The events that the weather is $A$, $B$, and $C$ on day $n$ form a 
+partition of the sample space so that
+\begin{align*}
+    P_n(C^c) &= P_n(A \cup B) \\
+        &= P_n(A) + P_n(B) \\
+        &= \biggl\{
+            \begin{array}{ll}
+                p^n + 0 &\quad \text{if }n \text{ is even} \\
+                0 + p^n &\quad \text{if }n \text{ is odd} \\
+            \end{array}
+        \biggr. \\
+        &= p^n
+\end{align*}
+where $P_n(C^c)$ denotes the complement of weather $C$ on day $n$ (the probability that
+the weather is not of type $C$).
+
+\item Since $0<p<1$, the probability of each weather in the limit $n\to\infty$ is
+clear from the previous formulas
+\begin{align*}
+    \lim_{n\to\infty} P_n(A) = \lim_{n\to\infty} P_n(B) &= 0 \\
+    \lim_{n\to\infty} P_n(C) = \lim_{n\to\infty} (1 - P_n(C^c)) &= 1
+\end{align*}
+
+\item On each day there is probability $q=1 - p = 0.1$ that the weather transitions to
+type $C$. The number of days until this occurs the first time is therefore a geometric
+random variable $Z$ with parameter $q$ and its expected value is ${\bf E}[Z] = 1/q=10$ days.
+
+\end{letterenum}
+
+\section{Problem 8}
+
+Let $A$ be the event that $u < 1/3$. By the total probability law, we can express
+the PDF $f_X$ in terms of the conditional PDFs $f_{X|A}$ and $f_{X|A^c}$:
+\begin{equation*}
+    f_X(x) = f_{X | A}(x) {\bf P}(A) + f_{X | A^c}(x) {\bf P}(A^c)
+\end{equation*}
+
+Given $A$, the conditional PDF is exponential with parameter $\lambda$:
+\begin{equation*}
+    f_{X | A}(x) = \biggl\{
+        \begin{array}{ll}
+            \lambda e^{-\lambda x} &\quad \text{if }x \geq 0 \\
+            0 &\quad \text{otherwise.}
+        \end{array}
+    \biggr.
+\end{equation*}
+Given $A^c$, the conditional PDF is uniformly distributed between 1/3 and 1:
+\begin{equation*}
+    f_{X|A^c}(x) = \biggl\{
+        \begin{array}{ll}
+            \frac{3}{2} &\quad \text{if } \frac{1}{3} \leq x < 1 \\
+            0 &\quad \text{otherwise.}
+        \end{array}
+    \biggr.
+\end{equation*}
+Since the probability of $A$ is ${\bf P}(A) = 1/3$, our PDF is therefore given
+by:
+\begin{equation*}
+    f_X(x) = \biggl\{
+        \begin{array}{ll}
+            \frac{\lambda}{3} e^{-\lambda x} + 1 &\quad \text{if }\frac{1}{3} \leq x < 1 \\
+            \frac{\lambda}{3} e^{-\lambda x} &\quad \text{if }0 \leq x < \frac{1}{3} \text{ or } x \geq 1 \\
+            0 &\quad \text{otherwise.}
+        \end{array}
+    \biggr.
+\end{equation*}
+
+\section{Problem 9}
+
+\begin{letterenum}
+\item To calculate the probability that $B>A^2C$, we integrate the joint PDF over
+the volume where this inequality holds true. Since $A$, $B$, and $C$ are independent,
+the joint PDF $f_{A,B,C}$ is given by:
+\begin{align*}
+    f_{A,B,C}(a, b, c) &= f_A(a) f_B(b) f_C(c) \\
+        &= \biggl\{
+            \begin{array}{ll}
+                1 & \quad \text{if } 0\leq a, b, c < 1 \\
+                0 & \quad \text{otherwise}
+            \end{array}
+        \biggr.
+\end{align*}
+The desired probability is computed as follows:
+\begin{align*}
+    P(B > A^2C) &= \int_{0}^{1} \int_{0}^{1} \biggl(
+        \int_{a^2 c}^{1} 1 db
+    \biggr) da dc \\
+        &= \int_{0}^{1} \int_0^1 (1 - a^2c) da dc \\
+        &= \int_{0}^{1} \biggl(
+            a - \frac{a^3}{3} c
+        \biggr)\eval_{a=0}^1 dc \\
+        &= \int_{0}^{1} 1 - \frac{1}{3}c dc \\
+        &= c - \frac{1}{6} c^2 \eval_0^1 \\
+        &= \frac{5}{6}
+\end{align*}
+
+\item We run the following code in a Python console to simulate the same event:
+\begin{lstlisting}
+Python 3.8.10 (default, Nov 22 2023, 10:22:35)
+[GCC 9.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import random
+>>> def trial():
+...     a = random.uniform(0, 1)
+...     b = random.uniform(0, 1)
+...     c = random.uniform(0, 1)
+...     return b > (a**2 * c)
+...
+>>> n = 100000
+>>> results = [trial() for _ in range(n)]
+>>> sum(results) / n
+0.83259
+
+>>> error = sum(results) / n - 5/6
+>>> print(f"Error: {error:.5f}")
+Error: -0.00074
+\end{lstlisting}
+
+Our simulation appears to converge to the same result as in part a).
+\end{letterenum}
+
+
+
+
+
+\end{document}
