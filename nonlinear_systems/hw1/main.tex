@@ -1,0 +1,246 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+\usepackage{amsthm}
+
+\class{ECEN 5738}
+\title{Homework 1}
+\author{Sean Jennings}
+\date{January 24, 2024}
+
+\newtheorem{theorem}{Theorem}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+From linear systems theory, we know the IVP for a homogeneous linear system
+has the unique solution $x: \R \to \R^n$ given by
+\begin{equation}
+    x(t) = e^{At} x_0.
+    \label{eq:linear}
+\end{equation}
+To show that the solution cannot exhibit finite escape time, it suffices to
+show that for all $t\in\R$, the state $x(t)$ is bounded. Taking the 
+norm of equation (\ref{eq:linear}) yields
+\begin{align*}
+    \norm{x(t)} &= \norm{e^{At} x_0} \\
+        &\leq \norm{e^{At}} \norm{x_0} \\
+         &= \norm{\sum_{i=0}^{\infty} \frac{(At)^i}{i!}} \norm{x_0} \\
+         &\leq \sum_{i=0}^{\infty} \frac{\norm{(At)^i}}{i!} \norm{x_0} \\
+         &\leq \sum_{i=0}^{\infty} \frac{\norm{A}^i t^i}{i!} \norm{x_0} \\
+         &= e^{\norm{A}} e^t \norm{x_0} 
+\end{align*}
+
+Thus, $x(t)$ is bounded for each $t$ and the homogeneous linear system
+cannot exhibit finite escape time.
+
+\section{Problem 2}
+
+We define the state variable $x\in\R^4$ to be
+\begin{equation*}
+    x = \mat{\theta_1 \\ \theta_2 \\ \dot{\theta}_1 \\ \dot{\theta}_2}
+\end{equation*}
+Then, the mapping from $u$ to $y$ is given by:
+\begin{align*}
+    \dot{x} = f(x, u) =
+        \mat{\dot{\theta}_1 \\ \dot\theta_2 \\ \ddot{\theta}_1 \\ \ddot{\theta}_2}
+        &= \mat{
+            x_3 \\ x_4 \\
+            1/I \cdot (-mg\ell \sin x_1 - k (x_1 - x_2)) \\
+            k/J \cdot (x_1 - x_2)
+        } + \mat{0 \\ 0 \\ 0 \\ 1} u \\
+    y = g(x, u) = \mat{\theta_1 \\ \theta_2} &= \mat{x_1 \\ x_2}
+\end{align*}
+
+\section{Problem 3}
+\begin{letterenum}
+\item By the local Lipschitz-ness of $f_1$ and $f_2$, as well as the triangle
+inequality, we have
+\begin{align*}
+    \norm{(f_1 + f_2)(x_2) - (f_1 + f_2)(x_1)} &=
+        \norm{f_1(x_2) - f_1(x_1) + f_2(x_2) - f_2(x_1)} \\
+        &\leq \norm{f_1(x_2 - f_1(x_1))} + \norm{f_2(x_2) - f_2(x_1)} \\
+        &\leq L_1 \norm{x_2 - x_1} + L_2 \norm{x_2 - x_1} \\
+        &= (L_1 + L_2) \norm{x_2 - x_1}
+\end{align*}
+where $L_1, L_2\in\R$ are the Lipschitz constants of $f_1$ and $f_2$, respectively.
+Thus, $f_1 + f_2$ is Lipschitz with constant $L_1 + L_2$.
+
+\item For the product, $f_1 f_2$, we have
+\begin{align*}
+    \norm{(f_1 f_2)(x_2) - (f_1 f_2) x_1} &=
+        \norm{f_1(x_2) \cdot f_2(x_2) +
+            (-f_1(x_1) \cdot f_2(x_2) + f_1(x_1) \cdot f_2(x_2)) + f_1(x_1) \cdot f_2(x_2)} \\
+        &= \norm{
+            (f_1(x_2) - f_1(x_1) ) f_2(x_2) + f_1(x_1) (f_2(x_2) - f_2(x_1))
+        } \\
+        &\leq \norm{
+            (f_1(x_2) - f_1(x_1) )}\norm{ f_2(x_2) 
+        } + \norm{
+            f_1(x_1) }\norm{(f_2(x_2) - f_2(x_1))
+        } \\
+        &\leq (L_1 \norm{f_2(x_2)} + L_2 \norm{f_1(x_1)}) \norm{x_2 - x_1}.
+\end{align*}
+So for any set $E \subset \R$, $(f_1 f_2)$ is Lipschitz with constant:
+\begin{equation*}
+    L = \sup_{x_1,x_2\in E} \{L_1 \norm{f_2(x_2)} + L_2 \norm{f_1(x_1)}\}
+\end{equation*}
+
+\item For $f_1 \circ f_2$, we have
+\begin{align*}
+    \norm{(f_1\circ f_2)(x_2) - (f_1 \circ f_2) (x_1)}
+        &= \norm{f_1(f_2(x_2)) - f_1(f_2(x_1))} \\
+        &\leq L_1 \norm{f_2(x_2) - f_2(x_1)} \\
+        &\leq (L_1 \cdot L_2) \norm{x_2 - x_1}.
+\end{align*}
+So $f_1 \circ f_2$ is locally Lipschitz with constant $L_1 \cdot L_2$.
+\end{letterenum}
+
+\section{Problem 4}
+
+\begin{theorem}
+    Suppose $f: \R \to \R$ is given by
+    \begin{equation*}
+        f(x) = \biggl\{
+            \begin{array}{ll}
+                f_1(x) &\quad \text{if } x < a \\
+                f_2(x) &\quad \text{if } x \geq a, \\
+            \end{array}
+        \biggr.
+    \end{equation*}
+    with $a \in \R$ and globally Lipschitz continuous functions $f_1, f_2: \R \to \R$
+     which satisfy the condition $f_1(a) = f_2(a)$. Let
+    $L_1$ and $L_2$ be Lipschitz constants of $f_1$ and $f_2$, respectively,
+    Then, $f$ is globally Lipschitz continuous with constant $\max\{L_1, L_2\}$.
+    \label{thm:piecewise}
+\end{theorem}
+
+\begin{proof}
+    Let $L_1$ and $L_2$ be Lipschitz constants of $f_1$ and $f_2$, respectively.
+    Take points $x_1,x_2\in\R$. If $x_1<a$ and $x_2<a$, then
+    \begin{equation*}
+        |f(x_2) - f(x_1)| = |f_1(x_2) - f_1(x_1)| \leq L_1 |x_2 - x_1|
+            \leq \max\{L_1, L_2\} |x_2 - x_1|
+    \end{equation*}
+    holds, since $f_1$ is Lipschitz. A similar argument holds when
+     $x_1\geq a$ and $x_2 \geq a$.
+
+    Otherwise, suppose (w/o a loss of generality) that $x_1 < a$ and $x_2 \geq a$.
+    Then, we have:
+    \begin{align*}
+        |f(x_2) - f(x_1)| &= | f_2(x_2) - f_1(x_1) \\
+            &= |f_2(x_2) - f_2(a) + f_1(a) - f_1(x_1)| \\
+            &\leq |f_2(x_2 - f_2(a))| + | f_1(a) - f_1(x_1) | \\
+            &\leq L_2 |x_2 - a| + L_1 |a - x_1| \\
+            &\leq \max\{L_1, L_2\} (|x_2 - a| + |a - x_1|) \\
+            &= \max\{L_1, L_2\} |x_2 - x_1|
+    \end{align*}
+\end{proof}
+
+\begin{letterenum}
+\item $g(x)$ can be written:
+\begin{equation*}
+    g(x) = \biggl\{
+        \begin{array}{ll}
+            -\sin(x)  &\quad \text{if } x < 0 \\
+            \sin(x) &\quad \text{if } x \geq 0
+        \end{array}
+    \biggr.
+\end{equation*}
+Since $\sin(x)$ and $-\sin(x)$ are both globally Lipschitz with constant 1,
+by Theorem \ref{thm:piecewise}, $g$ is also globally Lipschitz with constant $L=1$.
+
+\item $h(x)$ can be written:
+\begin{equation*}
+    h(x) = \biggl\{
+        \begin{array}{ll}
+            -3x  &\quad \text{if } x < 0 \\
+            x &\quad \text{if } x \geq 0
+        \end{array}
+    \biggr.
+\end{equation*}
+So again by Theorem \ref{thm:piecewise}, $h$ is globally Lipschitz with constant
+$L=3$.
+
+\end{letterenum}
+
+% \section{Problem 5}
+% Define $h: \R^n \to \R$ to be
+% \begin{equation}
+%     h(x) = \frac{1}{1 + g(x)^T g(x)}
+%     \label{eq:def-h}
+% \end{equation}
+
+% so that the state derivate $f: \R^n \to \R^n$ can be written
+% \begin{equation*}
+%     \dot{x} = f(x) = h(x) g(x).
+% \end{equation*}
+% Taking the gradient of eq (\ref{eq:def-h}), yields:
+% \begin{equation*}
+%     \nabla h = \frac{1}{(1 + g^T g)^2} g
+% \end{equation*}
+%     $\nabla f: \R^n \to \R^{n\times n}$, the gradient of $f$, is given by the product
+% rule:
+% \begin{align*}
+%     \nabla f &= \nabla h g^T + h \nabla g \\
+%         &= \frac{2 gg^T}{}
+% \end{align*}
+
+
+\section{Problem 6}
+If $\norm{\cdot}_\alpha$ and $\norm{\cdot}_\beta$ are two $p$-norms on $\R^n$,
+then there exists positive constants $c_1$ and $c_2$ such that for all $x\in\R^n$,
+\begin{equation}
+    c_1 \normp{x}{\beta} \leq \normp{x}{\alpha} \leq c_2 \normp{x}{\beta}.
+    \label{eq:norm-ineq}
+\end{equation}
+
+Then, if $f$ is Lipschitz w.r.t norm $\alpha$ (with constant $L$), we have
+\begin{equation}
+    \normp{f(x) - f(y)}{\beta} \leq \frac{1}{c_1} \normp{f(x) - f(y)}{\alpha}
+        \leq \frac{L}{c_1} \normp{x - y}{\alpha} \leq \biggl(
+            \frac{c_2L}{c_1}
+        \biggr) \normp{x - y}{\beta}
+\end{equation}
+and $f$ is Lipschitz w.r.t. norm $\beta$ with constant $c_2L/c_1$. Since
+equation (\ref{eq:norm-ineq}) implies
+\begin{equation*}
+    \frac{1}{c_2} \normp{x}{\alpha} \leq \normp{x}{\beta}
+        \leq \frac{1}{c_1} \normp{x}{\alpha},
+\end{equation*}
+the converse clearly holds by the same argument. That is, $f$ is Lipschitz
+w.r.t. norm $\alpha$ if and only if it is Lipschitz w.r.t. norm $\beta$.
+A function is Lipschitz independent of the norm chosen. (Only the Lipschitz
+constant depends on the norm.)
+
+For the 1-norm and 2-norm, we have
+\begin{equation*}
+    \frac{1}{\sqrt{n}} \normp{x}{1} \leq \normtwo{x} \leq \normp{x}{1}
+\end{equation*}
+and for the 1-norm and $\infty$-norm,
+\begin{equation*}
+    \frac{1}{n} \normp{x}{1} \leq \normi{x} \leq \normp{x}{1},
+\end{equation*}
+showing the equivalence of (a), (b), and (c).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
