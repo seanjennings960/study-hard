@@ -1,0 +1,308 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\class{APPM 5560}
+\title{Homework 3}
+\author{Sean Jennings}
+\date{February 6, 2024}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+Suppose that there exists some $C>0$ such that $f(x) \leq Cg(x)$ for
+all $x\in\R$. Then, for all $x>0$ we have:
+\begin{equation*}
+    \frac{f(x)}{g(x)} = \frac{\sqrt{2\pi}}{2} e^{-x + x^2/2}
+        = \frac{\sqrt{2\pi}}{2} e^{1/2 (x-1)^2 - 1/2} \leq C
+\end{equation*}
+
+Solving for $x$ yields:
+\begin{align*}
+    &e^{1/2(x-1)^2 - 1/2} \leq \frac{2C}{\sqrt{2\pi}} \\
+    &\Leftrightarrow 1/2 (x-1)^2 - 1/2 \leq \ln(\frac{2C}{\sqrt{2\pi}}) \\
+    &\Leftrightarrow x \leq 1 + \sqrt{1 + 2 \ln(\frac{2C}{\sqrt{2\pi}})}
+\end{align*}
+This contradicts that $x$ can be any real number and thus no such
+number $C$ can exist.
+
+\section{Problem 2}
+\begin{letterenum}
+\item The CDF of $X$, for $-\pi/2 \leq x \leq \pi/2$ is given by:
+\begin{equation*}
+    F_X(x) = \int_{-\pi/2}^{x} \cos(y)/2 dy 
+        = 1/2 (\sin(y))\eval_{-\pi/2}^x = \frac{1}{2} (1 + \sin(x))
+\end{equation*}
+
+Thus, we can compute $X$ via the inverse transform method by the following
+relations:
+\begin{align*}
+    U = F(X) &= 1/2(1 + \sin(x)) \\
+    \Leftrightarrow X &= \sin^{-1}(2U - 1)
+\end{align*}
+
+In pseudocode:
+\begin{algorithmic}
+    \State $U \sim$  Uniform(0, 1)
+    \State \Return $\sin^{-1}(2U - 1)$
+\end{algorithmic}
+
+\item Since the PDF of $X$ can be bounded by a box of width $\pi$ and height
+$1/2$, the acceptance-rejection method can be performed by drawing two uniform
+random variables, $U_1$ and $U_2$, and accepting if the point $(U_1, U_2)$ is
+under the PDF curve: $(X, f(X))$.
+
+\begin{algorithmic}
+    \Loop
+        \State $U_1 \sim$ Uniform(0, 1)
+        \State $U_2 \sim$ Uniform(0, 1)
+        \State $X \gets \pi \cdot (U_1 - 1/2)$
+        \If {$U_2 < \cos(X)$}
+            \Comment Equivalent to $Y=1/2 U_2$ and $Y < \cos(X)/2$
+            \State \Return $X$
+        \EndIf
+    \EndLoop
+\end{algorithmic}
+\end{letterenum}
+
+\section{Problem 3}
+\begin{letterenum}
+\item We define $h: \R \to \R$ to be the function:
+\begin{align*}
+    h(x) &= \frac{f(x)}{g(x)} = \frac{e^{-x^2/2}}{\sqrt{2\pi}} \bigl(\pi(1 + x^2)\bigr) \\
+        &= \sqrt{\frac{\pi}{2}} (1 + x^2) e^{-x^2/2}
+\end{align*}
+
+Taking the derivative yields:
+\begin{align*}
+    \frac{dh}{dx}(x) = \sqrt{\pi/2} \biggl(
+        2x e^{-x^2/2} - x(1 + x^2) e^{-x^2/2}
+    \biggr)
+    &= \sqrt{\pi/2} x e^{-x^2/2} (1 - x^2)
+\end{align*}
+Equating $dh/dx$ to zero, we find that $h(x)$ has extrema at $x=0,\pm 1$.
+Since $e^{-x^2/2}$ decreases faster than $(1+x^2)$ increases, $h(x)$ approaches
+0 for large $x$. Furthermore,
+\begin{equation*}
+    h(0) = \sqrt{\pi/2} < \sqrt{2\pi}e^{-1/2} = h(\pm1).
+\end{equation*}
+We take $C$ to be the maximum value of $h$:
+\begin{equation*}
+    C = \max_{x\in\R} h(x) = h(1) = \sqrt{2\pi}e^{-1/2}
+\end{equation*}
+
+\item The CDF of $Y$ is given by
+\begin{align*}
+    G_Y(y) &= \int_{-\infty}^{y} \frac{1}{\pi(1 + x^2)} dx \\
+        &= \frac{1}{\pi}(\tan^{-1}x) \eval_{x=-\infty}^y \\
+        &= \frac{1}{\pi} \biggl(\tan^{-1}y + \pi/2 \biggr)
+\end{align*}
+Inverting the equation $U = G(Y)$ we have:
+\begin{align*}
+    &U = G(Y) = 1/2 + 1/\pi \tan^{-1} y \\
+    &\Leftrightarrow y = \tan \biggl(\pi \cdot (u - 1/2)\biggr)
+\end{align*}
+And in pseudocode:
+\begin{algorithmic}
+    \Function{Lorentzian}{}
+        \State $U \sim $ Uniform(0, 1)
+        \State \Return $\tan (\pi \cdot(U - 1/2))$
+    \EndFunction
+\end{algorithmic}
+
+\item To simulate the Gaussian, sample from the Lorentzian and accept
+if $U \sim $ Uniform(0,1) is less than:
+\begin{equation*}
+    \frac{f(x)}{Cg(x)} = h(x) / C = \frac{\sqrt{\pi/2} e^{-x^2/2}( 1+ x^2)}
+                                          {(\sqrt{2\pi} e^{-1/2})}
+        = \frac{1}{2} e^{1/2(1 - x^2)}(1 + x^2)
+\end{equation*}
+
+In pseudocode:
+\begin{algorithmic}
+    \Loop
+        \State $U \sim$ Uniform(0, 1)
+        \State $X \sim $ Lorentzian()
+        \If {$U < 1/2 \cdot (1 + x^2) \cdot e^{1/2(1 - x^2)}$}
+            \State \Return $X$
+        \EndIf
+    \EndLoop
+\end{algorithmic}
+\end{letterenum}
+
+\section{Problem 4}
+Consider these two events
+\begin{enumerate}
+    \item $A = \{X_0=0, X_1=1\}$ Red on draw 0, white of draw 1,
+    \item $B = \{X_0=1, X_1=1\}$ White on draw 0, white on draw 1
+\end{enumerate}
+
+Since the balls are drawn without replacement, they depend not only on the color
+of the last ball drawn, but on the the number
+of balls remaining of each color in the jar. For event $A$, 49 out of the 98
+remaining balls are white so:
+\begin{equation*}
+    {\bf P}(X_2 = 1 | A) = 49/98
+\end{equation*}
+while for $B$, only 48 out of 98 are white and we have
+\begin{equation*}
+    {\bf P}(X_2 = 1 | B) = 48/98
+\end{equation*}
+Clearly, we see that $X_t$ does not satisfy the Markovian property
+since $X_2$ depends $X_0$. I.e.
+
+\begin{equation*}
+    {\bf P}(X_2=1 | X_1 = 1 \cap X_0 = 1) \neq {\bf P}(X_2=1 | X_1 = 1 \cap X_0 = 0).
+\end{equation*}
+
+\section{Problem 5}
+\begin{letterenum}
+\item Since $X_t$, the number of working lightbulbs, is an integer-valued variable
+with $0 \leq X_t \leq 100$, the sample space $S$ is the integers from 0 to 100.
+
+\item This is a Markov chain, since the number of lightbulbs remaining in month
+$t+1$ depends only upon the number of lightbulbs remaining in the previous month.
+Specifically,
+the number of lightbulbs remaining at month $t+1$ is a Binomial with $X_t$ trials of probability $1-p$ (the probability each lightbulb remains is 1 minus the probability
+that it fails).
+
+\item The transition probabilities given by the distribution Binomial($X_t$, $1-p$):
+\begin{equation*}
+    {\bf P}(X_{t+1} = i | X_t = j) = \choose{j}{i} (1 - p)^i p^{j-i}
+\end{equation*}
+
+\section{Problem 6}
+The possible paths that lead to $X_4=1$ are:
+\begin{itemize}
+    \item A: $3\to2\to1\to1\to1$
+    \item B: $3\to2\to3\to2\to1$
+    \item C: $3\to4\to3\to2\to1$
+\end{itemize}
+
+The total probability of a path is the product of each step, so
+the probability of each individual path is given by:
+
+\begin{align*}
+    {\bf P}(A) &= p(3,2)p(2,1)p(1,1)p(1,1) \\
+        &= 1/4 \cdot 1/4 \cdot 1 \cdot 1 = 1/16 \\
+    {\bf P}(B) &= p(3,2)p(2,3)p(3,2)p(2,1) \\
+        &= 1/4 \cdot 3/4 \cdot 1/4 \cdot 1/4 = 3/256 \\
+    {\bf P}(C) &= p(3,4)p(4,3)p(3,2)p(2,1) \\
+        &= 3/4 \cdot 1/4 \cdot 1/4 \cdot 1/4 = 3/256
+\end{align*}
+
+and thus the total probability of going from 3$\to$1 in 4 steps is the sum
+of these (disjoint) events:
+\begin{equation*}
+    {\bf P}(3 \to 1 \text{ in 4 steps}) = {\bf P}(A) + {\bf P}(B) + {\bf P}(C)
+        = 8/128 + 2(3/256) = 11/128
+\end{equation*}
+
+\item The state transition matrix is given by:
+\begin{equation*}
+    A = \mat{
+        1 & 0 & 0 & 0 & 0 \\
+        1/4 & 0 & 3/4 & 0 & 0 \\
+        0 & 1/4 & 0 & 3/4 & 0 \\
+        0 & 0 & 1/4 & 0 & 3/4 \\
+        0 & 0 & 0 & 0 & 1
+    }
+\end{equation*}
+
+\item Taking the matrix power (using Python) we have:
+\begin{equation*}
+    A^4 = \frac{1}{128} \mat{
+        128 & 0 & 0 & 0 & 0 \\
+        38 & 9 & 0 & 27 & 54 \\
+        11 & 0 & 18 & 0 & 99 \\
+        2 & 3 & 0 & 9 & 114 \\
+        0 & 0 & 0 & 0 & 128
+    }
+\end{equation*}
+The probability computed by summing individual paths from $X_0=3$ to $X_4=1$ indeed
+corresponds to the (3,1)-th entry of $A^4$.
+
+\item $A^100$ is given by:
+\item \begin{equation*}
+    A^100 = \mat{
+        1 & 0 & 0 & 0 & 0 \\
+        0.325 & 0 & 0 & 0 & 0.675 \\
+        0.1 & 0 & 0 & 0 & 0.9 \\
+        0.025 & 0 & 0 & 0 & 0.975 \\
+        0 & 0 & 0 & 0 & 1
+    }
+\end{equation*}
+so probability of eventually ending in state 1 from state 3 is again given by
+the (3,1)-th entry which is $A^100(3,1) = 0.1$.
+\end{letterenum}
+
+\section{Problem 7}
+\begin{letterenum}
+\item $X_t$, the sum of $x$ and $y$ coordinates, takes its minimum of 0
+at the point $(0, 0)$ and its maximum of 4 at point $(2,2)$, and the
+other points on the grid correspond to the integers between. Thus, the sample
+space $S$ is the set $\{0, 1, \dots, 4\}$.
+
+\item The transition probability matrix is:
+\begin{equation*}
+    A = \mat{
+        0 & 1 & 0 & 0 & 0 \\
+        1/3 & 0 & 2/3 & 0 & 0 \\
+        0 & 1/2 & 0 & 1/2 & 0 \\
+        0 & 0 & 2/3 & 0 & 1/3 \\
+        0 & 1 & 0 & 1 & 0
+    }
+\end{equation*}
+
+\item There is only one unique shortest path: $0\to1\to2\to3\to4$ and its
+probability is: 
+\begin{equation*}
+    {\bf P}(0\to1\to2\to3\to4) = p(0, 1)p(1,2) p(2,3) p(3,4)
+        = 1 \cdot 2/3 \cdot 1/2 \cdot 1/3 = 1/9
+\end{equation*}
+
+\end{letterenum}
+
+\section{Problem 8}
+
+\begin{letterenum}
+\item The transition matrix is:
+\begin{equation*}
+    A = \mat{
+        0 & 0.5 & 0.5 \\
+        0.1 & 0.7 & 0.2 \\
+        0.2 & 0.8 & 0
+    }
+\end{equation*}
+
+\item Next sunday is 7 steps within the markov chain, so we compute
+the multi-step transition probability by taking the transition matrix to the 7th
+power and looking at the (1,1)-th entry:
+\begin{equation*}
+    A^7(1,1) \approx 0.1084
+\end{equation*}
+
+\item The transition matrix to the 50th power is:
+\begin{equation*}
+    A^50 \approx \mat{
+        0.1085 & 0.6977 & 0.1938 \\
+        \vdots & \vdots & \vdots
+    }
+\end{equation*}
+where the dots indicate that each row is identical (i.e. the initial state is
+irrelevant). Thus, as $t\to\infty$ the probability that dish 2 will be eaten
+on day $t$ is about 0.6977.
+\end{letterenum}
+
+
+
+
+
+\end{document}
