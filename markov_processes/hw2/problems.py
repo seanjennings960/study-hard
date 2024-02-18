@@ -85,7 +85,7 @@ def problem6():
 
 
 def main():
-    problem6()
+    problem4()
 
 
 if __name__ == "__main__":

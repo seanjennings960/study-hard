@@ -175,11 +175,13 @@ that it fails).
 
 \item The transition probabilities given by the distribution Binomial($X_t$, $1-p$):
 \begin{equation*}
-    {\bf P}(X_{t+1} = i | X_t = j) = \choose{j}{i} (1 - p)^i p^{j-i}
+    {\bf P}(X_{t+1} = i | X_t = j) = {j \choose i} (1 - p)^i p^{j-i}
 \end{equation*}
+\end{letterenum}
 
 \section{Problem 6}
-The possible paths that lead to $X_4=1$ are:
+\begin{letterenum}
+\item The possible paths that lead to $X_4=1$ are:
 \begin{itemize}
     \item A: $3\to2\to1\to1\to1$
     \item B: $3\to2\to3\to2\to1$
@@ -229,9 +231,9 @@ of these (disjoint) events:
 The probability computed by summing individual paths from $X_0=3$ to $X_4=1$ indeed
 corresponds to the (3,1)-th entry of $A^4$.
 
-\item $A^100$ is given by:
-\item \begin{equation*}
-    A^100 = \mat{
+\item $A^{100}$ is given by:
+\begin{equation*}
+    A^{100} = \mat{
         1 & 0 & 0 & 0 & 0 \\
         0.325 & 0 & 0 & 0 & 0.675 \\
         0.1 & 0 & 0 & 0 & 0.9 \\
@@ -240,7 +242,7 @@ corresponds to the (3,1)-th entry of $A^4$.
     }
 \end{equation*}
 so probability of eventually ending in state 1 from state 3 is again given by
-the (3,1)-th entry which is $A^100(3,1) = 0.1$.
+the (3,1)-th entry which is $A^{100}(3,1) = 0.1$.
 \end{letterenum}
 
 \section{Problem 7}
