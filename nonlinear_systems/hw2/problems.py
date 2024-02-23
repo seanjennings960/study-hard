@@ -36,7 +36,9 @@ def problem4():
         # (..., 2)
         x1_dot = (a - b * x[..., 1]) * x[..., 0]
         x2_dot = (c * x[..., 0] - d) * x[..., 1]
-        return np.concatenate([x1_dot[..., np.newaxis], x2_dot[..., np.newaxis]], axis=-1)
+        return np.concatenate([
+            x1_dot[..., np.newaxis],
+            x2_dot[..., np.newaxis]], axis=-1)
 
     x0s = np.array([
         [1, 1],
