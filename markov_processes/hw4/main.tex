@@ -1,0 +1,587 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{APPM 5560}
+\title{Homework 4}
+\author{Sean Jennings}
+\date{February 26, 2024}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+\begin{letterenum}
+\item Each state is recurrent, since the whole state space is finite and closed
+(trivially). It is also irredicible since each state communicates with
+each other state. Specifically, we have
+\begin{enumerate}
+    \item $3\to1\to2\to3$ and 
+    \item $3\to4\to5\to3$.
+\end{enumerate}
+So each state $x$ communicates with state 3 and state 3 communicates with each
+state $y$, therefore $x\to y$.
+
+\item Each state in the set $C = \{5, 6, 7\}$ is recurrent, since $C$ is
+finite, closed ($p(x, y) = 0$ for all $x\in C$, $y \notin C$) and irreducible 
+($p(x, y) > 0$ for all $x,y \in C$).
+
+The set of states $T = \{1, 2, 3, 4\}$ are all transient. For each 
+$z \in\{1, 2\}$ and $y\in C$ we have $z\to3\to4\to y$, so each $x \in T$
+we have $\rho_{xy} > 0$ since $x$ communicates with $y$. But since $C$
+is closed, $\rho_{yx} = 0<1$. Therefore $\rho_{xx} < 1$ for each $x \in T$:
+there is a nonzero probability that the state will not return to $T$.
+\end{letterenum}
+
+\section{Problem 2}
+Since the stationary distribution $\pi \in \R^{1 \times 3}$ satisfies
+\begin{equation*}
+    \pi = \pi p,
+\end{equation*}
+we have
+\begin{equation*}
+    \pi (p - I) = 0.
+\end{equation*}
+Taking the transpose yields
+\begin{equation*}
+    (p^T - I) \pi^T = 0.
+\end{equation*}
+So to find the stationary distribution is in the null space of the matrix
+\begin{equation*}
+    p^T - I = \mat{
+        -2/3 & 0 & 1 \\
+        1/3 & -1/2 & 0 \\
+        1/3 & 1/2 & -1
+    }
+\end{equation*}
+Converting to a system of equations and solving algebraically yields the 
+relations:
+\begin{equation*}
+    \pi_3 = 2/3 \pi_1 \qquad \pi_2 = 2/3 \pi_1
+\end{equation*}
+So $\pi$ is of the form
+\begin{equation*}
+    \pi = \mat{1 & 2/3 & 2/3} \pi_1.
+\end{equation*}
+The elements of $\pi$ must sum to 1, so we have $\pi_1 = 3/7$ and
+\begin{equation*}
+    \pi = \mat{3/7 & 2/7 & 2/7}
+\end{equation*}
+
+\section{Problem 3}
+\begin{letterenum}
+\item Suppose the set $D$ is closed, finite and have all its states are reccurent.
+This does {\bf not} imply it is irreducible. As a counter example, consider
+the whole state space $S$ of two-state markov chain with probability transition matrix
+\begin{equation*}
+    p = \mat{1 & 0 \\ 0 & 1}.
+\end{equation*}
+$S$ is trivially closed and clearly finite. Futhermore, since each state
+$x \in S$ always transitions to itself, we have $\rho_{xx} = 1$
+and $x$ is reccurent.  However, the states do not communicate with each other
+and therefore $S$ is reducible.
+
+\item A irreducible, finite set $D$ with all recurrent states is not necessarily
+closed. For example, take $D = \{1\}$ in the two-state chain with prob. transition
+matrix
+\begin{equation*}
+    p = \mat{1/2 & 1/2 \\ 1/2 & 1/2}
+\end{equation*}
+State 1 is recurrent since $1 \to 2 \to 1$. The set $D$ is also irreducible
+since each state in $D$ communicates with each other state 
+in $D$ (this is just $1\to 1$). However, $D$ is clearly not closed since
+$p(1, 2) = 1/2 > 0$ and $1\in D$, $2\notin D$.
+
+\item A irreducible, closed set $D$ with all states recurrent is not necessarily
+finite. A state space of a symmetric 2D random walk is an example of such an 
+infinite set. Each state in the random walk communicates with each other and 
+the state space is trivially closed. Futhermore, each state is recurrent
+since the expected number of returns to a given state $x$ is an inifinite
+series which diverges.
+
+\end{letterenum}
+
+
+\section{Problem 4}
+\begin{letterenum}
+\item Each state in $R = \{5, 6, 7, 8\}$ is recurrent, while each
+state of $T = \{1, 2, 3, 4\}$ is transient.
+
+\item For $\rho_{11}$ the only path for state 1 to return to itself
+is from 1 to 2 to 3 to 4, then back to 1. So
+\begin{equation*}
+    \rho_{11} = p(1,2)p(2,3)p(3,4)p(4,1) = a^4
+\end{equation*}
+Similarly, there is one path from 1 to 3, so
+\begin{equation*}
+    \rho_{13} = p(1, 2)p(2, 3) = a^2
+\end{equation*}
+Since state 5 always transitions to itself, we have
+\begin{equation*}
+    \rho_{51} = 0 \qquad \rho_{55} = 1
+\end{equation*}
+
+\item The expected times state 1 will be visited from state 2 is
+\begin{equation*}
+    E_2[N_1] = \frac{\rho_{21}}{1 - \rho_{11}} = \frac{a^3}{1 - a^4}
+\end{equation*}
+
+\item The desired probability is
+\begin{align*}
+    P_1(T_2^k < \infty) &= P(\text{reaches to from 1})
+        \cdot P(\text{returns to 2 from 2})^{k-1} \\
+        &= \rho_{12} \rho_{22}^{k-1} \\
+        &= a (a^4)^{k-1} \\
+        &= a^{4k-3}
+\end{align*}
+
+
+
+
+\end{letterenum}
+
+\section{Problem 5}
+
+\begin{letterenum}
+\item Take some initial distribution $q_0\in \R^{1\times 2}$ such that
+$q_0(1) + q_0(2) = 1$. Then, the distribution at the next timestep
+is computed by right multiplying by the probability transition matrix $p$:
+\begin{equation}
+    q_{n+1} = q_n p = q_n \mat{
+        1 - a & a \\
+        b & 1 - b
+    }
+    \label{eq:dynamics}
+\end{equation}
+As a system of scalar equations, this is equivalent to:
+\begin{align*}
+    q_{n+1}(1) &= (1 - a) q_n(1) + a q_n(2) \\
+    q_{n+1}(2) &= b q_n(1) + (1-b) q_n(2)
+\end{align*}
+
+\item Let $\alpha_n \in \R^{1 \times 2}$ be the row vector representing
+the difference from the stationary distribution:
+\begin{equation}
+    \alpha_n = q_n - \pi
+    \label{eq:change-of-var}
+\end{equation}
+
+Combining equations (\ref{eq:dynamics}) and (\ref{eq:change-of-var}),
+we have
+\begin{align*}
+    \alpha_{n+1} &= q_{n+1} - \pi \\
+        &= q_n p - \pi \\
+        &= (\alpha_n + \pi) p - \pi \\
+        &= \alpha_n p + \pi (p - I).
+\end{align*}
+where $I$ is the 2x2 identity matrix.
+We see that the term contain the stationary distribution is 0, since
+\begin{align*}
+    \pi (p - I) &= \frac{1}{a + b} \mat{b & a} \mat{
+        -a & a \\
+        b & -b
+    } \\
+    &= \frac{1}{a + b} \mat{ab - ba & ab - ba} = 0
+\end{align*}
+so that the iteration in the change of variables is actually equivalent
+to the original iteration:
+\begin{equation}
+    \alpha_{n+1} = \alpha_n p
+    \label{eq:dynamics-cov}
+\end{equation}
+Taking $x_n, y_n \in \R$ to be the elements of $\alpha_n = \mat{x_n & y_n}$
+we can also rewrite equation (\ref{eq:dynamics-cov}) as the scalar equations:
+\begin{align*}
+    x_{n+1} &= (1 - a) x_n + a y_n \\
+    y_{n+1} &= b x_n + (1-b) y_n
+\end{align*}
+
+\item To show that $x_n$ and $y_n$ exponentially decay to zero, we 
+will show that the 1-norm of $\alpha_n$ has an exponential bound of the
+form:
+\begin{equation*}
+    |x_n| + |y_n| = \normone{\alpha_n} \leq C e^{-\lambda n}
+\end{equation*}
+for some $C > 0$ and $\lambda > 0$. Clearly, this implies that both
+$x_n$ and $y_n$ decay to zero, since the preceding inequality implies
+(along with the fact: $|z| \geq 0$ for all $z\in\R$) that
+\begin{equation*}
+    |x_n| \leq C e^{-\lambda n} - |y_n| \leq C e^{-\lambda n}
+\end{equation*}
+and likewise for $|y_n|$.
+
+
+We begin by writing equation (\ref{eq:dynamics-cov}) in terms of $\alpha_0$.
+Since each succeeding value is a left multiplication by $p$, we end up
+with the $n$-th power of $p$:
+\begin{equation*}
+    \alpha_n = \alpha_0 p^n.
+\end{equation*}
+We take the transpose since working with column vectors is more familiar:
+\begin{equation}
+    \alpha_n^T = (p^T)^n \alpha_0^T
+    \label{eq:dynamics-power}
+\end{equation}
+
+We note that $p^T$ is diagonalizable and can be rewritten as $p^T = ADA^{-1}$
+with $A,D \in\R^{2\times 2}$ ($D$ diagonal) given by
+\begin{equation*}
+    A = \mat{
+        1 & b \\
+        -1 & a
+    } \qquad
+    D = \mat{
+        1 - a - b & 0 \\
+        0 & 1
+    } \qquad
+    A^{-1} = \frac{1}{a + b} \mat{
+        a & -b \\
+        1 & 1
+    }
+\end{equation*}
+By the associative property of matrix multiplication,
+interior terms of the power cancel
+\begin{equation*}
+    (p^T)^n = (ADA^{-1})(ADA^{-1})\cdots(ADA^{-1}) = AD^nA^{-1}.
+\end{equation*}
+Substituting into equation (\ref{eq:dynamics-power}) yields:
+\begin{equation}
+    \alpha_n^T = A \mat{
+        (1 - a - b)^n & 0 \\
+        0 & 1
+    } A^{-1} \alpha_0^T.
+    \label{eq:dyanmics-eigenvec-basis}
+\end{equation}
+Since the elements of $q_n$ and $\pi$ sum to one, we have
+\begin{equation*}
+    x_n + y_n = \sum_i \alpha_n(i) = \sum_i (q_n(i) - \pi(i))
+        = \sum_i q_n(i) - \sum_i \pi(i)
+        = 1 - 1 = 0.
+\end{equation*}
+
+This implies that the component (corresponding to the eigenvalue of 1)
+of $A^{-1} \alpha^T$
+(which is the represention of $\alpha^T$ in the basis of the eigenvectors) is zero,
+for
+\begin{equation*}
+    A^{-1} \alpha_0^T = \frac{1}{a + b} \mat{
+        ax_0 - by_0 \\
+        x_0 + y_0
+    } = \frac{1}{a + b} \mat{
+        ax_0 - by_0 \\
+        0
+    }.
+\end{equation*}
+
+Thus, equation (\ref{eq:dyanmics-eigenvec-basis}) reduces to
+\begin{align*}
+    \alpha_n^T &= A \mat{
+        (1 - a - b)^n & 0 \\
+        0 & 1
+    } \frac{1}{a + b} \mat{ax_0 - by_0 \\ 0} \\
+    &= \frac{(1 - a - b)^n}{a + b} \mat{
+        1 & b \\
+        -1 & a
+    }\mat{
+        ax_0 - by_0 \\ 0
+    } \\
+    &= \frac{(1 - a - b)^n}{a + b} \mat{
+        ax_0 - by_0 \\
+        by_0 - ax_0
+    } \\
+    &= \frac{(1 - a - b)^n}{a + b} \mat{
+        a & -b \\
+        -a & b
+    } \alpha_0^T
+\end{align*}
+
+When $a + b \neq 1$, taking the 1-norm of both sides yields
+the desired exponential bound:
+\begin{align*}
+    \normone{\alpha_n^T} &= \mnormone{
+        \frac{(1 - a - b)^n}{a + b} \mat{
+            a & -b \\
+            -a & b
+        } \alpha_0^T } \\
+    &\leq \biggl|\frac{(1 - a - b)^n}{a + b}\biggr|
+        \mnormone{\mat{
+            a & -b \\
+            -a & b
+        }} \normone{\alpha_0} \\
+    &= \frac{|1 - a - b|^n}{a + b} \max\{2a, 2b\} \normone{\alpha_0} \\
+    &= C e^{-\lambda n}
+\end{align*}
+
+where $C$ is given by:
+\begin{equation*}
+    C = \frac{2(|x_0| + |y_0|)\max\{a, b\}}{a + b}
+\end{equation*}
+and $\lambda$ by:
+\begin{equation*}
+    \lambda = \ln \biggl(\frac{1}{|1 - a - b|}\biggr).
+\end{equation*}
+We have $C>0$ for any $\alpha_0 \neq 0$, so it remains to show that $\lambda > 0$.
+Since $0 < a < 1$ and $0 < b < 1$, we have $-1 < (1 - a - b) < 1$.
+so that $1/|1 - a - b| > 1$. Thus, $\lambda > 0$ and exponential decay
+towards the stationary distribution is proven.
+
+Note that $\lambda$ is well-defined only under the assumption that $a + b \neq 1$.
+If $a + b = 1$, then we see from the previous equations that $\alpha_n$
+is exactly zero for all $n>0$. That is, the markov chain converges exactly to
+the stationary distribution after the first step.
+
+
+
+
+
+
+
+
+
+
+\end{letterenum}
+
+\section{Problem 6}
+\begin{letterenum}
+\item The probability of leaving each odd state must sum to 1, so we have
+\begin{equation*}
+    b + c = 1.
+\end{equation*}
+The probability of leaving each even state must also sum to 1, so
+\begin{equation*}
+    a + c + d = 1
+\end{equation*}
+
+\item Since the chain is symmetric between even and odd states, the
+function which returns the state modulo 2 is a homomorphism. Consider
+the two-state markov chain with state $Q_n$ which is 0 if the state of
+the original markov chain $X_n$ is even and 1 is $X_n$ is odd.
+
+Then the probability transition matrix for this reduced markov chain is given 
+by
+\begin{equation*}
+    p = \mat{
+        d & a + c \\
+        b + c & 0
+    } = \mat{
+        d & 1 - d \\
+        1 & 0
+    }
+\end{equation*}
+Put $a = 1 - d$ and $b = 1$ into the results for the stationary distribution
+from the previous exercise to see that $\pi_Q$, the stationary distribution for the
+reduced markov chain, is
+\begin{equation*}
+    \pi_Q = \mat{\pi_{even} & \pi_{odd}} = \mat{\frac{1}{2-d} & \frac{1}{2-d}}.
+\end{equation*}
+
+Since the original chain is finite and irreducible (given the constraints on a,b,c, and d),
+the stationary distribution must be unique. We reason that the ratio between
+even and odd states must be equal to that of the reduced chain, multiplied by 
+a normalization factor $\lambda$. Let $\pi \in \R^{1 \times 10}$ be the
+stationary distribution for the original chain. Then,
+\begin{equation*}
+    \pi(i) = \biggl\{
+        \begin{array}{ll}
+            \lambda / (2 - d) &\quad \text{if }i \text{ is even} \\
+            \lambda (1 - d) / (2 - d) &\quad \text{if }i \text{ is odd}
+        \end{array}
+    \biggr.
+\end{equation*}
+Since the elements of $\pi$ sum to 1, we have
+\begin{align*}
+    1 = \sum_{i=1}^{10} \pi(i) &= \sum_{i\in \text{Even}} \pi(i)
+        + \sum_{i\in \text{Odd}} \pi(i) \\
+        &= 5 \biggl(\frac{\lambda}{2 - d} + \frac{\lambda (1 - d)}{2-d} \biggr) \\
+        &= 5\lambda.
+\end{align*}
+So $\lambda = 1/5$ and 
+\begin{equation*}
+    \pi(i) = \biggl\{
+        \begin{array}{ll}
+            \frac{1}{5(2 - d)} &\quad \text{if }i \text{ is even} \\
+            \frac{1 - d}{5(2 - d)} &\quad \text{if }i \text{ is odd}
+        \end{array}
+    \biggr.
+\end{equation*}
+\end{letterenum}
+
+\section{Problem 7}
+\begin{letterenum}
+\item Let $T$ be the number of steps until the markov chain reaches
+either state 4 or 5. Starting from state 1, the chain can reach
+states 4 or 5 via both state 2 and 3, so we start by computed the expectation
+of $T$ starting from these intermediate states.
+
+Starting from state 3, $T$ is a geometric R.V. with prob. of success
+$p(3,4) + p(3, 5) = 3/4$. Therefore,
+\begin{equation*}
+    E_3[T] = 1 / (p(3,4 + p(3,5))) = 4/3
+\end{equation*}
+
+Starting from state 2, we use the total expectation theorem to compute
+the expectation based on the probability of each possible step:
+\begin{align*}
+    E_2[T] &= (1 + E_2[T]) p(2, 2) + (1 + E_3[T]) p(2, 3) + 1 p(2,4) \\
+        &= E_2[T] p(2, 2) + E_3[T] p(2, 3) + (p(2, 2) + p(2, 3) + p(2, 4)) \\
+    (1 - p(2, 2)) E_2[T] &= E_3[T] p(2, 3) + 1 \\
+    E_2[T] &= \frac{E_3[T] p(2, 3) + 1}{1 - p(2, 2)} \\
+        &= \frac{4/3 \cdot 1/8 + 1}{1 - 1/2} = 2 (1 + 1/6) \\
+        &= 7/3
+\end{align*}
+
+Starting from state 1, the number of steps to reach state 2 is geometric
+with success 1/10. So the expected number of steps to reach state 2 is 10.
+Since all paths must go through state 2, the expected number of steps 
+to reach 4 or 5 from 1 is 10 more than the expectation starting from 2:
+\begin{equation*}
+    E_1[T] = 10 + E_2[T] = 37/3
+\end{equation*}
+
+\item To compute the probability, $\rho_{14}$, that the chain 
+starting from state 1 reaches state 4, we similarly work backwards from state 3.
+
+By the total probability law, and because $\rho_{54} = 0$, we have
+\begin{align*}
+    \rho_{34} &= p(3, 4) + p(3, 3) \rho_{34} \\
+    (1 - p(3, 3)) \rho_{34} &= p(3, 4) \\
+    \rho_{34} &= \frac{p(3,4)}{1 - p(3, 3)} = \frac{1/4}{1 - 1/4} \\
+        &= 1/3 
+\end{align*}
+
+Similarly, from state 2, we have
+\begin{align*}
+    \rho_{24} &= \sum_{i=1}^{5} P_2(T_4 < \infty | X_1 = i) P_2(X_1 = i) \\
+        &= \sum_{i=1}^5 \rho_{i4} p(2, i) \\
+        &= \rho_{24} p(2, 2) + \rho_{34} p(2, 3) + \rho_{44} p(2, 4) \\
+    (1 - p(2, 2))\rho_{24} &= \rho_{34} p(2, 3) + \rho_{44} p(2, 4) \\
+    \rho_{24} &= \frac{\rho_{34} p(2, 3) + \rho_{44} p(2, 4)}{1 - p(2, 2)} \\
+        &= \frac{1/3 \cdot 1/8 + 1/8}{1/2} \\
+        &= 2 (4 / 24) \\
+        &= 1/3
+\end{align*}
+
+The probability of reaching 4 from state 1 is the same as from state 2
+since:
+\begin{align*}
+    \rho_{14} &= p(1, 1) \rho_{14} + p(1, 2) \rho_{12} \\
+    (1 - p(1, 1)) \rho_{14} &= p(1, 2) \rho_{12}
+\end{align*}
+and $p(1, 1) + p(1, 2) = 1$. Thus,
+\begin{equation*}
+    \rho_{14} = \rho_{24} = 1/3
+\end{equation*}
+
+\end{letterenum}
+
+\section{Problem 8}
+Let the state $X_n$ be the distance between the spider and the fly
+at each step $n$.
+We define the state space of the markov chain to be $S = \Z_{\geq 0} \cup \{\infty\}$
+where $\Z_{\geq 0}$ is the set of all non-negative integers and the state
+$\infty$ indicates that fly has escaped.
+
+Since the spider always moves towards the fly, the distance (excluding when $\infty$
+the fly escapes) is non-increasing. So for a given initial state $x_0\in\Z_{\geq 0}$,
+the set $C(x_0) = \{0, 1, \dots, x_0\} \cup \{\infty\}$ is closed.
+
+The transition probabilities for $\infty$ and 0 are:
+\begin{equation*}
+    p(0, 0) = p(\infty, \infty) = 1
+\end{equation*}
+Otherwise, when $x\in \Z_{\geq 0}$ and $x > 1$, the transition probabilities
+are given by
+\begin{equation*}
+    p(x, y) = \biggl\{
+        \begin{array}{ll}
+            0.3 &\quad \text{if }y = x \\
+            0.4 &\quad \text{if }y = x - 1 \\
+            0.3 &\quad \text{if }y = x - 2
+        \end{array}
+    \biggr.
+\end{equation*}
+When $x=1$, the probabilities are conditioned on the possibility of escape:
+\begin{equation*}
+    p(1, y) = \biggl\{
+        \begin{array}{ll}
+            0.5 &\quad \text{if }y = \infty \\
+            0.5 \cdot (0.3 + 0.3) &\quad \text{if }y = 1 \\
+            0.5 \cdot 0.4 &\quad \text{if }y = 0
+        \end{array}
+    \biggr.
+\end{equation*}
+Given that the fly does not escape, there is a 0.6 probability that the fly will
+move so that the distance remains 1. Thus, the total probability that $y=1$
+is:
+
+$P$(fly moves 1 square) $= P($fly moves 1 square$|$fly does not escape) $P($fly does not escape$)$.
+
+\begin{letterenum}
+\item The probability that the fly escapes starting from state 2 is $\rho_{2\infty}$.
+The total probability law gives the following equations:
+\begin{align*}
+    \rho_{2\infty} &= p(2, 2) \rho_{2\infty} + p(2, 1) \rho_{1\infty}
+        = 0.3 \rho_{2\infty} + 0.4 \rho_{1\infty} \\
+    \rho_{1\infty} &= p(1, 1) \rho_{1\infty} + p(1, \infty) \rho_{\infty\infty}
+        = 0.3 \rho_{1\infty} + 0.5
+\end{align*}
+which admits the solution:
+\begin{align*}
+    \rho_{1\infty} &= 5/7 \\
+    \rho_{2\infty} &= 4/7 \rho_{1\infty} = \boxed{20/49 \approx 0.408}
+\end{align*}
+
+\item Let $T = \min\{n: X_n \in\{0, \infty\}\}$. Similarly to the previous
+problem, we use the total expectation theorem. From state 1, we have
+\begin{align*}
+    E_1[T] &= p(1, 1) (1 + E_1[T]) + p(1, 0) 1 + p(1, \infty) 1 \\
+        &= (p(1, 1) + p(1, 0) + p(1, \infty)) + p(1, 1) E_1[T] \\
+        &= 1 + p(1, 1) E_1[T]  = \frac{1}{1 - p(1, 1)} \\
+        &= \frac{1}{1 - 0.3} = 10/7
+\end{align*}
+
+So from state 2:
+\begin{align*}
+    E_2[T] &= p(2, 0) 1 + p(2, 1) ( 1 + E_1[T]) + p(2, 2) (1 + E_2[T]) \\
+        &= 1 + p(2, 1) E_1[T] + p(2, 2) E_2[T] \\
+        &= \frac{1 + p(2, 1) E_1[T]}{1 - p(2, 2)} \\
+        &= \frac{1 + 0.4 \cdot 10/7}{0.7} \\
+        &= \frac{11/7}{0.7} \\
+        &= \boxed{110/49 \approx 2.245}
+\end{align*}
+
+\item The expected number of times in imminent danger is given by
+\begin{align*}
+    E_2[N] &= \sum_{k=1}^\infty P_2(N_1 \geq k) \\
+        &= \sum_{k=1}^\infty \rho_{21} \rho_{11}^{k-1} \\
+        &= \frac{\rho_{21}}{1 - \rho_{11}}
+\end{align*}
+
+We have
+\begin{equation*}
+    \rho_{11} = p(1, 1) = 0.3
+\end{equation*}
+and
+\begin{equation*}
+    \rho_{21} = p(2, 2) \rho_{21} + p(2, 1) = \frac{p(2, 1)}{1 - p(2, 2)}
+        = \frac{0.4}{1 - 0.3} = 4/7
+\end{equation*}
+So the expected number of times staying in danger is:
+\begin{equation*}
+    E_2[N] = \frac{4/7}{1 - 0.3} = \frac{4/7}{7/10} = \boxed{40/49 \approx 0.816}
+\end{equation*}
+
+    
+\end{letterenum}
+
+
+
+
+
+
+
+
+\end{document}
