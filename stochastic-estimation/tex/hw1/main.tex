@@ -1,0 +1,262 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5244}
+\title{Homework 1}
+\author{Sean Jennings}
+\date{September 4, 2024}
+
+
+
+\begin{document}
+\maketitle
+
+\newcommand{\normal}{\mathcal{N}}
+\newcommand{\E}{{\bf E}}
+\newcommand{\var}{\text{var}}
+\renewcommand{\vec}[1]{{\bf #1}}
+
+
+\section{Problem 1}
+Let $X \sim \normal(0, \sigma_x)$ and $Y \sim \normal(0, \sigma_y)$ be
+zero-mean gaussian random variables (ZMGRVs) with standard deviations $\sigma_x$
+and $\sigma_y$.
+
+\begin{enumerate}[label=\roman*)]
+\item By definition of the variance, for any random variable $Z$ we have:
+\begin{align*}
+    \text{var}(Z) = \E[(Z - \E[Z])^2] &= \E[Z^2 - 2 Z \E[Z] + \E[Z]^2] \\
+        &= \E[Z^2] - 2 \E[Z \E[Z]] + \E[Z]^2 \\
+        &= \E[Z^2] - \E[Z]^2
+\end{align*}
+Since $\E[X] = \E[Y] = 0$, we have:
+\begin{equation*}
+    \E[X^2] = \var(X) + \E[X]^2 = \sigma_x^2
+\end{equation*}
+and analogously, $\E[Y^2] = \sigma_y^2$.
+
+\item Isserli's Theoremm states that the moment of multivariate gaussian
+variables $X_1,X_2,\dots,X_N$ is given by:
+\begin{equation*}
+    \E[X_1 \cdot X_2 \cdots X_N] =
+        \sum_{p\in P_N} \prod_{(i,j) \in p} \text{Cov}(X_i, X_j)
+\end{equation*}
+where $P_N$ is the set of all distinct "pairings", $p$, of which the set
+$\{1, 2, \dots, N\}$ can be dividing into groups of 2.
+
+When each $X_i$ is equal to the same variable $X$ with variance $\sigma_x^2$,
+we have Cov$(X_i, X_j) = \sigma_x^2$ for all pairs $(i,j)$.
+
+When $N$ is odd, there are no possible pairings and therefore $\E[X^N] = 0$.
+
+When $N$ is even, there are $(N-1) \cdot (N-3) \cdots 3 \cdot 1$ pairings
+and $N/2$ pairs in each pairing.
+so $\E[X^N] = (N-1 \cdot (N-3) \cdots 3 \cdot 1) \sigma_x^N$.
+
+Therefore, in general, we have:
+
+
+\begin{equation}
+    E[Z^N] = \biggl\{
+        \begin{array}{ll}
+            \sigma^N (N-1)(N-3) \cdots 3 \cdot 1 &\qquad \text{if $N$ is even} \\
+            0 &\qquad \text{if $N$ is odd}
+        \end{array}
+    \biggr.
+    \label{eq:gaussian-moment}
+\end{equation}
+
+Parts a)-c) follow from equation \ref{eq:gaussian-moment}
+    \begin{enumerate}[label=\alph*)]
+        \item $\E[X^3] = 0$
+        \item $\E[X^4] = 3 \sigma_x^4$
+        \item $\E[X^6] = 15 \sigma_x^6$
+        \item For $\E[X^2 Y^4]$ the covariance term can take distinct values,
+            so we must count pairs more carefully. There are two possibilities:
+            (1) $X$ is paired with itself and (2) each $X$ is paired with a $Y$.
+
+            Each pairing in case (1) is of the form:
+            \begin{equation}
+                [ \{X_1, X_2\}, \{Y_1, Y_i\}, \{Y_j, Y_k\}]
+                \label{eq:pairing-form-1}
+            \end{equation}
+            where $i,j,$ and $k$ are some permutation of the set $\{2,3,4\}$.
+            Once $i$ has been determined, $j$ and $k$ can be swapped without
+            creating a distinct pairing. Therefore there are 3 pairings
+            of the form of equation (\ref{eq:pairing-form-1}).
+
+            Case (2) has the form:
+            \begin{equation}
+                [\{X_1, Y_i\}, \{X_2, Y_j\}, \{Y_k, Y_\ell\}]
+            \end{equation}
+            where $i,j,k,$ and $\ell$ are permutations of $\{1,2,3,4\}$.
+            We first select $i$ from the 4 possible values, then select $j$
+            from the remaining 3, so that there are 12 = $4\cdot3$ possible
+            pairings of this form.
+
+            Thus, Isserli's formula reduces to:
+            \begin{align*}
+                \E[X^2Y^4] &= 3 \cdot \text{Cov}(X, X) \text{Cov}(Y, Y)^2
+                    + 12 \cdot \text{Cov}(X, Y)^2 \text{Cov}(Y,Y) \\
+                    &= 3 \sigma_x^2 \sigma_y^4 + 12 (\rho \sigma_x \sigma_y)^2 \sigma_y^2 \\
+                    &= \sigma_x^2 \sigma_y^4 ( 3 + 12 \rho)
+            \end{align*}
+
+    \end{enumerate}
+
+\end{enumerate}
+
+\section{Problem 2}
+\begin{enumerate}[label=\roman*)]
+    \item Given a random vector $\vec{x}\in \R^n$ 
+        The covariance matrix $R\in\R^{n\times n}$ is defined as:
+        \begin{equation*}
+            R = \E[(\vec{x} - \E[\vec{x}])(\vec{x}-\E[\vec{x}])^T]
+        \end{equation*}
+
+    \item To simplify the notation, we will write $\vec{z} = \vec{x} - \E[\vec{x}]$.
+    Then, the $ij$-th entry of the covariance matrix is given by:
+    \begin{equation}
+        R_{ij} = \E[\vec{z}_i \vec{z}_j]
+        \label{eq:covariance-entries}
+    \end{equation}
+    where $\vec{z}_i$ is the $i$-th element of the vector $\vec{z}$. In matrix form,
+    the 3-dimensional case is:
+    \begin{equation*}
+        R = \mat{
+            \E[\vec{z}_1 \vec{z}_1] & \E[\vec{z}_1 \vec{z}_2] & \E[\vec{z}_1 \vec{z}_3] \\
+            \E[\vec{z}_2 \vec{z}_1] & \E[\vec{z}_2 \vec{z}_2] & \E[\vec{z}_2 \vec{z}_3] \\
+            \E[\vec{z}_3 \vec{z}_1] & \E[\vec{z}_3 \vec{z}_2] & \E[\vec{z}_3 \vec{z}_3] \\
+        }
+    \end{equation*}
+    Because multiplication commutes, it can be seen from equation (\ref{eq:covariance-entries})
+    the covariance matrix is symmetric and
+    only the terms at and above the diagonal must be computed. For the 3-dim case,
+    that corresponds to 6 distinct $\E[\vec{z}_i \vec{z}_j]$ terms.
+
+    \item For the $N$-dim case, the number of terms that must be computed is:
+        \begin{equation*}
+            1 + 2 + \cdots + (N - 1) + N = N(N+1)/2
+        \end{equation*}
+
+    \item When the entries of $\vec{x}$ are complex, we must consider the potential
+        correlation between each real and each imaginary component. We could stack
+        these into a new random vector $\vec{y} \in \R^{2N}$ defined by:
+        \begin{equation*}
+            y = \mat{
+                \vec{x}_{1,real} \\
+                \vec{x}_{2,real} \\
+                \vdots \\
+                \vec{x}_{N,real} \\
+                \vec{x}_{1,imag} \\
+                \vec{x}_{2,imag} \\
+                \vdots \\
+                \vec{x}_{N,imag}
+            }
+        \end{equation*}
+        Since $y$ has 2N components, we replace $N$ with $2N$ in the solution to
+        part iv) and see that the number of terms to compute is:
+        \begin{equation*}
+            2N(2N + 1) / 2 = N(2N + 1)
+        \end{equation*}
+        For example, if $N=1$, then the covariance matrix will be 2x2 and have 3 distinct
+        components.
+\end{enumerate}
+
+\section{Problem 3}
+
+We will derive the formula for the multivariate ZMGRV first in the more
+general $N$-d case. Consider the random vector $\vec{x}$ where each $\vec{x}_i$
+is a ZMGRV, possibly correlated to the others.
+
+We want to find the joint characteristic function $M_X: \R^N \to \R$ defined by
+\begin{align}
+    M_X(j \vec{\nu}) &= \E[e^{j(\vec{\nu}_1 \vec{x}_1 + \cdots \vec{\nu}^N \vec{x}_N)}] \\
+        &= \E[e^{j \vec{\nu}^T \vec{x}}]
+        \label{eq:joint-char-func}
+\end{align}
+
+As done in lecture we define the random variable $z$ by
+\begin{equation*}
+    z = \nu^T \vec{x}
+\end{equation*}
+
+Since each variable is zero mean ($\E[X_i] = 0$ for all $i$),
+the mean of $z$ is also 0:
+\begin{equation*}
+    \E[z] = \E[\nu^T \vec{x}] = \E[\sum_{i=1}^N \nu_i x_i]
+        = \sum_{i=-1}^{N} \nu_i \E[x_i] = 0
+\end{equation*}
+
+We find its variance, $\sigma_z^2$, to be:
+\begin{align*}
+    \sigma_z^2 = \E[z^2] - \E[z]^2 &= \E{z^2} \\
+        &= \E[(\nu^T \vec{x}) (\nu^T \vec{x})^T] \\
+        &= \E[\nu^T \vec{x} \vec{x}^T \nu] \\
+        &= \nu^T \E[\vec{x} \vec{x}^T] \nu \\
+        &= \nu^T R_{xx} \nu
+\end{align*}
+
+where $R_{xx}$ is the covariance matrix of $x$.
+
+Since $z$ is the weighted sum of Gaussians, $z$ also takes a gaussian distribution.
+The characteristic function of a univariate ZMGRV is known to be:
+\begin{equation}
+    M_z(s) = \E[e^{sz}]= e^{s^2 \sigma_z^2 / 2}
+    \label{eq:univariate-mgf}
+\end{equation}
+
+Returning to equation (\ref{eq:joint-char-func}) and putting $s=j$ into equation
+(\ref{eq:univariate-mgf}), we have
+
+\begin{align*}
+    M_X(j \nu) = \E{e^{j z}} = M_z(j) &= e^{j^2 \sigma_z^2 / 2} \\
+        &= e^{-\frac{1}{2} \nu^T R_{xx} \nu}
+\end{align*}
+
+In the specific 2D case, we have
+\begin{equation*}
+    R_{xx} = \mat{
+        \sigma_x^2 & \rho \sigma_x \sigma_y \\
+        \rho \sigma_x \sigma_y  & \sigma_y^2 \\
+    }
+\end{equation*}
+
+so the joint charactersitc function evaluates to:
+\begin{align*}
+    M_X(j\nu) &= \exp \biggl(
+        -\frac{1}{2} \nu^T \mat{
+            \sigma_x^2 & \rho \sigma_x \sigma_y \\
+            \rho \sigma_x \sigma_y  & \sigma_y^2 \\
+        } \nu
+    \biggr) \\
+    &= \exp \biggl(
+        -\frac{1}{2} \mat{\nu_x & \nu_y} \mat{
+            \sigma_x^2 \nu_x + \rho \sigma_x \sigma_y \nu_y \\
+            \rho \sigma_x \sigma_y \nu_x + \sigma_y^2 \nu_y
+        }
+    \biggr) \\
+    &= \exp \biggl(
+        -\frac{1}{2} (
+            \sigma_x^2 \nu_x^2 + 2 \rho \sigma_x \sigma_y \nu_x \nu_y
+            + \sigma_y^2 \nu_y^2
+        )
+    \biggr)
+\end{align*}
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
