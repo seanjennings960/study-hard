@@ -1,0 +1,251 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5738}
+\title{Homework 7}
+\author{Sean Jennings}
+\date{April 30, 2024}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+
+Define $\alpha: \R \to \R$ to be the common denominator of the dynamics equations.
+That is, we rewrite the dynamics:
+\begin{align*}
+    \dot{x}_1 &= x_2     \\
+    \dot{x}_2 &= \frac{1}{\alpha(x_3)} \biggl(
+        -x_1 + \epsilon x_4^2 \sin x_3 - \epsilon \cos x_3 u
+    \biggr)\\
+    \dot{x}_3 &= x_4     \\
+    \dot{x}_4 &= \frac{1}{\alpha(x_3)} \biggl(
+        \epsilon \cos x_3 ( x_1 - \epsilon x_4^2 \sin x_3) + u
+    \biggr) \\
+\end{align*}
+with
+\begin{equation*}
+    \alpha(x_3) = 1 - \epsilon^2 \cos^2 x_3
+\end{equation*}
+
+\begin{letterenum}
+\item We differentiate the output $y = x_3$ to find the first derivative that depends
+on $u$. Since $\dot{y} = \dot{x}_3 = x_4$, we have that the second
+derivative $\ddot{y} = \dot{x}_4$ depends on $u$ and the relative degree is therefore
+2.
+
+\item We equate $\ddot{y}$ to a modified control variable $v\in\R$ and note that
+$\dot{x}_4$ can be written in the form:
+\begin{equation}
+    \ddot{y} = \dot{x}_4 = v = \frac{1}{\alpha(x_3)} ( u + \phi(x))
+    \label{eq:control-transformation}
+\end{equation}
+where $\phi: \R^4 \to \R$ is the functional:
+\begin{equation*}
+    \phi(x_1, x_2, x_3, x_4) = \epsilon \cos x_3 ( x_1 - \epsilon x_4^2 \sin x_3) 
+\end{equation*}
+Since $1 / \alpha > 0$, the control transformation (\ref{eq:control-transformation})
+is invertible, $u$ can be expressed as a function of $v$
+\begin{equation*}
+    u = \alpha(x_3) v - \phi(x)
+\end{equation*}
+and the system is indeed input-output linearizable.
+
+By letting $v = -\mat{y & \dot{y}} K$, we see the output dynamics are given by:
+\begin{equation*}
+    \mat{ \dot{y} \\ \ddot{y} } = \mat{\dot{y} \\ 0} + \mat{0 \\ 1} v =
+        \mat{
+        0 & 1 \\
+        -k_1 & -k_2
+    } \mat{y \\ \dot{y}}
+\end{equation*}
+which has $y=\dot{y} = 0$ as a globally asymptotically stable equilibrium point 
+for appropriately chosen $K$.
+
+\item The zero dynamics are found by taking $y = \dot{y} = \ddot{y} = 0$ which
+implies that $x_3 = x_4 = v = 0$. Thus, $u = - \phi(x_1, x_2, 0, 0) = -\epsilon x_1$ and the dynamics
+of the translational elements of oscillator are given by
+\begin{align*}
+    \dot{x}_1 &= x_2 \\
+    \dot{x}_2 &= \frac{1}{\alpha(0)} \biggl(
+        -x_1 - \epsilon u
+    \biggr) \\
+    &= \frac{1}{1 - \epsilon^2} (\epsilon^2 - 1) x_1 \\
+    &= -x_1
+\end{align*}
+or in matrix form
+\begin{equation*}
+    \mat{\dot{x}_1 \\ \dot{x}_2} = \mat{
+        0 & 1 \\
+        -1 & 0
+    } \mat{x_1 \\ x_2}
+\end{equation*}
+
+Therefore the zero dynamics are linear and marginally stable. Physically,
+this corresponds to the pendulum being actively stabilized to its
+downmost position while the cart oscillates due to the spring. Since the 
+dynamics do not include damping/dissipative terms, this signifies that the control
+is passive: it does not add energy to the system.
+
+\end{letterenum}
+
+\section{Problem 2}
+Define $f$ as the polynomial:
+\begin{equation*}
+    f(\phi) = -\frac{3}{2} \phi^2 - \frac{1}{2} \phi^3
+\end{equation*}
+so that the dynamics of $\phi$ can be written as
+\begin{equation*}
+    \dot{\phi} = - \psi + f(\phi).
+\end{equation*}
+Consider $\psi$ as an input to the dynamics of $\phi$. Let $\alpha: \R \to \R$
+be the function
+\begin{equation*}
+    \alpha(\phi) = k_1 \phi + f(\phi)
+\end{equation*}
+so that along the surface $(\phi, \psi) = (\phi, \alpha(\phi))$
+we have $\dot{\phi} = -k_1 \phi$ which is stable for $k_1 > 0$.
+
+Perform the change of variables $z = \psi - \alpha(\phi)$.
+Then, the dynamics in the coordinates $(\phi, z)$ is given by:
+\begin{align}
+    \dot{\phi} &= - (z + \alpha(\phi)) + f(x) = -z - k_1 \phi \\
+    \dot{z} &= \dot{\psi} - \frac{d\alpha}{d\phi} \dot{\phi}
+    \label{eq:redefined-control}
+\end{align}
+
+We redefine the control variable $v$ to be equal to the right side of
+(\ref{eq:redefined-control}):
+\begin{align*}
+v &= \dot{\psi} - \frac{d\alpha}{d\phi} \dot{\phi} \\
+    &= \frac{1}{\beta}(\phi + 1 - u) - (k_1 - 3\phi - 3/2 \phi^2)
+        ( - \psi - 3/2 \phi^2 - 1/2 \phi^3) \\
+\end{align*}
+We see that $\dot{z}$ is linear with respect to the control input $u$,
+and can therefore define the function $g: \R^2 \to \R$ to be the terms which do
+not depend on $u$, so that
+\begin{equation*}
+    v = -\frac{1}{\beta} u + g(\phi, \psi).
+\end{equation*}
+
+Finally, we use the Lyapunov function
+\begin{equation*}
+    V(\phi, z) = 1/2 (\phi^2 + z^2)
+\end{equation*}
+to find a control that stabilizes the origin. The 
+derivative of $V$ is given by:
+\begin{align*}
+    \dot{V}(\phi, z) &= \phi \dot{\phi} + z \dot{z} \\
+        &= \phi( - k_1 \phi - z) + zv \\ 
+        &= -k_1 \phi^2 - (\phi - v) z
+\end{align*}
+so that choosing $v = \phi -k_2 z$ makes $\dot{V}$ globally
+negative definite:
+\begin{equation*}
+    \dot{V}(\phi, z) = - k_1 \phi^2 - k_2 z^2,
+\end{equation*}
+
+Therefore, the control
+\begin{align*}
+    u &= \beta ( g(\phi, \psi) - v) \\
+        &= \beta ( g(\phi, \psi) - \phi + k_2 z) \\
+        &= \beta ( g(\phi, \psi) - \phi + k_2 (\psi - \alpha(\phi)))
+\end{align*}
+stabilizes the origin.
+
+\section{Problem 3}
+Define the surface
+\begin{equation*}
+    s(t) = ax_1 + x_2
+\end{equation*}
+On the surface $s(t) = 0$, we have
+\begin{equation*}
+    \dot{x}_1 = (1 - 3a) x_1
+\end{equation*}
+
+So for $a > 1/3$, $x_1$ converges to 0, and since the surface
+crosses the $x_1$ axis through the origin any trajectory which stays on
+the surface will approach the origin. Thus, a controller
+which drives the system to $s$ in finite time will make the origin
+asymptotically stable.
+
+% Define the functional $f: \R^2 \to \R$ to be
+% \begin{equation*}
+%     f(x) = \phi x_2^4 + x_1
+% \end{equation*}
+% so that the $x_2$ dynamics can be written
+% \begin{equation*}
+%     \dot{\phi_2} = f(x) + u
+% \end{equation*}
+% Letting $\hat{f}$ be our best estimate of the dynamics:
+% \begin{equation*}
+%     \hat{f}(x) = \hat{\theta} x_2^4 + x_1.
+% \end{equation*}
+% where $\hat{\theta} = 1$. Then, the uncertainty in the dynamics
+% $\tilde{f}(x) = f(x) - \hat{f}(x)$ can be bounded:
+% \begin{equation*}
+%     |tilde{f}(x)| \leq 0.2 x_2^4
+% \end{equation*}
+
+The surface dynamics are given by:
+\begin{align*}
+    \dot{s} &= a\dot{x}_1 + \dot{x}_2 \\
+        &= a(x_1 + 3x_2) + \theta x_2^4 + x_1 + u \\
+        &=: f(x) + u
+\end{align*}
+where we have defined the function $f: \R^2 \to \R$ to be unforced surface dynamics.
+
+Letting $\hat{\theta} = 1$ be our best estimate of $\theta$, we can decompose
+$f$ into an estimated component
+\begin{equation*}
+    \hat{f} = (a+1) x_1 + 3a x_2 + \hat{\theta} x_2^4
+\end{equation*}
+and an uncertain component $\tilde{f} = f - \hat{f}$ which is bounded by
+\begin{equation}
+    |\tilde{f}| \leq \max_{\theta} |\theta - \hat{\theta}| x_2^4 = 0.2 x_2^4
+    \label{eq:error-bound}
+\end{equation}
+We select $u$ to eliminate the certain dynamics and dominate the uncertain
+dynamics:
+\begin{equation*}
+    u = -\hat{f} - k \text{sgn}(s).
+\end{equation*}
+
+Then, taking the Lyapunov function $V(s) = 1/2 s^2$, we have
+\begin{align}
+    \dot{V}(s) = s \dot{s} = s \bigl[(\hat{f}(x) + \tilde{f}(x)) +
+                                      (- \hat{f}(x) - k \text{sgn}(s))\bigr]
+        &= \tilde{f}(x) s - k |s| \\
+        &\leq |\tilde{f}(x) s| - k|s| \\
+        &\leq (|\tilde{f}(x)| - k) |s|
+        \label{eq:lyap-intermediate}
+\end{align}
+Choosing $k$ to be a function of $x_2$
+\begin{equation*}
+    k = k(x_2) = 0.2 x_2^4 + \eta
+\end{equation*}
+where $\eta > 0$ is some positive constant, by (\ref{eq:lyap-intermediate})
+and (\ref{eq:error-bound}), we have
+\begin{equation*}
+    \dot{V} \leq - \eta |s| = - \eta \sqrt{2 \V(s)}
+\end{equation*}
+
+Therefore, the system converges to the surface in finite time, and
+LaSalle's Invariance Principle shows that the origin is an asymptotically stable
+equilibrium.
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
