@@ -38,6 +38,8 @@ path = "src/numerical_analysis/__about__.py"
 dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
+  "numpy",
+  "matplotlib",
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
@@ -121,6 +123,10 @@ ignore = [
   "S105", "S106", "S107",
   # Ignore complexity
   "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+  # Allow uppercase variable
+  "N803", "N806",
+  # Allow prints
+  "T201",
 ]
 unfixable = [
   # Don't touch unused imports

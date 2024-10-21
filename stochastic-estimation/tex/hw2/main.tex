@@ -1,0 +1,261 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+
+\class{ECEN 5244}
+\title{Homework 2}
+\author{Sean Jennings}
+\date{September 9, 2024}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+\begin{letterenum}
+\item 
+For each ray $i\in\{1, \dots, 5\}$, we are given $d_i$, the travel time of the ray through the material. 
+Let $v_j$ be the velocity of the ray as it travels through the $j$th zone where $j\in\{1,\dots,6\}$. From
+the given illustration, we write the distance $G_{ij}$ which ray $i$ travels through zone $j$ as
+entries of the matrix $G\in\R^{5\times 6}$:
+\begin{equation*}
+    G = \mat{
+        1 & 1 & 1 & 1 & 1 & 1 \\
+        \sqrt{2} & 0 & 0 & 0 & 0 & 0 \\
+        0 & 0 & 1 & 0 & 0 & 0 \\
+        0 & 0 & 0 & \sqrt{2} & 0 & 0 \\
+        0 & 0 & 0 & 0 & 0 & 1 \\
+    }
+\end{equation*}
+
+Assuming constant speed through each zone, the total time spent by ray $i$ in zone $j$ is $G_{ij} / v_j$,
+so that the estimated time $\hat{d}_i$ as a function of our velocity model is
+\begin{equation*}
+    \hat{d}_i = \sum_{j=1}^{6} G_{ij} / v_j
+\end{equation*}
+Defining $m_j = 1 / v_j$ to be the "slowness" of zone $j$ (the recipricol of velocity), and substituting the slowness into the previous
+equation, we see that the travel time is a linear function of the slowness.
+\begin{equation*}
+    \hat{d}_i = \sum_{j=1}^{6} G_{ij} \cdot m_j
+\end{equation*}
+We rewrite the previous relationship in vector form with $\hat{d}\in\R^5$ being the vector of estimated travel times for each
+ray and $m\in\R^6$ being the modeled slowness in each zone. The relationship is now in our canonical form:
+\begin{equation}
+    \hat{d} = Gm
+    \label{eq:canonical-linear}
+\end{equation}
+
+\item The system is underdetermined, since we have more modeled parameters than we have measurements. By inspection of the
+$G$ matrix, we see that $G$ has rank 5. Since rank$(G)=$rank$(G^T G)$, we see that $G^T G \in\R^{6 \times 6}$ is not full
+rank and therefore is not invertible.
+
+\item The least square problem cannot be solved in its explicit form $\hat{m} = (G^T G)^{-1} G^T d$ because $G^T G$ is not invertible.
+Since the range of $G$ is $\R^5$ there are infinitely many $\hat{m}$ which satisfy equation (\ref{eq:canonical-linear}). Possible adjustments which
+would make the solution unique include:
+\begin{enumerate}
+    \item Use SVD to find one particular solution,
+    \item Collect more measurements,
+    \item Impose constraints on how fast the slowness varies between zones,
+    \item Combine zones to reduce the dimensionality of the model.
+\end{enumerate}
+
+\end{letterenum}
+
+\section{Problem 2}
+Let the matrix $G\in\R^{m \times n}$ be given. Define $A\in \R^{n\times n}$ to be $A = G^T G$.
+
+The given expression $A_{ij} m_i m_j$ is a function of the $i$th and $j$th model parameters so when we 
+take the partial derivative in terms of $m_k$, the result depends on the indices:
+\begin{equation}
+    \frac{\delta}{\delta m_k} A_{ij} m_i m_j =  \biggl\{
+        \begin{array}{ll}
+            0 &\qquad \text{if } i \neq k \text{ and } j\neq k \\
+            A_{kj} m_j &\qquad \text{if } i = k \text{ and } j\neq k \\
+            A_{ik} m_i &\qquad \text{if } i \neq k \text{ and } j= k \\
+            2A_{kk} m_k &\qquad \text{if } i = j = k
+        \end{array}
+    \biggr.
+    \label{eq:conditional-partial}
+\end{equation}
+
+Let $f: \R^n \to \R$ be the function $f(m) = m^T A m$.
+
+To relate the previous conditional equality to the derivative of $f$, we write the matrix product $m^T A m$ as a summation over rows and columns of $A$:
+\begin{equation}
+    f(m) = m^T A m = \sum_{i=1}{n} m_i \biggl(\sum_{j=1}{n} A_{ij} m_j\biggr) = \sum_{i=1}^{n} \sum_{j=1}^n A_{ij} m_i m_j
+    \label{eq:summation-form}
+\end{equation}
+
+\renewcommand{\partial}[1]{\frac{\delta}{\delta #1}}
+
+We can then find the partial derivative $f$ with respect to $m_k$ by dividing the summation of (\ref{eq:summation-form}) into terms which correspond
+to each conditional of (\ref{eq:conditional-partial}):
+\begin{align*}
+    \frac{\delta}{\delta m_k} f(m) = \frac{\delta}{\delta m_k} (m^T A m) &=
+        \sum_{i\neq k} \biggl(\partial{m_k} ( A_{ik} m_i m_k) + \sum_{j\neq k} \partial{m_k} (A_{ij} m_i m_j) \biggr) \\
+        &\quad + \partial{m_k} (A_{kk} m_k m_k) + \sum_{j\neq k} \partial{m_k} (A_{kj} m_k m_j) \\
+        &= \sum_{i\neq k} A_{ik} m_i + \sum_{j \neq k} A_{kj} m_j + 2 A_{kk} m_k \\
+        &= \sum_{i=1}^{n} A_{ik} m_i + \sum_{j=1}^{n} A_{kj} m_j \\
+        &= 2 \sum_{j=1}^{n} A_{kj} m_j
+\end{align*}
+Note the last equality is due to the synmmetry of $A$. This shows that $\partial{m_k} (m^T A m) = (2Am)_k = 2(G^T Gm)_k$.
+
+\newcommand{\inner}[2]{\langle #1, #2 \rangle}
+
+The author finds the index notation rather cumbersome and will instead provide a proof of the normal equation which is 
+based upon the derivative of the inner product. Let $\inner{\cdot}{\cdot}$ be the standard inner product in $\R^m$. That is,
+$\inner{x}{y} = y^T x$. If $\alpha$ and $\beta$ are two continuously differentiable functions from $R^n$ to $\R^m$, then
+the derivative of their inner product is given by:
+\begin{equation}
+    \nabla \inner{\alpha(x)}{\beta(x)} = \nabla \alpha(x)^T \beta (x) + \nabla \beta(x)^T \alpha(x)
+    \label{eq:product-rule}
+\end{equation}
+This is an extension of the product rule to vector-valued functions.
+
+If we let $\alpha(m) = \beta(m) = Gm$, then the derivative is constant $\nabla \alpha = \nabla \beta = G$ and equation
+(\ref{eq:product-rule}) yields the same inequality shown before: $\nabla (m^T G^T G m) = \nabla (\inner{Gm}{Gm}) = 2 G^T Gm$.
+
+Now, given design matrix $G\in\R^{m\times n}$ and measurement vector $d \in\R^m$, we want to find the model $m\in\R^n$ which minimizies
+the square distance between our estimates $\hat{d}(m) = Gm$ and the measurements $d$. Let $r: \R^n \to \R$ be the square distance
+function defined by:
+\begin{equation*}
+    r(m) = \norm{\hat{d}(m) - d}^2 = \norm{Gm - d}^2 = \inner{Gm-d}{Gm-d}
+\end{equation*}
+
+Since $r$ is defined over all of $\R^n$, $r$ must take its minimum when $\nabla r(m) = 0$.
+Now, let $\alpha(m) = \beta(m) = Gm - d$. Then,
+\begin{equation*}
+    \alpha(m)^T \beta(m) = G^T( Gm - d)  = \nabla \beta(m)^T \alpha(m)
+\end{equation*}
+
+and by equation (\ref{eq:product-rule}), the derivative of $r$ is $\nabla r(m) = 2G^T( Gm - d)$. Therefore, $\nabla r(m) = 0$ implies that
+\begin{equation*}
+    2G^T(Gm-d) = 0
+\end{equation*}
+
+Dividing by 2, distributing $G^T$ and adding $G^Td$ to both sides yields the normal equation:
+\begin{equation*}
+    G^T G m = G^T d
+\end{equation*}
+
+
+\section{Problem 3}
+\begin{letterenum}
+\item Figure (\ref{fig:fit1}) shows a plot of the data and fit. Figure (\ref{fig:hist1}) shows a plot of the residuals.
+
+\begin{center}
+    \includegraphics[width=0.5\linewidth]{fit_data1.jpg}
+    \captionof{figure}{Fit for data1.dat}
+    \label{fig:fit1}
+\end{center}
+\begin{center}
+    \includegraphics[width=0.5\linewidth]{Images/histogram_data1.jpg}
+    \captionof{figure}{Histogram for data1.dat}
+    \label{fig:hist1}
+\end{center}
+
+\item The $\chi^2$ statistic is 86.0. Since the degrees of freedom for the distribution is $\nu = N - M = 10 - 2 = 8$,
+the expectation is ${\bf E}[\chi^2] = \nu = 8$ and the standard deviation is $\sigma_{\chi^2} = \sqrt{2 \nu} = 4$.
+
+\item Given the assumption that the output follows the fit plus Gaussian noise of std $\sigma= 0.2$, the probability of
+realizing such a high $\chi^2$ statistic is near 0 ($3.3\times10^-14$). This our model is not acceptable.
+
+\item Figure (\ref{fig:fit2}) shows a plot of the data and fit for the second data file. Figure (\ref{fig:hist2}) shows a plot of residuals.
+\begin{center}
+    \includegraphics[width=0.5\linewidth]{Images/fit_data2.jpg}
+    \captionof{figure}{Fit for data2.dat}
+    \label{fig:fit2}
+\end{center}
+\begin{center}
+    \includegraphics[width=0.5\linewidth]{Images/histogram_data2.jpg}
+    \captionof{figure}{Histogram for data2.dat}
+    \label{fig:hist2}
+\end{center}
+\item Since the number of data points and the number of parameters are the same as for the first data file, the expectation and
+standard deviation of the $\chi^2$ distribution is equivalent to the previous part. The realized value of $\chi^2$ is now
+32.3. Again, this is very far outside of the expected range.
+
+\end{letterenum}
+
+\section{Appendix: Code}
+
+
+\begin{lstlisting}
+function y_fit = ls_fit(x, y)
+    M = size(x, 1);
+    G = [ones(M, 1), x];
+    m = (G' * G) \ (G' * y);
+    y_fit = G * m;
+end
+
+function chi2 = goodness_of_fit(nu, y, y_fit, sigma)
+    chi2 = sum((y - y_fit).^2 / sigma^2);
+    p_chi2 = 1 - chi2cdf(chi2, nu);
+    
+    fprintf('Chi2 is: %g\n', chi2);
+    fprintf('Probability of result given model: %g\n', p_chi2);
+    fprintf('Degrees of freedom is %g so the std is: %g \n', nu, sqrt(2 * nu));
+end
+
+function run_fit(x, y, sigma, data_name)
+    IMAGE_DIR = '../../tex/hw2/Images/';
+
+    nu = size(x, 1) - 2;
+    y_fit = ls_fit(x, y);
+    chi2 = goodness_of_fit(nu, y, y_fit, sigma);
+
+    % Data and fit line
+    h = figure;
+    plot(x, y, 'ro', x, y_fit, 'b');
+    legend('data', 'fit');
+    title(['Data and Fit Line for ' data_name])
+    xlabel('x')
+    ylabel('y')
+    saveas(h, [IMAGE_DIR 'fit_' data_name '.jpg']);
+    uiwait(h)
+
+    % Residual Histogram
+    h = figure;
+    histogram(y - y_fit, 10);
+    title(['Histogram of Residuals for ' data_name ...
+           sprintf(' | goodness of fit = %g', chi2)])
+    xlabel('error = y - y_fit')
+    ylabel('Count')
+    saveas(h, [IMAGE_DIR 'histogram_' data_name '.jpg']);
+    uiwait(h)
+end
+
+load -ascii data1.dat
+disp('Fitting data1.dat')
+x = data1(:, 1); y = data1(:, 2);
+sigma = 0.2;
+run_fit(x, y, sigma, 'data1');
+
+load -ascii data2.dat
+disp('Fitting data1.dat')
+x = data2(:, 1); y = data2(:, 2);
+run_fit(x, y, sigma, 'data2');
+
+
+
+\end{lstlisting}
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}

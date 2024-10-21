@@ -1,0 +1,32 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5244}
+\title{Project Proposal}
+\author{Sean Jennings}
+\date{October 18, 2024}
+
+\begin{document}
+\maketitle
+
+For the project, I will develop a model for Li-ion battery degradation which
+predicts the state of health (SoH) -- a proxy for the remaining lifetime of the battery -- as a function
+of voltage, current, and temperature during charge/discharge. I will analyze publicly-available experimental
+datasets and utitlize the Kalman filtering (KF) methodology from the course plan to obtain a
+real-time prediction algorithm as the end goal. In general, this problem is complex and nonlinear so
+I anticipate an extended Kalman filter will be necessary, but it may also be possible to linearize the problem
+by extracting domain-specific features.
+
+A work plan (with rough time estimates) follows:
+\begin{enumerate}
+\item Literature review and access datasets (1 day at 4-5 hr work/day)
+\item Preliminary analysis of data (2 days)
+\item Implement and validate KF (2 days)
+\item Synthesize and present results (2 days)
+\end{enumerate}
+
+\end{document}

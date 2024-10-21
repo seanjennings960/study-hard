@@ -1,0 +1,75 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def problem1():
+
+    for dtype in [np.float32, np.float64]:
+        eps = np.finfo(dtype).eps
+        x = np.logspace(-30, 1, dtype=dtype)
+        y = func1(x)
+        line = plt.loglog(x, y, label=f"dtype={dtype}")[0]
+        plt.axvline(x=eps, label=f"EPS({dtype})", c=line.get_color())
+    plt.legend()
+    plt.show()
+
+def func1(x):
+    eps = np.finfo(x.dtype).eps
+
+    y1 = np.sqrt(x + 1) - 1
+    y2 = 1/2 * x - 1/8 * x ** 2
+    return np.where(x > eps, y1, y2)
+
+
+#         9    8    7     6     5      4     3      2     1     0
+p_coef = [1, -18, 144, -672, 2016, -4032, 5376, -4608, 2304, -512]
+DEG = len(p_coef) - 1
+
+
+def print_max_term():
+    y = np.abs([a * 2 ** ( DEG - k) for k, a in enumerate(p_coef)])
+    k = np.argmax(y)
+    print(f"Max term: {p_coef[k]} * 2^{DEG - k} = {y[k]}")  # noqa
+
+def problem2():
+    p1 = lambda x: (x - 2)**9  # noqa
+    p2 = lambda x:  np.sum([a * x**(DEG-k) for k, a in enumerate(p_coef)], axis=0) # noqa
+
+    x = np.arange(1.92, 2.08, 0.001)
+    y1 = p1(x)
+    y2 = p2(x)
+    print_max_term()
+
+    fig = plt.figure()
+    plt.plot(x, y1, label="(x - 2)^9")
+    plt.plot(x, y2, label="Bionomial Expansion")
+    plt.legend()
+    fig.savefig("tex/hw1/Images/problem2.png")
+    plt.show()
+
+
+
+def problem3():
+    y = 0
+    delta = np.logspace(-16,0)
+    z1 = np.cos(y + delta) - np.cos(y)
+    z2 = -delta * np.sin(y) - 1/2 * delta**2 * np.cos(y)
+
+    # fig = plt.figure()
+    plt.loglog(delta, np.abs(z2-z1))
+    plt.xlabel("delta")
+    plt.ylabel("|z1 - z2|")
+    # fig.savefig("tex/hw1/Images/problem3.png")
+    plt.show()
+
+
+
+
+
+def main():
+    problem3()
+
+if __name__ == "__main__":
+    main()
+
+

@@ -1,0 +1,650 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      -->
+<title>hw6</title>
+<meta name="generator" content="MATLAB 24.1">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2024-10-16">
+<meta name="DC.source" content="hw6.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style>
+</head>
+<body>
+<div class="content">
+<h2>Contents</h2>
+<div>
+<ul>
+<li>
+<a href="#2">Compute spectrum...</a>
+</li>
+<li>
+<a href="#3">Plotting functions</a>
+</li>
+<li>
+<a href="#4">Display original image</a>
+</li>
+<li>
+<a href="#5">Plot Spectral Estimate from provided radial autocorrelation</a>
+</li>
+<li>
+<a href="#6">Filtering</a>
+</li>
+<li>
+<a href="#7">Compute the errors</a>
+</li>
+<li>
+<a href="#13">Compute error across sigmas</a>
+</li>
+<li>
+<a href="#14">Deconvolution Weiner filter</a>
+</li>
+<li>
+<a href="#16">Compute for specific sigma</a>
+</li>
+<li>
+<a href="#17">Display convolved image</a>
+</li>
+<li>
+<a href="#18">Display convolution filter</a>
+</li>
+<li>
+<a href="#19">Display FFT of conv filter</a>
+</li>
+<li>
+<a href="#20">Spectrum of convoluted signal</a>
+</li>
+<li>
+<a href="#21">Display spectrum of estimate</a>
+</li>
+<li>
+<a href="#22">Display filter</a>
+</li>
+<li>
+<a href="#23">Display filtered image</a>
+</li>
+<li>
+<a href="#24">SNR in raw image</a>
+</li>
+<li>
+<a href="#25">SNR in freq space</a>
+</li>
+<li>
+<a href="#26">Compute the errors</a>
+</li>
+</ul>
+</div>
+<pre class="codeinput">load <span class="string">hw6/hw6.mat</span> <span class="string">d</span> <span class="string">dc</span> <span class="string">dpn</span> <span class="string">dcpn</span> <span class="string">Rxx_est</span> <span class="string">sigman</span> <span class="string">pattern</span>
+</pre>
+<h2 id="2">Compute spectrum...</h2>
+<pre class="codeinput">
+<span class="keyword">function</span> Sxx = spectrum2d_from_radial(Rx)
+    scale = false;
+    <span class="keyword">if</span> size(Rx) ~= [256, 1]
+        error(<span class="string">"Input must be size (256, 1)"</span>)
+    <span class="keyword">end</span>
+    Rxx = zeros(512, 512);
+    ixm = 257; iym = 257;
+    <span class="keyword">for</span> iix = 1:512
+        <span class="keyword">for</span> iiy = 1:512
+            Rxx(iix, iiy) = Rx( <span class="keyword">...</span>
+                min([ <span class="keyword">...</span>
+                    round(sqrt((iix - ixm)^2 + (iiy - iym)^2)) <span class="keyword">...</span>
+                    255] <span class="keyword">...</span>
+                ) + 1);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    <span class="comment">% Scale the autocorrelation function to ensure that the power is</span>
+    <span class="comment">% a multiple of 10.</span>
+    <span class="comment">% Note this scaling factor really doesn't do anything since Sxx is</span>
+    <span class="comment">% rescaled by Rx anyways...</span>
+    <span class="keyword">if</span> scale
+        Rxx = Rxx * 10 * round(Rxx(257, 257)/10) / Rxx(257, 257);
+    <span class="keyword">end</span>
+    Sxx = fftshift(abs(fft2(Rxx)));
+    <span class="comment">% Make sure spectrum sums to the correct power (as given by the</span>
+    <span class="comment">% Rxx_est variable.</span>
+    Sxx = Rx(1) * Sxx ./ sum(sum(Sxx));
+<span class="keyword">end</span>
+</pre>
+<img vspace="5" hspace="5" src="hw6_02.png" alt=""> <img vspace="5" hspace="5" src="hw6_15.png" alt=""> <h2 id="3">Plotting functions</h2>
+<pre class="codeinput">
+<span class="keyword">function</span> plot_2d_db(im)
+    imagesc(20 * log10(im));
+    colormap(<span class="string">"jet(256)"</span>);
+    colorbar
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> image_gray(im)
+    image(im)
+    colormap(repmat(linspace(0, 1, 256)', 1, 3));
+    colorbar
+<span class="keyword">end</span>
+</pre>
+<h2 id="4">Display original image</h2>
+<pre class="codeinput">image_gray(d)
+title(<span class="string">"GOES west -- Hurricane Patricia 10/23/15 23:45 UTC"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_01.png" alt=""> <h2 id="5">Plot Spectral Estimate from provided radial autocorrelation</h2>
+<pre class="codeinput">Sxx = spectrum2d_from_radial(Rxx_est);
+figure()
+plot_2d_db(Sxx)
+</pre>
+<img vspace="5" hspace="5" src="hw6_03.png" alt=""> <h2 id="6">Filtering</h2>
+<pre class="codeinput">
+<span class="keyword">function</span> D = create_weiner_filter(Sxx, sigma)
+    Snn = sigma^2 / 2 * ones(size(Sxx));
+    SNR = Sxx ./ Snn;
+    D = 1 ./ (1 + 1./SNR);
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> [x_est, Sxx] = freq_space_filter(x_in, D)
+    <span class="comment">% Perform fft, apply filter multiplicatively, and then ifft.</span>
+    Syy = fftshift(fft2(x_in));
+    Sxx = D .* Syy;
+    x_est = ifft2(ifftshift(Sxx));
+<span class="keyword">end</span>
+
+
+
+<span class="comment">% Use FFT-computed spectrum from raw signal for filtering</span>
+sigma = 20;
+Sxx = fftshift(abs(fft2(d)).^2 / 512^2);
+<span class="comment">% Sxx = spectrum2d_from_radial(Rxx_est);</span>
+D = create_weiner_filter(Sxx, sigma);
+[d_est, Sxx_est] = freq_space_filter(dpn, D);
+</pre>
+<h2 id="7">Compute the errors</h2>
+<pre class="codeinput">e1 = sum(sum(abs(dpn - d)));
+e2 = sum(sum(abs(d_est - d)));
+
+fprintf(<span class="string">"Total error in noisy image: %g\n"</span>, e1)
+fprintf(<span class="string">"Total error in filtered image: %g\n"</span>, e2)
+</pre>
+<pre class="codeoutput">Total error in noisy image: 2.82457e+06
+Total error in filtered image: 866103
+</pre>
+<pre class="codeinput">figure()
+plot_2d_db(D)
+title(<span class="string">"Filter"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_04.png" alt=""> <pre class="codeinput">figure()
+plot_2d_db(abs(Sxx))
+title(<span class="string">"Signal spectrum (Sxx) used for filter"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_05.png" alt=""> <img vspace="5" hspace="5" src="hw6_06.png" alt=""> <img vspace="5" hspace="5" src="hw6_07.png" alt=""> <img vspace="5" hspace="5" src="hw6_08.png" alt=""> <pre class="codeinput">figure()
+plot_2d_db(abs(Sxx_est))
+title(<span class="string">"Filtered spectrum (Sxx_hat)"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_09.png" alt=""> <pre class="codeinput">figure()
+image(dpn)
+colormap(repmat(linspace(0, 1, 256)', 1, 3));
+colorbar
+title(<span class="string">"Noisy image"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_10.png" alt=""> <pre class="codeinput">figure()
+image_gray(d_est)
+title(<span class="string">"Filtered image"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_11.png" alt=""> <h2 id="13">Compute error across sigmas</h2>
+<pre class="codeinput">Sxx = fftshift(abs(fft2(d)).^2 / 512^2);
+<span class="comment">% Rxx = conv2(d, d, "same");</span>
+<span class="comment">% Sxx = fftshift(abs(fft2(Rxx)));</span>
+Sxx = spectrum2d_from_radial(Rxx_est);
+sigmas = logspace(-3, 5);
+errors = zeros(size(sigmas));
+snr = zeros(size(sigmas));
+
+<span class="keyword">for</span> i=1:length(sigmas)
+    sigma = sigmas(i);
+    D = create_weiner_filter(Sxx, sigma);
+    [d_est, Sxx_est] = freq_space_filter(dpn, D);
+    errors(i) = mean(abs(d_est - d), <span class="string">"all"</span>);
+
+    <span class="comment">% Compute the signal to noise ratio over image:</span>
+    snr_all = abs(d) ./ abs(d - d_est);
+    snr(i) = mag2db(mean(snr_all, <span class="string">"all"</span>));
+<span class="keyword">end</span>
+
+figure()
+<span class="comment">% hold on;</span>
+semilogx(sigmas, errors)
+title(<span class="string">"Error versus assumed noise variance"</span>)
+xlabel(<span class="string">"\sigma"</span>)
+ylabel(<span class="string">"Error"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_12.png" alt=""> <h2 id="14">Deconvolution Weiner filter</h2>
+<pre class="codeinput">
+<span class="keyword">function</span> D = create_dconv_weiner_filter(Sxx, sigma, W)
+    Snn = sigma^2 / 2 * ones(size(Sxx));
+    SNR = Sxx ./ Snn;
+    D = abs(W)^2 ./ (abs(W)^2 + 1./SNR) ./ W;
+<span class="keyword">end</span>
+
+
+N = size(d, 1);
+P = size(pattern, 1);
+<span class="comment">% Pad with zeros so that frequency indeces match.</span>
+w = paddata(pattern, [N, N]);
+W = fftshift(fft2(w));
+W = abs(W);
+
+<span class="comment">% Sxx = fftshift(abs(fft2(dcpn)).^2 / 512^2);</span>
+Sxx = spectrum2d_from_radial(Rxx_est);
+
+sigmas = logspace(-3, 5)';
+errors = zeros(size(sigmas));
+<span class="keyword">for</span> i=1:length(sigmas)
+    sigma = sigmas(i);
+    D = create_dconv_weiner_filter(Sxx, sigma, W);
+    [d_est, Sxx_est] = freq_space_filter(dcpn, D);
+    errors(i) = mean(abs(d_est - d).^2, <span class="string">"all"</span>);
+
+    <span class="comment">% Compute the signal to noise ratio over image:</span>
+    snr_all = abs(d) ./ abs(d - d_est);
+    snr(i) = mag2db(mean(snr_all, <span class="string">"all"</span>));
+<span class="keyword">end</span>
+</pre>
+<pre class="codeinput">figure()
+loglog(sigmas, errors)
+</pre>
+<img vspace="5" hspace="5" src="hw6_13.png" alt=""> <h2 id="16">Compute for specific sigma</h2>
+<pre class="codeinput">sigma = 1;
+D = create_dconv_weiner_filter(Sxx, sigma, W);
+[d_est, Sxx_est] = freq_space_filter(dcpn, D);
+</pre>
+<h2 id="17">Display convolved image</h2>
+<pre class="codeinput">figure()
+image(dcpn)
+colormap(repmat(linspace(0, 1, 256)', 1, 3));
+colorbar
+title(<span class="string">"Noisy + Convolved image"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_14.png" alt=""> <h2 id="18">Display convolution filter</h2>
+<pre class="codeinput">figure()
+plot_2d_db(w)
+title(<span class="string">"Gaussian filter w(t)"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_16.png" alt=""> <h2 id="19">Display FFT of conv filter</h2>
+<pre class="codeinput">figure()
+plot_2d_db(W)
+title(<span class="string">"Spectrum of Gaussian filter W(f)"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_17.png" alt=""> <h2 id="20">Spectrum of convoluted signal</h2>
+<pre class="codeinput">Sxx_conv = fftshift(abs(fft2(dc)).^2 / 512^2);
+figure()
+plot_2d_db(Sxx_conv)
+title(<span class="string">"Spectrum of convoluted signal (dc)"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_18.png" alt=""> <h2 id="21">Display spectrum of estimate</h2>
+<pre class="codeinput">figure()
+plot_2d_db(abs(Sxx_est))
+</pre>
+<img vspace="5" hspace="5" src="hw6_19.png" alt=""> <h2 id="22">Display filter</h2>
+<pre class="codeinput">figure()
+plot_2d_db(abs(D))
+title(<span class="string">"Filter (D(f))"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_20.png" alt=""> <h2 id="23">Display filtered image</h2>
+<pre class="codeinput">figure()
+image_gray(abs(d_est))
+title(<span class="string">"Deconvolved Image"</span>)
+</pre>
+<img vspace="5" hspace="5" src="hw6_21.png" alt=""> <h2 id="24">SNR in raw image</h2>
+<pre class="codeinput">snr_all = abs(d) ./ abs(d - d_est);
+snr = mag2db(mean(snr_all, <span class="string">"all"</span>))
+plot_2d_db(snr_all)
+</pre>
+<pre class="codeoutput">
+snr =
+
+   48.3953
+
+</pre>
+<img vspace="5" hspace="5" src="hw6_22.png" alt=""> <h2 id="25">SNR in freq space</h2>
+<pre class="codeinput">Sxx = fftshift(abs(fft2(d)));
+Snn = fftshift(abs(fft2(d - dpn)));
+snr_all = Sxx ./ Snn;
+snr = mag2db(mean(snr_all, <span class="string">"all"</span>))
+plot_2d_db(snr_all)
+</pre>
+<pre class="codeoutput">
+snr =
+
+   -2.0914
+
+</pre>
+<img vspace="5" hspace="5" src="hw6_23.png" alt=""> <h2 id="26">Compute the errors</h2>
+<pre class="codeinput">e1 = sum(sum(abs(dpn - d)));
+e2 = sum(sum(abs(d_est - d)));
+e3 = sum(sum(abs(dcpn - d)));
+
+fprintf(<span class="string">"Total error in noisy image: %g\n"</span>, e1)
+fprintf(<span class="string">"Total error in filtered image: %g\n"</span>, e2)
+fprintf(<span class="string">"Total error in convolved + noise: %g\n"</span>, e3)
+</pre>
+<pre class="codeoutput">Total error in noisy image: 2.82457e+06
+Total error in filtered image: 1.66678e+06
+Total error in convolved + noise: 3.35249e+06
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024a</a>
+<br>
+</p>
+</div>
+<!--
+##### SOURCE BEGIN #####
+load hw6/hw6.mat d dc dpn dcpn Rxx_est sigman pattern
+
+%% Compute spectrum...
+function Sxx = spectrum2d_from_radial(Rx)
+    scale = false;
+    if size(Rx) ~= [256, 1]
+        error("Input must be size (256, 1)")
+    end
+    Rxx = zeros(512, 512);
+    ixm = 257; iym = 257;
+    for iix = 1:512
+        for iiy = 1:512
+            Rxx(iix, iiy) = Rx( ...
+                min([ ...
+                    round(sqrt((iix - ixm)^2 + (iiy - iym)^2)) ...
+                    255] ...
+                ) + 1);
+        end
+    end
+    % Scale the autocorrelation function to ensure that the power is
+    % a multiple of 10.
+    % Note this scaling factor really doesn't do anything since Sxx is
+    % rescaled by Rx anyways...
+    if scale
+        Rxx = Rxx * 10 * round(Rxx(257, 257)/10) / Rxx(257, 257);
+    end
+    Sxx = fftshift(abs(fft2(Rxx)));
+    % Make sure spectrum sums to the correct power (as given by the
+    % Rxx_est variable.
+    Sxx = Rx(1) * Sxx ./ sum(sum(Sxx));
+end
+
+%% Plotting functions
+function plot_2d_db(im)
+    imagesc(20 * log10(im));
+    colormap("jet(256)");
+    colorbar
+end
+
+function image_gray(im)
+    image(im)
+    colormap(repmat(linspace(0, 1, 256)', 1, 3));
+    colorbar
+end
+
+%% Display original image
+image_gray(d)
+title("GOES west REPLACE_WITH_DASH_DASH Hurricane Patricia 10/23/15 23:45 UTC")
+
+
+%% Plot Spectral Estimate from provided radial autocorrelation
+Sxx = spectrum2d_from_radial(Rxx_est);
+figure()
+plot_2d_db(Sxx)
+
+
+%% Filtering
+
+function D = create_weiner_filter(Sxx, sigma)
+    Snn = sigma^2 / 2 * ones(size(Sxx));
+    SNR = Sxx ./ Snn;
+    D = 1 ./ (1 + 1./SNR);
+end
+
+function [x_est, Sxx] = freq_space_filter(x_in, D)
+    % Perform fft, apply filter multiplicatively, and then ifft.
+    Syy = fftshift(fft2(x_in));
+    Sxx = D .* Syy;
+    x_est = ifft2(ifftshift(Sxx));
+end
+
+
+
+% Use FFT-computed spectrum from raw signal for filtering
+sigma = 20;
+Sxx = fftshift(abs(fft2(d)).^2 / 512^2);
+% Sxx = spectrum2d_from_radial(Rxx_est);
+D = create_weiner_filter(Sxx, sigma);
+[d_est, Sxx_est] = freq_space_filter(dpn, D);
+
+%% Compute the errors
+e1 = sum(sum(abs(dpn - d)));
+e2 = sum(sum(abs(d_est - d)));
+
+fprintf("Total error in noisy image: %g\n", e1)
+fprintf("Total error in filtered image: %g\n", e2)
+
+
+%%
+figure()
+plot_2d_db(D)
+title("Filter")
+
+%%
+figure()
+plot_2d_db(abs(Sxx))
+title("Signal spectrum (Sxx) used for filter")
+%%
+figure()
+plot_2d_db(abs(Sxx_est))
+title("Filtered spectrum (Sxx_hat)")
+%%
+figure()
+image(dpn)
+colormap(repmat(linspace(0, 1, 256)', 1, 3));
+colorbar
+title("Noisy image")
+
+%%
+figure()
+image_gray(d_est)
+title("Filtered image")
+
+
+%% Compute error across sigmas
+Sxx = fftshift(abs(fft2(d)).^2 / 512^2);
+% Rxx = conv2(d, d, "same");
+% Sxx = fftshift(abs(fft2(Rxx)));
+Sxx = spectrum2d_from_radial(Rxx_est);
+sigmas = logspace(-3, 5);
+errors = zeros(size(sigmas));
+snr = zeros(size(sigmas));
+
+for i=1:length(sigmas)
+    sigma = sigmas(i);
+    D = create_weiner_filter(Sxx, sigma);
+    [d_est, Sxx_est] = freq_space_filter(dpn, D);
+    errors(i) = mean(abs(d_est - d), "all");
+
+    % Compute the signal to noise ratio over image:
+    snr_all = abs(d) ./ abs(d - d_est);
+    snr(i) = mag2db(mean(snr_all, "all"));
+end
+
+figure()
+% hold on;
+semilogx(sigmas, errors)
+title("Error versus assumed noise variance")
+xlabel("\sigma")
+ylabel("Error")
+
+
+%% Deconvolution Weiner filter
+function D = create_dconv_weiner_filter(Sxx, sigma, W)
+    Snn = sigma^2 / 2 * ones(size(Sxx));
+    SNR = Sxx ./ Snn;
+    D = abs(W)^2 ./ (abs(W)^2 + 1./SNR) ./ W;
+end
+
+
+N = size(d, 1);
+P = size(pattern, 1);
+% Pad with zeros so that frequency indeces match.
+w = paddata(pattern, [N, N]);
+W = fftshift(fft2(w));
+W = abs(W);
+
+% Sxx = fftshift(abs(fft2(dcpn)).^2 / 512^2);
+Sxx = spectrum2d_from_radial(Rxx_est);
+
+sigmas = logspace(-3, 5)';
+errors = zeros(size(sigmas));
+for i=1:length(sigmas)
+    sigma = sigmas(i);
+    D = create_dconv_weiner_filter(Sxx, sigma, W);
+    [d_est, Sxx_est] = freq_space_filter(dcpn, D);
+    errors(i) = mean(abs(d_est - d).^2, "all");
+
+    % Compute the signal to noise ratio over image:
+    snr_all = abs(d) ./ abs(d - d_est);
+    snr(i) = mag2db(mean(snr_all, "all"));
+end
+
+
+%%
+figure()
+loglog(sigmas, errors)
+%% Compute for specific sigma
+sigma = 1;
+D = create_dconv_weiner_filter(Sxx, sigma, W);
+[d_est, Sxx_est] = freq_space_filter(dcpn, D);
+
+%% Display convolved image
+figure()
+image(dcpn)
+colormap(repmat(linspace(0, 1, 256)', 1, 3));
+colorbar
+title("Noisy + Convolved image")
+
+%% Display convolution filter
+figure()
+plot_2d_db(w)
+title("Gaussian filter w(t)")
+
+%% Display FFT of conv filter
+figure()
+plot_2d_db(W)
+title("Spectrum of Gaussian filter W(f)")
+
+
+%% Spectrum of convoluted signal
+Sxx_conv = fftshift(abs(fft2(dc)).^2 / 512^2);
+figure()
+plot_2d_db(Sxx_conv)
+title("Spectrum of convoluted signal (dc)")
+
+%% Display spectrum of estimate
+figure()
+plot_2d_db(abs(Sxx_est))
+
+
+%% Display filter
+figure()
+plot_2d_db(abs(D))
+title("Filter (D(f))")
+
+%% Display filtered image
+figure()
+image_gray(abs(d_est))
+title("Deconvolved Image")
+
+
+
+%% SNR in raw image
+snr_all = abs(d) ./ abs(d - d_est);
+snr = mag2db(mean(snr_all, "all"))
+plot_2d_db(snr_all)
+
+%% SNR in freq space
+Sxx = fftshift(abs(fft2(d)));
+Snn = fftshift(abs(fft2(d - dpn)));
+snr_all = Sxx ./ Snn;
+snr = mag2db(mean(snr_all, "all"))
+plot_2d_db(snr_all)
+
+
+
+%% Compute the errors
+e1 = sum(sum(abs(dpn - d)));
+e2 = sum(sum(abs(d_est - d)));
+e3 = sum(sum(abs(dcpn - d)));
+
+fprintf("Total error in noisy image: %g\n", e1)
+fprintf("Total error in filtered image: %g\n", e2)
+fprintf("Total error in convolved + noise: %g\n", e3)
+##### SOURCE END #####
+-->
+</body>
+</html>
