@@ -1,0 +1,107 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{}
+\title{}
+\author{Sean Jennings}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Tikhonov Regulatization}
+\begin{enumerate}
+    \item Add additional (e.g. smoothness) constraints to make underdetermined
+        problem better determined.
+\end{enumerate}
+
+We want to minimize the following cost $J$: 
+\begin{equation*}
+    J(m) = \normtwo{(y-Gm)} + \lambda m^T H m
+\end{equation*}
+We can also multiply by noise if it is different for each measurement $y$.
+\begin{equation*}
+    R_n = \text{diag} (\mat{\sigma_1^2 \cdots \sigma_n^2})
+\end{equation*}
+In this case:
+\begin{equation*}
+    y' = R_n^{-1/2} y
+\end{equation*}
+and 
+\begin{equation*}
+    G' = R_n^{-1/2} y
+\end{equation*}
+
+Taking derivative of cost gives:
+\begin{equation*}
+    \frac{\delta J} {\delta m} = -2G'^T (y' - G'm) + 2 \lambda Hm
+        = -2 G^T R_nn^{-1} y + 2 G^T R_{nn}^{-1} G m + 2 \lambda D^T D m
+\end{equation*}
+Set to zero and solve for $m$. Note $H = D^T D$.
+
+\begin{equation*}
+    m = (G'^T G + \lambda H)^{-1} G'^T y
+\end{equation*}
+
+\subsection{Selection of parameter $\lambda$}
+Can plot $\normtwo{Dm}$ versus $\normtwo{y - Gm}$ and pick point around the
+"elbow" which gives a good balance between the two. Typically a inverse relation
+between the two.
+
+\subsection{Order of regulatization}
+0-order => $D = I$
+1-order => $D = L$ where $L$ is a difference operator:
+\begin{equation*}
+    (La)_j = a_{j+1} - a{j}  (j=1, \cdots, M-1)
+\end{equation*}
+The $H = L^T L$ matrix is not invertible, but  $G'^T G' + \lambda H$ may be...
+2-order => L = second order difference, approximating second derivative.
+
+\subsection{Equivalence o LMMSE and Regulatizaled LSE}
+Assuming that all covariance inverses exist they are equivalent by setting
+$H = R_{nn}$.
+
+\section{Markov Processes}
+\begin{enumerate}
+    \item Pink noise is not markov!
+    \item 1st order means only depends on past measurement
+    \item 2nd order means only dependent on integral of past measurements
+    \item In discrete case, depends on finite sum of past states
+\end{enumerate}
+
+\section{Kalman Fitlering}
+\begin{enumerate}
+    \item Cycle of prediction <=> measurement correction
+\end{enumerate}
+Process has noise:
+\begin{align*}
+    x_{i+1} &= A_i x_i + B_i n_{x_i} \text{ Process Model}\\
+    y_i = W_i x_i + n_{y_i} \text{ Observation Model} \\
+\end{align*}
+Assume that both process and observation noise is white.
+
+\subsection{Innovation}
+Equivalent to residual:
+\begin{equation*}
+    \epsilon_i = y_i - \hat{y}_{i|i-1} 
+\end{equation*}
+
+\subsection{Measurement update}
+\begin{equation*}
+    \epsilon_i = y_i - W_i \hat{x}_{i|i-1}
+\end{equation*}
+
+Connection with LMMSE:
+\begin{equation*}
+    \hat{x} = \langle x\rangle + D
+\end{equation*}
+
+
+
+
+
+\end{document}
