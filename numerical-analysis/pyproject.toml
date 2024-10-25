@@ -127,6 +127,8 @@ ignore = [
   "N803", "N806",
   # Allow prints
   "T201",
+  # Allow lambdas
+  "E731",
 ]
 unfixable = [
   # Don't touch unused imports
