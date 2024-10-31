@@ -129,6 +129,8 @@ ignore = [
   "T201",
   # Allow lambdas
   "E731",
+  # Allow strings directly in error messages
+  "EM101"
 ]
 unfixable = [
   # Don't touch unused imports
