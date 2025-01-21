@@ -1,0 +1,238 @@
+
+\section{Outline}
+
+Evaluating the effectiveness of HPPC in identification of lithium ion degradation-specific frequency modes
+
+\subsection{Introduction}
+\begin{enumerate}
+  \item since the major breakthrough in the 1980s lithium ion battery (nobel prize winner who??), batts more and more prevalent, fueling first our portable electronics, now our cars, and soon(?) our power grid
+  \item but to attain a truly sustainable view for our future, we should consider the full life cycle of these devices. Namely, how long do they last and what do we do them after they are done. See [non-academic guy with lithiuminventory website]
+  \item this paper concerns the former question, with a particular focus on our power grid. The integration of renewables necessitates the time-shifting of energy over time scales from seconds to days and beyond.
+  \item Then, what factors affect the degradation of this particular form of electromechanical energy storage? The author hopes this paper sheds just a little more light via the field of stochastic estimation. We extend the method of [] by applying gaussian processes to
+\end{enumerate}
+
+\subsection{Background}
+\subsubsection{Lithium Ion Battery Mechanics}
+\begin{enumerate}
+  \item Electrochemistry
+    \subitem OCV
+    \subitem highly nonlinear
+    \subitem single particle model
+  \item Thermal models
+    \subitem active cooling loses efficiency
+  \item reduced order modeling
+  \item Equivalent circuit models
+    \subitem Impedance-based
+    \subitem Duality between impedance-based models and ECM -- find that paper that shits on the way people calc resistance
+    \subitem duality is only maintained if you stay within some distance of test point (small-signal stability) this is implied by the inverse function theorem in mathematical analysis
+\end{enumerate}
+
+ \subsubsection{EIS}
+\begin{enumerate}
+    \item Rich methodology for the the insight that it enables into chemistry. When we view this from a systems perspective, we see that it's effective because in injects signal into all frequencies of the spectrum. But system response can also be 
+    \item Information rich, but can be time consuming to run online -- however I don't think this should be a limitation -- with a good enough model of cell behavior and sensitive enough equipment a BESS with many inject some noise
+    \item increasing insight into internal chemical processes
+    \item Dubarry - identifies that individual degradation mechanisms can be inferred from differences in incremental capacity curve
+    \item Recently refined by battery intelligence lab -- what insights are here?
+    \item Data-driven methods succeed in predicting lifetime from differential voltage curves
+    \item data collection 
+        \subitem As the homie says, many studies try to extrapolate claims across a far greater part of the state space than there is evidence to support
+        \subitem Peukart "law" for example is developed for lead acid batt is not true for a number of conditions in Li ion batteries
+        \subitem It's important to not make claims outside the domain which the data supports -- gaussian processes help fix this by assigning an uncertainty to value around which there is no data
+    \item Online feedback in experiment design
+\end{enumerate}
+
+
+- the Bayesian viewpoint on parameter estimation:
+  * What is the prior information we have?
+  * Heuristics -- 
+  * Gaussian processes to fit -- same thing as kriging 
+
+\subsubsection{applications to power systems operations}
+\begin{enumerate}
+  \item Economic dispatch
+  \item Because the grid must continuously balance energy generation and demand, there is an inherent coupling between the demand curve and the operating conditions required of the battery
+  \item Lithium Ion batteries are being suggested for a range of applications within the grid: e.g. peak shaving, energy arbitrage, frequency regulation 
+  \item Each of these implies a different demand curve - 
+     \subitem with different frequency content!
+  \item Many of the datasets focus on low frequency cycle aging, so we note that our results apply more to peak shaving and energy arbitrage than frequency response -- the shape of the demand curve distorts the parameter space
+  \item In support of 
+  \item We consider the following estimation problem in support of these objectives
+\end{enumerate}
+
+\subsubsection{problem statement}
+Minimize the error in RUL prediction across a wide range of realistic-BESS operational parameters
+
+
+
+\subsection{methods}
+\begin{enumerate}
+  
+\item Pulled data from []
+\item Took FFT of HPPT
+\item Problem is ill-conditioned when close to 0 so we must  omit signals below a certain SNR??
+  \subitem assess noise levels in device
+  \subitem time error * numerical integration error * voltage error / current error
+\item Otherwise, we have an estimation of the impedance response with a certain level of error, error blows up near zero!
+\item Fit a rational function using method proposed by:
+\item That function is a reduced order model that is valid over given range: there is only one feature that is required for degradation, is that contained in reduced order polynomial??
+
+\end{enumerate}
+
+\subsection{Future Work}
+\begin{enumerate}
+    \item Identify noise levels required to make effective
+    \item what is the smallest energy signal injection required for accurate estimation
+\end{enumerate}
+
+
+
+
+\section{Introduction}
+
+% In this paper, we use techniques for stochastic estimation to answer three simple, seemingly
+% unrelated questions:
+% \begin{enumerate}
+%     \item How long do Lithium Iron Phosphate (LFP) Batteries last?
+%     \item What are the spectral characteristics of solar and wind energy resources?
+%     \item How can a power system optimally size batteries to meet uncertain energy demand with intermittent resources?
+% \end{enumerate}
+
+% We 
+
+
+
+\section{Background}
+
+\subsection{Battery Energy Storage Systems}
+
+The energy transition away from carbon-burning generation sources necessitates
+the integration of renewable resources such as solar and wind which are inherrently
+intermittent.  To balance generation and demand amid these fluctuations, Battery Energy Storage 
+Systems (BESSes) using Lithium Ion Batteries (LiBs) are increasingly being integrated into the power grid \cite{noauthor_battery_2015}.
+
+Historically, the power grid has been driving by thermal power plants fueled by coal and more recently natural gas.
+Thermal power plants are considered "dispatchable" since the fuel rate can be adjusted to exactly meet demand.
+Thus, only a small amount of energy storage was necessary. Stationary grid storage applications are expected to grow substantially as more renewables are integrated,
+with BESSes accounting for a substantial portion. In fact, xxx are currently in the interconnection pipeline.
+
+Battery technologies:
+* Lead acid 
+* Lithium ion (Li-ion) batteries (LiB)
+* Sodium ion
+* Vanadium flow
+
+Lead acid and LiB are most commercially developed. 
+
+Sodium ion and VFBs are promising emerging technologies. NaBs only requires abundantly available materials, but have lower energy density than LiBs. VFBs have potentially favorable lifecycle dynamics, but are still more expensive than other technologies.
+
+LiBs have a number of advantages over PbAs including:
+* Lower self-discharge
+* Higher (what type of??) efficiency
+
+Therefore, we focus on LiBs in this paper.
+
+A cost of a BESS can be broken down into several different components:
+* Power electronics
+* Battery packs
+* ....?
+
+The battery packs make up a significant portion and have a shorter lifespan than other components: while BESSes are sized to last 20 years, the battery packs must typically be replaced after 10 years. Therefore, any optimizations which minimize battery degradation and extend the usable lifespan could enable substantial cost savings.
+
+\subsection{BESS costs in capacity expansion models (CEM)}
+
+CEMs have been used for many years by power system planners to determine the most efficient allocation of capital investments. CEMs are tied to a production cost model (PCM) which accounts for the variable operational costs of running particular generators. CEMs solve an optimization problem, which can be roughly phrased: which generators and transmission
+lines should be constructed to minimize costs under the constraint that generation meets projected demand.
+Since energy infrasture involves large upfront capital investments, there is a strong incentive to build high fidelity models to inform the decision-making process.
+
+Since BESSes have never been integrated into the power grid on a large scale, they represent a new frontier in capacity expansion modeling.
+While there exists a significant body of research which investigates how to optimally size batteries within a power system, to the extent of the author's knowledge, they make very simplistic assumptions
+about the lifetime of BESSes. Many assume either that 1) the lifetime of BESSes are fixed period, or 2) (what's the other assumption???). 
+
+As we shall see in the following section, capacity fade of LiBs is a complex phenomenon. This motivates the main topic of this paper: a capacity fade model which is appropriate for system-level CEMs.
+
+\subsection{Modeling Capacity Fade}
+
+There is a significant body of research which investigates the phenomenon of capacity fade in two major contexts:
+\begin{enumerate}
+\item the electrochemical mechanisms of capacity fade: how can the battery be designed to maximize lifetime and
+\item battery management systems (BMS's): how can the unobservable internal states of the battery be monitored.
+\end{enumerate}
+
+For the mechanisms of capacity fade, the reader is referred to [].
+
+The internal dynamics of a LiB are captured to a large degree by the Newton-Doyle model, which defines a system of partial differential equations 
+
+A BMS is a microcontroller which directly interfaces with the battery pack and performs various functions, including (but certainly not limited to)
+monitoring the battery's state of health (SoH). SoH is a dimensionless parameter which represents the battery's capacity $C$ as a value from 0 to 1,
+with 1 indicating the beginning of life capacity $C_{BOL}$ and 0 indicating that capacity has reached the capacity at end of life $C_{EOL}$. That is,
+
+\begin{equation}
+    SoH = (C - C_{EOL})/(C_{BOL} - C_{EOL})
+\end{equation}
+
+Another important parameter in the power system's context is the remaining useful life (RUL).
+The relation between SoH and RUL is nonlinear, since capacity fade tends to be more quickly in towards the beginning of life,
+flatten out in the middle, and then can again accelerate at the end of life.
+
+Vitally, the rate of capacity fade depends heavily on charge and discharge (C)-rates.
+This relationship is expressed empirically via the (p-somrthing????) exponent.
+
+There is also noise introduced by manufacturing variability, etc...
+
+A variety of methodologies are used to build capacity fade models. They can be divided into 3 categories:
+\begin{enumerate}
+    \item physics-based models
+    \item data-driven models
+    \item semi-empirical models
+\end{enumerate}
+
+
+Commonly, models are 
+In [], this exponent is found by least squares
+
+As Nuhic points out, the issue with many of these studies is that experiments are performed in synthetic lab condtions where batteries are cycled under constant loading conditions throughout the life. 
+This exercises only a specific portion of the state space. It is likely that the model's predictive capabilities will deteriorate outside of this explored region. 
+
+For example, is it possible to extend the RUL by operating at a lower power towards the end of life, perhaps delaying the onset of accelerated CF?
+
+While in a EV context, the load profile is more-or-less prescribed by the acceleration profile of the vehicle. Within a stationary grid context, there are renewable generation profiles and demand profiles constraint constrain the load profile of the battery, but there are also more degrees of freedom, since the BESS capacity can be over/undersized w.r.t. the load, or operationally it can be spread between different resources.
+
+
+\subsection{Kalman Filtering}
+
+
+\section{Methods}
+
+
+
+
+
+
+What estimation problem am I solving????
+\begin{itemize}
+    \item Estimate SoH, SoC, RUL in BMS based on measurements of current, voltage, etc. (BMS)
+    \item CEM -- parameter optimization to find curve lambda (load profile) vs RUL: consider load profile as measurement, RUL as internal state
+    \item $Delta_h$ as a function of p, v, h?
+\end{itemize}
+
+* Need to do kalman filtering... CEM doesn't make sense as stoc est problem
+* Forward model (ECM + hysteresis model)
+\begin{align}
+    x = [q, h, v_h, I]
+    y = [T, v_term, I]
+    v_term = v_h + I * Z_eq
+\end{align}
+
+
+
+(Why are V1 and V2 separated in ECM?)
+
+The most important relationship from a CEM perspective is power/load profile to RUL. Let lambda be the load profile and $f_lambda$ be yp
+
+
+\section{Results}
+
+\section{Discussion}
+
+\section{Conclusion}

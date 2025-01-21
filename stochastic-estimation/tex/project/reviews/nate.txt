@@ -1,0 +1,16 @@
+Summary:
+Overall, the draft is well-structured and clear. There are not any major issues with the math (as far as I can tell).
+I've left a few minor comments. Thanks for an interesting read.
+
+
+Major Comments:
+
+Minor Comments:
+* Define SNR the first time it is used
+* Figure 1 is very small and difficult to view. Would recommend enlarging.
+* In section A, the index k initially describes the k-th waveform, but then in eq (1) k describes the index of the sensor while i denotes the index of the waveform.
+It would read more intuitively if the indexing was consistent.
+* Missing close parenthesis in eq 7
+* Teoplitz -> Toeplitz
+
+

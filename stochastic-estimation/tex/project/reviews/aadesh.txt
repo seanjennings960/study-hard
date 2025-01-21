@@ -1,0 +1,12 @@
+Summary:
+Overall, looks like a lot of progress has been made. The figures are really well-done and bring the paper to life. However, the background seems to assume a lot of domain knowledge, and would benefit from more clearly defining terms.
+
+
+Major Comments:
+* As an example of assumed domain knowledge, here are some questions from section IIC:
+    - It would be helpful to describe more about what the Elfouhaily spectrum is. It is "often used in the geophysics community," but why?
+    - What is the "lower half space"? It seems like the interior of the surface is elevated from the edges. Does lower half space refer to the outer edges of the circular surface?
+
+Minor Comments:
+- Equation (1) doesn't seem to correspond to the text
+- Define FEKA and HFSS abbreviations in "Impedance results" figure

@@ -1,8 +1,11 @@
 from itertools import chain, filterfalse
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.linalg import inv, norm
+
+IMAGE_DIR = Path("tex/hw9/Images")
 
 ##############################################################################
 # Cubic Spline Interpolation
@@ -310,30 +313,78 @@ def plot_interpolation(N_intervals, *, chebychev=False, N_eval=1000):
         ax.plot(x, y_interp, "--", label=f"interpolated ({method})")
 
     ax.legend()
-    ax.set_title("Interpolated versus exact evaluation | f(x) = 1/(1 + x^2)")
+    spacing = "(Chebychev)" if chebychev else "(Linear)"
+    ax.set_title(f"Interpolated vs exact ({spacing} | N={N_intervals})")
     ax.set_xlabel("x")
     ax.set_ylabel("f(x) / f_interpolated(x)")
 
+    ax.set_ylim(-1.5, 1.5)
+
     # Plot of Error
     ax = axes[1]
+    error_norms = {}
     for method, interpolant in interpolants.items():
         y_interp = interpolant.eval(x)
         err = abs(f_eval - y_interp)
+        error_norms[method] = norm(err)
         ax.semilogy(x, err, "--", label=f"{method} | ||err|| = {norm(err):.3f}")
     ax.legend()
-    ax.set_title("Error ()")
+    ax.set_title("Error")
     ax.set_xlabel("x")
     ax.set_ylabel("|f(x) - f_interp(x)|")
 
-    return fig
 
+    return fig, error_norms
+
+
+def savefig(fig, name, size=(16, 12)):
+    fig.set_size_inches(*size)
+    fig.savefig(IMAGE_DIR / name)
+
+def show_or_close(show_plots):
+    if show_plots:
+        plt.show()
+    else:
+        plt.close()
 
 def main():
-    # for N in [5, 10, 15, 20]:
-    for N in [5]:
+    show_plots = False
+    save_plots = True
+    N_list_even = [4, 10, 14, 20]
+    N_list_odd = [5, 11, 15, 21]
+
+    error_norms = {}
+    for N in chain(N_list_even, N_list_odd):
         for chebychev in [False, True]:
-            plot_interpolation(N, chebychev=chebychev)
-            plt.show()
+            fig, err = plot_interpolation(N, chebychev=chebychev)
+
+            for method in err:
+                key = (chebychev, method)
+                if key not in error_norms:
+                    error_norms[key] = []
+                error_norms[key].append(err[method])
+
+            if save_plots:
+                spacing = "chebychev" if chebychev else "linear"
+                savefig(fig, f"interp_{N}_{spacing}.png")
+
+            show_or_close(show_plots)
+
+    # Plot Error vs interpolation nodes N for each method and spacing type.
+    fig = plt.figure()
+    for (chebychev, method), errs in error_norms.items():
+        spacing = "(Chebychev)" if chebychev else "(Linear)"
+        plt.semilogy(N_list_even, errs[::2], "o-", label=f"{method} | {spacing} | Even")
+        plt.semilogy(N_list_odd, errs[1::2], "o-", label=f"{method} | {spacing} | Odd")
+    plt.xlabel("N")
+    plt.ylabel("Error E = norm2(f(x) - p(x))")
+    plt.legend()
+    plt.title("Error versus interpolation and spacing type")
+
+    if save_plots:
+        savefig(fig, "error.png")
+    show_or_close(show_plots)
+
 
 
 

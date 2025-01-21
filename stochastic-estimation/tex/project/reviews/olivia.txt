@@ -1,0 +1,15 @@
+Summary:
+Nice start. The background contains great exposition, but could be broken up a bit. Also, The draft leaves me wondering: how does the CW technique compare against the other techniques used? 
+
+Major Comments:
+* The Background section reads as a long, continuous wall of text. Consider breaking up into subsections:
+    - Break down by mitigation technique?
+    - Some illustrative figures may also help.
+* Discussion of the mitigation techniques would benefit from a more detailed mathematical formulation
+    - e.g. what does "one can theoretically track the gain fluctutation..." mean exactly?
+* It's a bit unclear: are you planning to implement all of the techniques and compare (as implies by "I expect the power losses from this technique..."), or just implement the CW correction scheme?
+
+Minor Comments:
+* Typos (double check for more!):
+    - arrise -> arise
+    - cuase -> cause

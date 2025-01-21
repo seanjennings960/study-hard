@@ -40,6 +40,7 @@ path = "src/stochastic_estimation/__about__.py"
 dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
+  "hdf5storage",
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
