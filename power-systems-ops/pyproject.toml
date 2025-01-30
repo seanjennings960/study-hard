@@ -1,0 +1,75 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "power-systems-ops"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Sean Jennings", email = "sean.jennings1@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  # Jupyter setup
+  "notebook",
+  "jupyterlab-vim",
+  # Scraping the webpage
+  "beautifulsoup4",
+  "PyExecJS",
+  # Use a webdriver instead...
+  "selenium",
+  "webdriver-manager",
+  # Data processing
+  "numpy",
+  "pandas",
+  "matplotlib"
+]
+
+[project.urls]
+Documentation = "https://github.com/Sean Jennings/power-systems-ops#readme"
+Issues = "https://github.com/Sean Jennings/power-systems-ops/issues"
+Source = "https://github.com/Sean Jennings/power-systems-ops"
+
+[tool.hatch.version]
+path = "src/power_systems_ops/__about__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/power_systems_ops tests}"
+
+[tool.coverage.run]
+source_pkgs = ["power_systems_ops", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/power_systems_ops/__about__.py",
+]
+
+[tool.coverage.paths]
+power_systems_ops = ["src/power_systems_ops", "*/power-systems-ops/src/power_systems_ops"]
+tests = ["tests", "*/power-systems-ops/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
