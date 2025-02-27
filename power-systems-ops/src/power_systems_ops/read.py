@@ -37,7 +37,8 @@ TABLE_NAME_TO_KEY = {
     "Electricity generation and fuel consumption in the past round": "last_generation",
     "Electricity production per plant": "production",
     "Power plant availability": "availability",
-    "Overview of power plants": "overview"
+    "Overview of power plants": "overview",
+    "Power exchange results": "clearing_prices",
 }
 
 
@@ -48,6 +49,7 @@ INDEX_NAMES = {
     "availability": "Plant",
     "overview": "Plant name",
     "Fuel characteristics": "Fuel name",
+    # "clearing_prices": "Period -- Round"
 }
 
 SOURCES = [
@@ -60,6 +62,28 @@ for s in SOURCES + ["Electricity demand"]:
     
 def filter_empty(strings):
     return [s for s in strings if s]
+
+
+def read_header_row(row):
+    headers = row.find_elements(By.TAG_NAME, 'th')
+    out = []
+    for h in headers:
+        span = h.get_attribute('colspan')
+        num_elem = 1 if span is None else int(span)
+        out.extend(
+            [h.text] * num_elem
+        )
+    return out
+
+def join_headers(header_elem):
+    # Handle row joining more generally
+    rows = header_elem.find_elements(By.TAG_NAME, "tr")
+    assert len(rows) == 2
+
+    row1 = read_header_row(rows[0])
+    row2 = read_header_row(rows[1])
+    return [' -- '.join(filter_empty([h1, h2])) for h1, h2 in zip(row1, row2)]
+
     
 def join_2_rows(header_elem, key):
     rows = header_elem.find_elements(By.TAG_NAME, "tr")
@@ -79,11 +103,14 @@ def extract_column_names(table, key):
     # Add special logic for each table...
     if key in ['last_generation', 'availability', "Fuel characteristics"]:
         return join_2_rows(header_elem, key)
+    if key in ["clearing_prices"]:
+        return join_headers(header_elem)
 
     column_names = [header.text for header in header_elem.find_elements(By.TAG_NAME, "th")]
 
     if key == "overview":
         column_names.append("status")
+    
     
     return column_names
 
@@ -104,7 +131,7 @@ def extract_rows(table, key):
 HEADER_TO_KEY = {
     "Operational power plants": "operational",
     "Power plants under construction": "under construction",
-    "Dismantled power plants": "dismantled"
+    "Dismantled power plants": "dismantled",
 }
 
 def extract_rows_overview(rows):
@@ -132,6 +159,8 @@ def extract_table(table, key):
     
     # Prepare data for DataFrame (skip the header row)
     rows = extract_rows(table, key)
+
+    # print("Column names:", headers)
     
     # Create a DataFrame
     df = pd.DataFrame(rows, columns=headers)
@@ -147,14 +176,23 @@ def navigate(driver, title):
     link = driver.find_element(By.XPATH, f"//a[@title='{title}']")
     link.find_element(By.TAG_NAME, 'img').click()
 
-def read_current_page(driver):
+def read_current_page(driver, include_keys=None):
     tables = {}
 
     table_containers = driver.find_elements(By.XPATH, "//div[@class='component table left white']")
 
     for div in table_containers:
         name = div.find_element(By.TAG_NAME, 'h4').text
+        print(name)
+        if name in ["Electricity production per plant", 'Power plant availability', 'Sold plants']:
+            continue
+
+
         key = TABLE_NAME_TO_KEY.get(name, name)
+        if include_keys is not None and key not in include_keys:
+            continue
+
+        # print(key)
         tables_found = div.find_elements(By.TAG_NAME, "table")
         if len(tables_found) > 1:
             raise ValueError("Found multiple tables within single div!!!")
@@ -163,17 +201,30 @@ def read_current_page(driver):
             tables[key] = df
     return tables
 
-def read_tables(driver):
+def read_tables(driver, include_keys=None):
 
 
     tables = {}
 
-    # Navigate to power plants page
-    navigate(driver, "Power plants")
-    tables.update(read_current_page(driver))
+    page_titles = [
+        "Power plants", 
+        "Stocks & trends",
+        "Build, decommision or trade plant",
+        "Electricity market"
+    ]
+    for page in page_titles:
+        navigate(driver, page)
+        tables.update(read_current_page(driver, include_keys=include_keys))
 
-    navigate(driver, "Stocks & trends")
-    tables.update(read_current_page(driver))
+    # # Navigate to power plants page
+    # navigate(driver, "Power plants")
+    # tables.update(read_current_page(driver))
+
+    # navigate(driver, "Stocks & trends")
+    # tables.update(read_current_page(driver))
+    # navigate(driver, )
+
+    # tables.update(read_current_page(driver))
 
     return process_tables(tables)
 
@@ -198,7 +249,10 @@ SIMPLE_TABLE_NAMES = {
     'Nuclear fuel': 'nuclear',
     'Wind availability': 'wind',
     'Solar': 'solar',
-    'Electricity demand': 'demand'
+    'Electricity demand': 'demand',
+    'Fuel characteristics': 'fuels',
+    'Invest in a new power plant': 'invest',
+
 }
 
 
@@ -218,7 +272,7 @@ SIMPLE_NAME_MAP = {
         'First round active': 'first_round',
         'Priority': 'priority'
     },
-    'Fuel characteristics': {
+    'fuels': {
         'Energy value -- (MJ/fuel unit)': 'energy',
         'Emission factor -- (ton CO2/fuel unit)': 'emmisions'
     },
@@ -228,6 +282,31 @@ SIMPLE_NAME_MAP = {
     'nuclear': {'Price (€/kg)': 'price'},
     'wind': {'Wind availability (%)': 'avail'},
     'solar': {'Solar availability (%)': 'avail'},
+    'invest': {
+        "Reliability (%)": "rel",
+        "Efficiency (%)": "eff",
+        "Construction time (years)": "construct",
+        "Permit time (years)": "permit",
+        "Life expectancy (years)": "life_exp",
+        "Down payment (M€/MW)": "down",
+        "Loan payment per year (M€/(MW*year))": 'loan',
+        'Number of loan payments': 'num_loan',
+        'O&M cost (M€/(MW*year))': 'maint',
+        'Capacity (MW)': 'cap_range'
+    }, 
+    "overview": {
+        'Capacity (MW)': 'cap'
+    },
+    "clearing_prices": {
+        "Period -- Round": "round",
+        "Off-peak hours -- Demand (MW)": "offpeak_demand",
+        "Off-peak hours -- Price (€/MWh)": "offpeak_price",
+        "Shoulder hours -- Demand (MW)": "shoulder_demand",
+        "Shoulder hours -- Price (€/MWh)": "shoulder_price",
+        "Peak hours -- Demand (MW)": "peak_demand",
+        "Peak hours -- Price (€/MWh)": "peak_price",
+    }
+
 }
         
 TO_COMPLEX = {
@@ -239,6 +318,8 @@ def to_simple(tables):
     """Apply SIMPLE_NAME_MAP to simplify the column names across tables."""
     simple_tables = tables.copy()
     for name, map_ in SIMPLE_NAME_MAP.items():
+        if name not in tables:
+            continue
         simple_tables[name] = tables[name].rename(columns=map_)
     return simple_tables
 
@@ -247,7 +328,13 @@ def to_simple(tables):
 NUMERICAL_TYPES = {
     # Dictionary mapping table name -> a list of column names
     'dispatch': ['cap', 'rel', 'eff', 'loan', 'payments', 'fixed', 'first_round', 'priority'],
-    'Fuel characteristics': ['energy', 'emmisions']
+    'fuels': ['energy', 'emmisions'],
+    'invest': ['rel', 'eff', 'construct', 'permit', 'life_exp', 'down', 'loan', 'num_loan', 'maint'],
+    'overview': ['cap', 'Round active'],
+    # 'clearing_prices': ['Period -- Round', 'offpeak_demand', 	'offpeak_demand', 	'shoulder_demand', 	'shoulder_demand',
+    #                  	'peak_demand', 	'peak_demand'],
+    'clearing_prices': ['round', 'offpeak_demand', 	'offpeak_price', 	'shoulder_demand', 	'shoulder_price',
+                     	'peak_demand', 	'peak_price'],
 }
 
 FUEL_NAMES = ['biomass', 'naturalgas', 'nuclear', 'coal']
@@ -266,6 +353,8 @@ def to_numeric(tables):
     """
     new_tables = tables.copy()
     for name, columns in NUMERICAL_TYPES.items():
+        if name not in tables:
+            continue
         table = tables[name].copy()
         for column in columns:
             if column == 'index':
