@@ -1,0 +1,276 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5427}
+\title{Homework 2}
+\author{Sean Jennings}
+\date{March 6, 2025}
+
+\begin{document}
+\maketitle
+
+\section{Problem 1}
+
+\newcommand{\pu}{\text{ p.u.}}
+\begin{enumerate}
+    \item To compute the total power passing through the lines, first compute the total reactance $X$ as:
+    \begin{equation*}
+        \frac{1}{X} = \frac{1}{X_A} + \frac{1}{X_B}
+    \end{equation*}
+    or alternatively
+    \begin{equation*}
+        X = \frac{X_A X_B}{X_A + X_B} = \frac{0.1^2}{2 \cdot 0.1}  \pu = 0.05 \pu
+    \end{equation*}
+    and the power through each line is the following function of the total power $P=200$ MW
+    \begin{equation*}
+        P_A = \frac{X}{X_A} P = \frac{X_B}{X_A + X_B} P = \boxed{100 \text{ MW}}
+    \end{equation*}
+    and similarly
+    \begin{equation*}
+        P_B = \frac{X}{X_B} P = \frac{X_A}{X_A + X_B} P = \boxed{100 \text{ MW}}
+    \end{equation*}
+
+    \item The total reactance between bus 2 and 3 via bus 1 is the sum $X_{12} + X_{13} = $ 0.3 p.u.
+    Since this equals the reactance of line 2-3, the power is divided equally between the two path,
+    with 100 MW flowing through each line. The direction of the power flows are: 100 MW from bus 2 to bus 1,
+    100 MW from bus 1 to bus 3, and 100 MW from bus 2 to bus 3.
+
+\end{enumerate}
+
+\section{Problem 2}
+\renewcommand{\MW}{\text{ MW}}
+\begin{enumerate}
+    \item Let $X_{123}$ denote the total reactance between buses 1 and 3, via bus 2. I.e. $X_{123} = X_{12} + X_{23}$.
+    Since the power flow is inversely proportional to the reactances, we have
+    \begin{equation*}
+        \frac{X_{123}}{X_{13}} = \frac{P_{13}}{P_{12}}.
+    \end{equation*}
+    Solving for $X_{123}$ gives
+    \begin{equation*}
+        X_{123} = \frac{P_{13}}{P_{12}} X_{13} = \frac{140\MW}{160 \MW} \cdot 0.5 \pu = 0.4375 \pu
+    \end{equation*}
+    so $X_{12}$ is
+    \begin{equation*}
+        X_{12} = X_{123} - X_{23} = (0.4375 - 0.3) \pu = \boxed{0.1375 \pu}
+    \end{equation*}
+
+    \item Since all reactances are equal, the path via bus 1 has twice the reactance as the direct
+    line between bus 2 and 3, and therefore half as much power will flow through bus 1. That is,
+    2/3 of the total power (333.3 MW) is transmitted on line 2-3 and 1/3 of the total power (166.7 MW) on each
+    of lines 1-2 and 1-3.  This exceeds the capacity of line 1-2.
+
+    The total amount that can be delivered is 3 times the capacity of line 1-2, or 450 MW.
+\end{enumerate}
+
+\section{Problem 3}
+\begin{enumerate}
+    \item In the unconstrained case, the nodal prices are all the same and the system-wide marginal cost
+    is equal to the marginal cost of the marginal generator. The total load is $400 + 80 + 40 \MW = 520 \MW$.
+    Generator $D$ (with the lowest cost) runs at capacity and generator $C$ covers the remaining 120 MW.
+    Generator $C$ is the marginal generator, so system-wide and each nodal marginal cost is 10 \$/MWh.
+
+    \item Generators $C$ and $D$ are at the same node, so we just need to super impose each load. 40 MW
+    is deliver locally to bus 3, so no power flows through the line in this case. To transfer 80 MW from
+    bus 3 to bus 2, we have a reactance of 0.5 p.u. via bus 1, and a reactance of 0.3 p.u. over branch 2-3.
+    So the power $P_{ij}$ flowing from bus $i$ to bus $j$ is:
+    \begin{align*}
+        P_{32} &= \frac{0.5}{0.5 + 0.3} \cdot 80 \MW = 50 \MW \\
+        P_{31} &= P_{12} = \frac{0.3}{0.5 + 0.3} \cdot 80 \MW = 30 \MW
+    \end{align*}
+
+    With just the 400 MW load active, we have:
+    \begin{align*}
+        P_{31} &= \frac{0.5}{0.5 + 0.3} \cdot 400 \MW = 250 \MW \\
+        P_{32} &= P_{21} = \frac{0.3}{0.5 + 0.3} \cdot 400 \MW = 150 \MW
+    \end{align*}
+
+
+    Note the sign convention: $P_{12}$ indicates the flow from bus 1 to 2 whereas $P_{21}$ indicates the flow from 2 to 1, so
+    $P_{12} = - P_{21}$.
+
+    Summing over these two superimposed loads gives total powers of 
+    \begin{align*}
+        P_{32} &= (50 + 150) \MW = 200 \MW \\
+        P_{31} &= (250 + 30) \MW = 280 \MW \\
+        P_{21} &= (150 - 30) \MW = 120 \MW
+    \end{align*}
+
+    So branch 1-3 exceeds the security constraint.
+
+    \item Since branch 1-2 is operating well below capacity and generator $A$ has a lower
+    cost than generator $B$, we will first search for a feasible solution assuming that
+    generator $D$ continues to run at capacity, while generator $A$ covers some of
+    generator $C$'s portion of the load at bus 1.
+    
+    Five eighths (5/8) of the generation at bus 3 flows through branch 1-3, whereas
+    $0.2 / (0.3 + 0.3 + 0.2) = 1/4$ of generation at bus 2 flows through branch 1-3. So
+    for each MW $\Delta P$ of load transferred from generator $C$ to $A$, 
+    we have $(1/4 - 5/8) \MW = -3/8 \MW = -0.375 \MW$ additional power flow through branch 1-3.
+    That is,
+    \begin{equation*}
+        \Delta P_{13} = -\frac{3}{8} \cdot \Delta P
+    \end{equation*}
+    where $\Delta P_{13}$ indicates the change in flow on branch 1-3.
+    
+    Since we need 30 MW less power flow (i.e. $\Delta P_{13} = -30 \MW$) to relief the transmission constraint, we should take
+    $\Delta P$ to be
+    \begin{equation*}
+        \Delta P = \frac{8}{3} \cdot 30 \MW = 80 \MW
+    \end{equation*}
+
+    Then, the new generation levels are:
+    \begin{align*}
+        P_A &= 80  \MW \\
+        P_B &= 0 \MW \\
+        P_C &= (120 - 80) \MW = 40 \MW \\
+        P_D &= 400 \MW
+    \end{align*}
+
+    Let's check that this new generation profile is feasible. Now, the total power injected at bus 2 is 0 MW
+    (load equals generation at bus 2). The total power injected at 
+    bus 3 is $P_3 = 400 + 40 - 40 \MW = 400 \MW$ which results in the branch flows:
+    \begin{align*}
+        P_{31} &= \frac{0.5}{0.8} \cdot 400 \MW = 250 \MW \\
+        P_{32} &= P_{21} = \frac{0.3}{0.8} \cdot 400 \MW = 150  \MW \\
+    \end{align*}
+
+    Branch 1-3 is now exactly at capacity which is what we'd expect from the optimal dispatch (since it is the solution to
+    a linear program).
+\end{enumerate}
+
+\section{Bonus Problem 1}
+
+Additional load at bus 3 is supplied by generator $C$ so the nodal price at bus 3 is 10 \$/MWh.
+Load at bus 2 is supplied by generator $A$ giving a nodal price of 12 \$ / MWh.
+
+Due to the security constraint, an additional load of $\Delta P_1$ at bus 1 is accomodated by increasing
+the power from generator $A$ by $\Delta P_A > 0$ and decreasing power from generator $C$ by $\Delta P_C < 0$.
+The power balance constraint is:
+\begin{equation}
+    \Delta P_1 = \Delta P_A + \Delta P_B
+    \label{eq:power-balance}
+\end{equation}
+The change in the power flow $\Delta P_{12}$ over branch 1-2 is a weighted sum of $\Delta P_A$ and $\Delta P_B$
+(with weights determined by the line impedances, as before):
+\begin{equation*}
+    \Delta P_{12} = 1/4 \Delta P_A + 5/8 \Delta P_C
+\end{equation*}
+To remain as close as possible without violating the security constraint, we set $\Delta P_{12} = 0$
+which gives
+\begin{equation}
+    \Delta P_C = - \frac{2}{5} \Delta P_A
+    \label{eq:impedance-frac}
+\end{equation}
+
+The total change in cost $\Delta C$ of additional generation is:
+\begin{equation}
+    \Delta C = p_A \Delta P_A + p_C \Delta P_C
+    \label{eq:total-cost}
+\end{equation}
+where $p_A = 12$ \$/MWh and $p_C = 10$ \$/MWh.
+
+Finally, the marginal cost at bus 1 is $\Delta C / \Delta P_1$, normalized by the amount of additional load.
+Combining equations (\ref{eq:power-balance}), (\ref{eq:impedance-frac}), and (\ref{eq:total-cost}) gives
+the marginal price
+\begin{align*}
+    \frac{C}{\Delta P_1} &= \frac{p_A \Delta P_A + p_C \Delta P_C}{\Delta P_A + \Delta P_C} \\
+        &= \frac{(p_A - 2/5 p_C) \Delta P_A } {(1-2/5) \Delta P_A} \\
+        &= \frac{5}{3} p_A - \frac{2}{3} p_C \\
+        &= 13.33 \text{ \$/MWh}
+\end{align*}
+
+That this cost is less than the marginal cost of generator $B$ validates our decision in the previous
+problem to transfer production from generator $C$ to generator $A$.
+
+If generator $B$ had a marginal cost
+of 13 \$ / MWh , it would be cheaper to start up generator $B$, since the amount of power $\Delta P_{CB}$ transferred
+from $C$ to $B$ would be less in magnitude than $\Delta P_{CA}$. Even though the marginal cost of $B$ is higher than $A$,
+the weighted sum along the transmission constraint is actually lower!
+
+
+\section{Bonus Problem 2}
+
+\begin{enumerate}
+    \item When disconnected, the generation at each node must equal demand. That is, $P_A = 300$ MW and
+    $P_B = 900$ MW. The marginal costs are therefore
+    \begin{align*}
+        MC_A = 9 + 0.015 P_A = 13.50 \text{ \$/MW} \\
+        MC_B = 11 + 0.02 P_B = 29.00 \text{ \$/MW}
+    \end{align*}
+
+    \item With no transmission constraints, the marginal prices will equalize, giving
+    a relation between the power produced by each generator:
+    \begin{equation*}
+        9 + 0.015 P_A = 11 + 0.02 P_B.
+    \end{equation*}
+    Solving for $P_A$:
+    \begin{equation}
+        P_A = \frac{1}{0.015} (2 + 0.02 P_B)
+        \label{eq:solve-for-A}
+    \end{equation}
+
+    The power balance condition is that total generation meet total demand, i.e.
+    \begin{equation}
+        P_A + P_B = 1200 \MW
+        \label{eq:power-balance2}
+    \end{equation}
+    Substituting equation (\ref{eq:solve-for-A}) into (\ref{eq:power-balance2})
+    gives:
+    \begin{align*}
+        1200 &= \frac{1}{0.015} (2 + 0.02 P_B) + P_B \\
+            &= 133.33 + 2.33 P_B.
+    \end{align*}
+    so the solution to the system of equations is
+    \begin{align*}
+        P_A &= 742.86 \MW \\
+        P_B &= 457.14 \MW,
+    \end{align*}
+
+    the equilibrium price is:
+    \begin{equation*}
+        MC_A = MC_B = 20.14 \$ / \MW,
+    \end{equation*}
+    and power flow from bus $A$ to bus $B$ is
+    \begin{equation*}
+        P_{AB} = (742.86 - 300) \MW = (900 - 457.14) \MW = \boxed{442.86 \MW}
+    \end{equation*}
+
+    \item If transmission capacity is 350 MW, then the system will be transmission constrained, and the transmission line
+    will run at capacity, with 350 MW flowing from bus $A$ to bus $B$.  Generator $A$ will produce $P_A = 650 MW$, and 
+    generator $B$, $P_B = 550 MW$. The clearing prices will be
+    \begin{align*}
+        MC_A = 18.75 \text{ \$/MW} \\
+        MC_B = 22.00 \text{ \$/MW}
+    \end{align*}
+
+    \item The revenues, $R_A$ and $R_B$, are just the generation amount times the marginal cost:
+    \begin{align*}
+        R_A &= P_A \cdot MC_A = 12,187.50 \text{ \$} \\
+        R_B &= P_B \cdot MC_B = 12,100.00 \text{ \$}.
+    \end{align*}
+
+
+
+    
+
+
+    
+    
+
+
+
+
+
+    
+    
+\end{enumerate}
+
+
+
+
+
+\end{document}
