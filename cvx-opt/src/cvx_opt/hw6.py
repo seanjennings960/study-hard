@@ -1,7 +1,12 @@
+from typing import Tuple
 import numpy as np
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
 import cvx_opt.functions as funcs
+from pathlib import Path
+from scipy.optimize import fmin
+
+DATA_DIR = Path("/Users/sean/code/study-hard/cvx-opt/data")
 
 
 def std_basis(n, i):
@@ -115,30 +120,49 @@ class SolverResult:
     solution: np.ndarray
     converged: bool
     steps: np.ndarray
+    costs: np.ndarray
+
+    def plot(self):
+        plt.figure()
+        plt.plot(self.costs)
+
+    def plot_solution(self, N_features, title=None):
+        plt.figure()
+        plt.plot(self.steps[:, :N_features])
+        plt.legend([f"feature {i}" for i in range(N_features)])
+        plt.xlabel("Iteration")
+        plt.ylabel("Cost Evaluation")
+        if title is not None:
+            plt.title(title)
+
+    def __repr__(self):
+        return f"""SolverResult:
+    Converged={self.converged}
+    iterations={len(self.steps)}
+    function_eval={self.costs[-1]}
+"""
 
     
 def gradient_descent(f, grad, x0, stepsize, tol=1e-6, maxiters=int(1e3)):
     
     N = x0.shape[0]
     steps = np.full((maxiters, N), np.nan)
-    
-    f0 = f(x0)
-    
+    costs = np.full(maxiters, np.nan)
+
     for i in range(maxiters):
         steps[i] = x0
+        costs[i] = f(x0)
         
         # Move in the descent direction
         x1 = x0 - grad(x0) * stepsize
-        f1 = f(x1)
         
-        if abs(f1 - f0) < tol:
+        if np.linalg.norm(x1 - x0) < tol:
             # Converged successfully
-            return SolverResult(x1, True, steps[:i+1])
+            return SolverResult(x1, True, steps[:i+1], costs[:i+1])
         # Update variables for next loop iteration
-        f0 = f1
         x0 = x1
     # maxiters was exceeded without reaching tolerance
-    return SolverResult(x0, False, steps)
+    return SolverResult(x0, False, steps, costs)
     
 
 ###############################################################
@@ -236,5 +260,254 @@ def problem_2_3(save_dir):
     
 
         
+def shuffle(X):
+    order = np.random.permutation(X.shape[0])
+    return X[order]
 
-                    
+
+
+@dataclass
+class Dataset:
+    X: np.ndarray
+    y: np.ndarray
+    N_train: int
+
+    @property
+    def training(self) -> Tuple[np.ndarray, np.ndarray]:
+        # Returns training set (X, y) as tuple
+        return self.X[:self.N_train], self.y[:self.N_train]
+    
+    @property
+    def testing(self) -> Tuple[np.ndarray, np.ndarray]:
+        # Returns testing set (X, y) as tuple
+        return self.X[self.N_train:], self.y[self.N_train:]
+
+
+
+    # ell_train = LL(X[:N_train], y[:N_train])
+    # ell_test = LL(X[N_train:], y[N_train:])
+
+    # class_train = classify(ell_train, res.solution)
+    # misclass_train = np.sum(~np.isclose(class_train, y[:N_train]))
+    # print(misclass_train / N_train)
+
+    # class_train = classify(ell_train, res.solution)
+    # print(class_train.shape)
+    # misclass_train = np.sum(class_train != y[:N_train])
+    # print(misclass_train / N_train)
+
+def load_data(N_train=3065) -> Dataset:
+    data = np.loadtxt(DATA_DIR / 'spam.data', delimiter=" ")
+    X, y = data[:, :-1], data[:, -1]
+    # Remap 0 to -1
+    y[y==0] = -1
+    X = np.log(X + 0.1)
+    return Dataset(X=X, y=y, N_train=N_train)
+
+
+# def train(X, y):
+# 
+#     def train(X, y):
+#         w0 = np.zeros(X.shape[1])
+#         ell = funcs.LogLikelihoodLogistic(X, y)
+#         # return descent_with_search(ell.f, ell.grad, w0, t0=1e-2, maxiters=10000)
+#         result = gradient_descent(ell.f, ell.grad, w0, stepsize=1e-5, maxiters=100000)
+#         result.f = ell.f
+#         return result
+# 
+# def problem_4():
+#     # Load the dataset
+#     dataset = load_data()
+# 
+
+
+####################################################################################
+# Solving Spam problem in various ways
+####################################################################################
+##
+def gradient_descent_cost(cost, x0, stepsize, **kwargs):
+    return gradient_descent(cost.f, cost.grad, x0, stepsize, **kwargs)
+
+class Model:
+    def __init__(self, cost, solver=gradient_descent_cost, solver_options=None):
+        self.cost = cost
+        self.solver = solver
+        self.solver_options = {} if solver_options is None else solver_options
+        
+        self.ell_train = None
+        self.ell_test = None
+        
+        self.result = None
+        self.w = None
+
+
+    def train(self, dataset):
+        X, y = dataset.training
+        
+        x0 = np.zeros(X.shape[1])
+        
+        self.ell_train = self.cost(X, y)
+        self.result = self.solver(self.ell_train, x0, **self.solver_options)
+
+
+        def cost_eval(x):
+            # well... this is pretty hacky and doesn't actually work properly for some reason
+            ns_cost = self.solver_options.get("nonsmooth_cost")
+            if ns_cost is not None:
+                return self.ell_train.f(x) + ns_cost.g(x)
+            else:
+                return self.ell_train.f(x)
+
+        self.result.f = cost_eval
+        self.w = self.result.solution
+        return self.result
+
+    def validate(self, dataset):
+        X, y = dataset.testing
+        self.ell_test = self.cost(X, y)
+
+        return self.ell_test.f(self.w)
+        
+    def classification_rate(self, dataset, training=False):
+        ell = self.ell_train if training else self.ell_test
+        classes = ell.classify(self.w)
+    
+        y = (dataset.training if training else dataset.testing)[1]
+        N_training = len(y)
+        
+        num_correct = np.sum(np.isclose(classes, y))
+        return num_correct / N_training
+
+
+
+# Proximal Gradient Descent Algorithm
+
+
+class NonsmoothCost:
+    """
+    A (potentially) nonsmooth cost function.
+    
+    prox_g(t, y) = argmin_x t * g(x) - ||x-y||^2
+
+    computable in closed form. This is implemented in prox method
+    """
+
+    def g(self, x):
+        return self.g(x) + self.h(x)
+
+    def prox(self, t, y):
+        raise NotImplementedError
+
+
+class NonsmoothIdentity:
+    def __init__(self):
+        pass
+        
+    def g(self, x):
+        return 0
+
+    def prox(self, t, y):
+        return y
+
+def prox_grad_operator(grad, prox, t):
+    def p_t(y):
+        return prox(t, y - t * grad(y))
+    return p_t
+    
+def prox_gradient_descent(cost, x0, nonsmooth_cost=None, stepsize=1e-5, maxiters=int(1e5), tol=1e-5):
+    if nonsmooth_cost is None:
+        nonsmooth_cost = NonsmoothIdentity()
+    
+    prox_grad = prox_grad_operator(cost.grad, nonsmooth_cost.prox, stepsize)
+    
+    t0 = 1
+    # Not used on first iteration
+    x1 = None
+    t1 = None
+
+    N = x0.shape[0]
+    steps = np.full((maxiters+1, N), np.nan)
+    cost_history = np.full(maxiters+1, np.nan)
+    
+    steps[0] = x0
+    cost_history[0] = cost.f(x0) + nonsmooth_cost.g(x0)
+
+    for k in range(maxiters):
+
+        if k == 0:
+            y = x0
+        else:
+            y = x1 + (t0 - 1) / t1 * (x1 - x0)
+            # Save old x0 now it has been used.
+            x0 = x1
+            t0 = t1
+
+        
+        # Run proximal gradient operator
+        x1 = prox_grad(y)
+        t1 = (1 + np.sqrt(1 + 4 * t0))/2
+
+        # Save history
+        steps[k + 1] = x1
+        cost_history[k + 1] = cost.f(x1) + nonsmooth_cost.g(x1)
+
+        if np.linalg.norm(x1 - x0) < tol:
+            # Convergence
+            return SolverResult(x1, True, steps[:k+2], cost_history[:k+2])
+
+    return SolverResult(x1, False, steps, cost_history)
+
+
+def nelder_mead(cost, x0, **kwargs):
+    """Model-compatible solver interface to scipy.optimize.fmin's Nelder-Mead implementation."""
+    solution, _, _, _, status, steps = fmin(cost.f, x0, full_output=True, retall=True, **kwargs)
+    costs = np.array([cost.f(x_i) for x_i in steps])
+    result = SolverResult(solution, status==0, np.array(steps), costs)
+    result.f = cost.f
+    return result
+
+# This is is a simple "zero" cost function since this is a required argument to prox_gradient_descent
+class ZeroCost:
+    def __init__(self):
+        pass
+        
+    def f(self, x):
+        return 0
+        
+    def grad(self, x):
+        return np.zeros(x.shape[0], dtype=float)
+    
+    
+
+
+
+FeatureNames = [
+    'make', 'address', 'all', '3d', 'our', 'over', 'remove',
+    'internet', 'order', 'mail', 'receive', 'will', 'people',
+    'report', 'addresses', 'free', 'business', 'email', 'you',
+    'credit', 'your', 'font', '000', 'money', 'hp', 'hpl', 'george',
+    '650', 'lab', 'labs', 'telnet', '857', 'data', '415', '85',
+    'technology', '1999', 'parts', 'pm', 'direct', 'cs', 'meeting',
+    'original', 'project', 're', 'edu', 'table', 'conference', ';',
+    '(', '[', '!', '$', '#','Avg capital letter',
+    "Max capital letter", "Total capital letter"
+]
+
+
+def plot_features(w):
+    posInd = (w>0)
+    pos = np.argwhere( posInd.ravel() ).ravel()
+    neg = np.argwhere( ~posInd.ravel() ).ravel()
+    plt.stem(pos,w[posInd],linefmt='C0-',label='Positive coefficient (SPAM)',
+        basefmt='')
+    plt.stem(neg,-w[~posInd],linefmt='C1-',markerfmt='C1x',
+        label='Negative coefficient (legit)',
+        basefmt='')
+    plt.legend()
+    # Interesting features
+    interesting = np.nonzero( (np.abs(w)>0.6).ravel() )[0]
+    lbl=[] # one way to do it:
+    [lbl.append(FeatureNames[int(i)]) for i in interesting]
+    plt.xticks( interesting, labels=lbl )
+    plt.xticks(rotation=90)
+    plt.show()

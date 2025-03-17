@@ -75,25 +75,25 @@ class LogLikelihoodLogistic:
         assert self.y.shape[0] == self.N
         self.X = X
 
-    def alpha(self, i, w):
-        # print(i)
-        return -self.y[i] * np.vdot(w, self.X[i])
-        
     def f(self, w):
+        # print('yo')
         return np.sum(
-            [np.log1p(np.exp(self.alpha(i, w)))
-             for i in range(self.N)]
+            np.log1p(
+                np.exp(
+                    -self. y * (self.X @ w)
+                )
+            )
         )
 
     def mu(self, w):
         # print('w', w.shape)
-        return sigmoid(self.y * (self.X @ w))
+        return sigmoid(-self.y * (self.X @ w))
 
     def grad(self, w):
         # print(self.X.T.shape)
         # print(self.y.shape)
         # print(self.mu(w).shape)
-        return - self.X.T @ (self.y * (1 - self.mu(w)))
+        return - self.X.T @ (self.y * self.mu(w))
     # def grad(self, w):
     #     return -np.sum(
     #         [sigmoid(self.alpha(i, w)) * self.y[i] * self.X[i]
@@ -102,10 +102,12 @@ class LogLikelihoodLogistic:
     def __repr__(self):
         return f"Logistic(X.shape={self.X.shape}, y.shape={self.y.shape}"
             
+    
+    def classify(ell, sol):
+        prob = sigmoid(ell.X @ sol)
+        return np.where(prob > 0.5, 1, -1)
             
                                                   
 
-
-                                                
             
         

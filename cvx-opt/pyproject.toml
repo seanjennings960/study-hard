@@ -27,7 +27,7 @@ classifiers = [
 dependencies = [
   "notebook",
   "jupyterlab-vim",
-  "cvxpy",
+  "cvxpy<1.6.0,>=1.4.0",
   "pandas",
   "numpy",
   "matplotlib",
