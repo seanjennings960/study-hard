@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Optional, Tuple
 import numpy as np
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
@@ -119,14 +119,23 @@ def problem_1(save_dir=None):
 class SolverResult:
     solution: np.ndarray
     converged: bool
-    steps: np.ndarray
+    steps: Optional[np.ndarray]
     costs: np.ndarray
 
-    def plot(self):
+    def plot(self, log=False, loglog=False):
         plt.figure()
-        plt.plot(self.costs)
+        if loglog:
+            plt.loglog(self.costs)
+        elif log:
+            plt.semilogy(self.costs)
+        else:
+            plt.plot(self.costs)
+        plt.xlabel("Solver Iteration (k)")
+        plt.ylabel("Function cost f(x) + g(x)")
 
     def plot_solution(self, N_features, title=None):
+        if self.steps is None:
+            raise ValueError("Full solution history was not saved!")
         plt.figure()
         plt.plot(self.steps[:, :N_features])
         plt.legend([f"feature {i}" for i in range(N_features)])
@@ -138,7 +147,7 @@ class SolverResult:
     def __repr__(self):
         return f"""SolverResult:
     Converged={self.converged}
-    iterations={len(self.steps)}
+    iterations={len(self.costs) - 1}
     function_eval={self.costs[-1]}
 """
 
@@ -414,7 +423,7 @@ def prox_grad_operator(grad, prox, t):
         return prox(t, y - t * grad(y))
     return p_t
     
-def prox_gradient_descent(cost, x0, nonsmooth_cost=None, stepsize=1e-5, maxiters=int(1e5), tol=1e-5):
+def prox_gradient_descent(cost, x0, nonsmooth_cost=None, stepsize=1e-5, maxiters=int(1e5), tol=1e-5, full_history=True):
     if nonsmooth_cost is None:
         nonsmooth_cost = NonsmoothIdentity()
     
@@ -426,10 +435,13 @@ def prox_gradient_descent(cost, x0, nonsmooth_cost=None, stepsize=1e-5, maxiters
     t1 = None
 
     N = x0.shape[0]
-    steps = np.full((maxiters+1, N), np.nan)
     cost_history = np.full(maxiters+1, np.nan)
     
-    steps[0] = x0
+    if full_history:
+        steps = np.full((maxiters+1, N), np.nan)
+        steps[0] = x0
+    else:
+        steps = None
     cost_history[0] = cost.f(x0) + nonsmooth_cost.g(x0)
 
     for k in range(maxiters):
@@ -445,15 +457,18 @@ def prox_gradient_descent(cost, x0, nonsmooth_cost=None, stepsize=1e-5, maxiters
         
         # Run proximal gradient operator
         x1 = prox_grad(y)
-        t1 = (1 + np.sqrt(1 + 4 * t0))/2
+        t1 = (1 + np.sqrt(1 + 4 * t0**2))/2
 
         # Save history
-        steps[k + 1] = x1
+        if full_history:
+            steps[k + 1] = x1
         cost_history[k + 1] = cost.f(x1) + nonsmooth_cost.g(x1)
 
         if np.linalg.norm(x1 - x0) < tol:
+            if full_history:
+                steps = steps[:k+2]
             # Convergence
-            return SolverResult(x1, True, steps[:k+2], cost_history[:k+2])
+            return SolverResult(x1, True, steps, cost_history[:k+2])
 
     return SolverResult(x1, False, steps, cost_history)
 
