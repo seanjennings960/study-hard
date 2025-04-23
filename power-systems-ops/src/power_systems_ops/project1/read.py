@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
 
 import pandas as pd
 
@@ -9,9 +10,15 @@ URL = "https://emsg2.tbm.tudelft.nl/cu-boulder-2025/index.jsp"
 
 def login(email, password):
 
+
     ChromeDriverManager().install()
+
     # Setup the WebDriver and launch Chrome
-    driver = webdriver.Chrome()
+    options = Options()
+    options.add_argument("--ignore-certificate-errors")  # Ignore SSL errors
+    driver = webdriver.Chrome(options=options)
+    print("using options")
+
 
     # Open the webpage
     driver.get(URL)

@@ -1,0 +1,186 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5427}
+\title{Project 2 Proposal: The Impact of Battery Degradation on Power System Operations}
+\author{Sean Jennings}
+\date{March 11, 2025}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+For this project, I plan to quantify the system-wide benefits of grid-scale Lithium Ion Battery (LiB) storage, with a focus on battery lifetime and degradation modeling.
+LiB degradation is a complex electrochemical phenomenon, but as LiBs have developed into a commercially mature technology, a vast array of research has uncovered
+many useful insights (see [] for an overview). I am interested in exploring the implications of degradation to questions of systems-level operations.
+
+Many techno-economic analyses of battery energy storage systems (bESSs) amortize capital costs over a fixed lifetime of typically 10-15 years for LiB packs. However,
+many studies show that at least at the smallest scale of assembly topologies, battery cells age both as a function of
+\begin{enumerate}
+    \item cycle aging: that is, the conditions under which the cell are cycled, especially
+    \begin{itemize}
+        \item depth of discharge (DoD),
+        \item max (dis)charge rates (also known as C-rates); and
+    \end{itemize}
+    \item calendar aging: i.e. how the battery deteriorates over time, which also depends on
+    \begin{itemize}
+        \item the state of charge (SoC) at which the battery is stored
+    \end{itemize}
+\end{enumerate} 
+
+It happens that these operating conditions are (more or less directly) inputs to system-level problems of economic dispatch (ED) and unit commitment (UC), which suggests that
+it makes sense to amortize over battery usage, rather than over time, and treat usage as an operational cost, akin to the fuel costs for thermal generators.
+
+Taking a control perspective for a moment, we will use the term state of health (SoH) to refer some unknown representation of the internal electrochemical
+condition of the battery. The SoH is observable in several ways:
+\begin{enumerate}
+    \item capacity fade: the amount of charge which can be held diminishes with declining SoH,
+    \item power fade: the maximum discharge and charge rates decay with declining SoH,
+    \item open Circuit Voltage (OCV) curves changes: OCV is the cell voltage as a function of SoC (when allowed to (dis)charge sufficiently slowly) and provides information about internal electrochemical mechanism
+    \item electrochemical Impedance Spectroscopy (EIS): also correlates closely with battery state of health
+\end{enumerate}
+
+I plan to focus mostly on capacity fade, but for now I will note that the OCV curves and EIS could be very useful in online applications. By monitoring SoH continuously, bESS facilities and
+their owners will be able to improve their degradation and lifetime prediction over time, and ideally this should feedback into capacity expansion models. But I will consider
+closed-loop control and state estimation problems as out of scope for this project.
+
+Unfortunately, the Energy Storage "External" which SAint provides is a bit limited in its reprentation. There are a number of UC-related parameters (mininum up/downtime, etc.) which 
+are likely not very relevant since LiB switching speeds are fast (see LiB's use frequency response applications). There is a field for "variable operation and maintenance cost", but it only
+seems to support a fixed value, rather than a power-dependent curve. Instead, I am working on model which I believe will more accurately represent grid-scale bESS facilities, by including
+the coupling between several physical domains:
+\begin{enumerate}
+    \item a simple electrochemical model of degradation,
+    \item a heat transfer model to determine the amount of efficiency lost to temperature control systems as a function of ambient temperature
+    \item the electrical domain which connects the bESS to the grid and our DC optimal power flow problem (DCOPF)
+\end{enumerate}
+
+\section{Methodology}
+
+I plan to modify the 37 bus network provided by the encoord to seek answers to the following questions:
+
+\begin{letterenum}
+\item Q1: how does a higher-order degradation models affect the solutions of the ED and UC problems?
+\begin{itemize}
+    \item Does it predict a lower/higher overall cost?
+    \item 
+\end{itemize} 
+\item Q2: Potential for BESS to alleviate transmission constraints
+\end{letterenum}
+
+\section{Problem Formulation}
+
+
+
+
+
+Temperature is also a major factor in determining degradation rates. 
+Unfortunately, SAint does not 
+
+\begin{enumerate}
+\item Research Questions
+\item Methodology
+    \begin{letterenum}
+        \item Production Cost Modeling:
+            \begin{itemize}
+            \item Unfortunately, SAint doesn't appear to have the capabilities to explore the first question: fixed depth of discharge (aka min/max SoC)
+            \item Add a mock-up 2D fuel cost curve that exemplifies the issue
+            \item Breakdown into multiple energy storage objects to effect a piecewise linear model (Well, I don't actually think this works since SoC constraints are interdependent...)
+            \item Possibly, need to write custom PCM optimization model to test this properly
+            \end{itemize}
+        \item Data Sources:
+        \begin{itemize}
+            \item BESS Pricing Inputs: breakdown capital costs by component (Power Electronics vs. Battery packs vs. others?)
+            \item Battery pack degradation (Lithium ion cells) -> operating cost
+            \item Renewable Energy Profiles: use New England-based solar/wind resources?
+        \end{itemize}
+        \item Test Network:
+        \begin{itemize}
+            \item There's enough complexity in the initial part of the 
+        \end{itemize}
+        \item Scenarios
+        \begin{enumerate}
+        \item Q1: Consider more of a scenario matrix:
+            \begin{itemize}
+            \item Base Case -- high renewable penetration with simple (zero-order) O\&M cost model
+            \item Zero-order vs first-order modeling
+            \item Renewable penetration (low, mid, high)
+            \item Energy Storage sizing
+            \item Cost sensitivities -- Lithium prices (low, mid, high)
+            \end{itemize}
+        \item Q2: Transmission constraints
+            \begin{itemize}
+            \item Base Case -- Moderate renewable penetration, transmission-constrained system
+            \item Energy Storage location --> colocated with renewable generation, baseload generation, demand, or near transmission constraint
+            \end{itemize}
+        \end{enumerate}
+    \end{letterenum}
+\end{enumerate}
+
+For this project, I am interested in exploring and understanding the operational impacts of integrating (eletrochemical-based) battery energy storage systems (BESS's) into power systems with high penetrations
+of renewable energy resources. 
+
+\section{Research Questions}
+
+My first question pertains to the degradatory nature of Lithium Ion-based BESS's. Batteries experience irreservible electrochemical changes which cause their storage capacity and power generation
+capabilities to reduce over time.  Typically, when assessing the upfront capital investment of a BESS, the power electronic components are specc'ed out for 20 year lifetimes, while the
+battery packs anticipate a 10 year lifetime. While this approximation may be satisfactory for capacity expansion-like scenarios, where uncertainty is high, the true picture is quite
+a bit more complex, and power system operators (and planners) may benefit by considering a more nuanced picture of BESS lifetime degradation. Specifically, battery degradation is typically
+broken down into calendar aging and cycle aging. Models which assume a fixed 10 year lifetime implicitly neglect the cycle aging component. The cycle aging component is complex, since
+it depends on a number of factors which depend both on the BESS design as well as the operating conditions (i.e. power output and the depth of discharge). A power system which accurately
+models the cycling-related degradation dependencies should be able to achieve a dispatch with lower system-wide costs. 
+
+Essentially, cycle aging can be considered as the marginal cost of a BESS, analogous to the fuel costs of a thermal generator.
+
+This leads to our first research question:
+
+
+{\bf Question 1:} How does 
+
+
+
+The first focuses on the near-term potential
+of providing transmission congestion relief. 
+
+This project aims to develop a production cost model (PCM) in SAInt to analyze the economic and operational impacts of energy storage degradation on power system operations.
+A comparative analysis will be conducted between a simplified first-order approximation of battery degradation and a detailed empirical model accounting for both cycling and calendar aging.
+
+\section{Research Questions}
+Research Questions:
+
+    How close is a first-order approximation of battery lifespan to reality?
+        Does incorporating detailed degradation effects lead to an over- or under-estimation of total system costs compared to a simplified model?
+    How does economic dispatch differ between the two models?
+        Does the more detailed degradation model shift optimal storage dispatch strategies?
+        How does it impact renewable integration and system-level costs?
+
+\section{Methodology}
+
+    Test System Selection
+        Start with encoord’s test system (20+ buses with renewables).
+        Integrate real-world data from EIA’s AEO and EIPC to make the model more representative.
+
+    Production Cost Modeling in SAInt
+        Formulate unit commitment + economic dispatch with DC power flow.
+        Simulate hourly operations for one year under different scenarios.
+        Use a simplified first-order degradation model for battery lifespan.
+
+    Extending the Model Beyond SAInt (If Possible)
+        If SAInt doesn’t support a detailed degradation model, consider building an external PCM in CVXpy for comparison.
+        Use empirical battery degradation models to estimate real-world operational impacts.
+
+    Scenario Design (At least 5 per research question)
+        Baseline: Standard SAInt PCM with first-order degradation.
+        Detailed Degradation Model: PCM with empirical degradation effects.
+        High Storage Penetration: More storage to test sensitivity.
+        High Renewable Penetration: More wind/solar to observe dispatch changes.
+        Different Battery Chemistries: If time allows, compare Li-ion to other storage tech.
+
+
+
+
+\end{document}

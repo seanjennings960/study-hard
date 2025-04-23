@@ -37,7 +37,8 @@ dependencies = [
   # Data processing
   "numpy",
   "pandas",
-  "matplotlib"
+  "matplotlib",
+  "PyPDF2",
 ]
 
 [project.urls]
