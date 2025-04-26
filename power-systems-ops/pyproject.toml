@@ -39,6 +39,7 @@ dependencies = [
   "pandas",
   "matplotlib",
   "PyPDF2",
+  "scipy",
 ]
 
 [project.urls]
