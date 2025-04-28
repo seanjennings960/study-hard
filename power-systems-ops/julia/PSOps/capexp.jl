@@ -21,49 +21,11 @@ println("Number of externals: $(length(network.externals))")
 println("Number of nodes: $(length(network.nodes))")
 println("Number of lines: $(length(network.lines))")
 
-# ############################################################################
-# %% Simple Test Case
-# ############################################################################
-
-nodes = [
-    Node("1"), Node("2"), Node("3")
-]
-lines = [
-    Line("L1", "1", "2", 1),
-    Line("L2", "1", "3", 1),
-    Line("L3", "2", "3", 1),
-]
-externals = [
-    External("Fuel", "1", FuelGenerator(
-        P_max=nothing, ρ=0.
-    )),
-    External("Ren", "2", RenewableGenerator(
-        P_max=nothing, γ=vcat(ones(12), zeros(12))
-    )),
-    External("Dem", "3", Demand(
-        d=ones(24) * 100  # Constant 100 MW load
-    )),
-]
-network = Network(externals, nodes, lines)
-
-costs = Dict(
-    "Fuel" => 5,
-    "Ren" => 0,
-)
 
 # %%
 
 
 
-
-
-struct ModelParams
-    N::Vector{String}  # Set of Node Names
-    E::Vector{String}  # Set of External Names
-    L::Vector{String}  # Set of Line Names
-    A::SparseMatrixCSC  # Incidence Matrix
-    F::SparseMatrixCSC  # Power Transfer Distribution Matrix
-end
 
 function incidence_matrix(network::Data.Network)
     N = [n.name for n in network.nodes]
@@ -89,11 +51,15 @@ end
 function bus_injection_matrix(network::Network)
     N = [n.name for n in network.nodes]
     n_N = length(network.nodes)
-    n_X = length(network.externals)
+    n_X = length(x_names(network.externals))
     Ψ = spzeros(n_N, n_X)
-    for (j, ext) in enumerate(network.externals)
-        i = findfirst(node_name -> node_name == ext.node, N)
-        Ψ[i, j] = ext.type.convention
+    for (x, ext) in enumerate(network.externals)
+        n = findfirst(node_name -> node_name == ext.node, N)
+        Ψ[n, x] = ext.type.convention
+        if isa(ext.type, Storage)
+            # Handle storage specially, for the time being...
+            Ψ[n, x+1] = -ext.type.convention
+        end
     end
     return Ψ
 end
@@ -106,7 +72,7 @@ end
 function is_configurable(external::External{Storage})
     P_config = isnothing(external.type.P_max)
     E_config = isnothing(external.type.E_max)
-    @assert sum(P_config, E_config) != 1 "Storage's P_max and E_max cannot be configured individually."
+    @assert sum([P_config, E_config]) != 1 "Storage's P_max and E_max cannot be configured individually."
     return P_config || E_config
 end
 
@@ -126,7 +92,7 @@ function lower_config_limit(external::External{FuelGenerator}, n_T)
     return [external.type.ρ for _ in 1:n_T]
 end
 
-function lower_config_limit(_::External{T}, n_T) where T<:Union{Storage, RenewableGenerator}
+function lower_config_limit(_::External{T}, n_T) where T<:Union{RenewableGenerator, Storage}
     return zeros(n_T)
 end
 
@@ -169,23 +135,24 @@ function configurable_power_limits(network)
     Φ_2 = [spzeros(n_T, n_C) for _ in 1:n_X]
 
 
-    for (x, name) in enumerate(X)
+    for (x, x_name) in enumerate(X)
 
-        if endswith(name, "_ch")
-            ext_name = name[end-2:end]
-        elseif endswith(name, "_dch")
-            ext_name = name[end-3:end]
+        if endswith(x_name, "_ch")
+            true_name = x_name[1:end-3]
+        elseif endswith(x_name, "_dch")
+            true_name = x_name[1:end-4]
         else
-            ext_name = name
+            true_name = x_name
         end
 
-        i = findfirst(ext -> ext.name == ext_name, network.externals)
+        println("True name: $true_name")
+        i = findfirst(ext -> ext.name == true_name, network.externals)
         external = network.externals[i]
         if !is_configurable(external)
             continue
         end
 
-        j = findfirst(name -> name == ext_name, C)
+        j = findfirst(name -> name == true_name, C)
 
         println(external)
         lower = lower_config_limit(external, n_T)
@@ -210,8 +177,12 @@ function fixed_power_limits(network::Network)
     return p_lower, p_upper
 end
 
-function lower_power_limit(_::External{T}, n_T) where T<:Union{RenewableGenerator, Storage}
+function lower_power_limit(_::External{RenewableGenerator}, n_T)
     return zeros(n_T)
+end
+
+function lower_power_limit(_::External{Storage}, n_T)
+    return zeros(n_T, 2)
 end
 
 function lower_power_limit(external::External{Demand}, n_T)
@@ -230,11 +201,18 @@ function upper_power_limit(external::External{Demand}, n_T)
     return external.type.d
 end
 
-function upper_power_limit(external::External{T}, n_T) where T<:Union{FuelGenerator, Storage}
+function upper_power_limit(external::External{FuelGenerator}, n_T)
     if is_configurable(external)
         return zeros(n_T)
     end
     return external.P_max * ones(n_T)
+end
+
+function upper_power_limit(external::External{Storage}, n_T)
+    if is_configurable(external)
+        return zeros(n_T, 2)
+    end
+    return external.P_max * ones(n_T, 2)
 end
 
 function upper_power_limit(external::External{RenewableGenerator}, n_T)
@@ -245,16 +223,37 @@ function upper_power_limit(external::External{RenewableGenerator}, n_T)
 end
 
 
+# ############################################################################
+# %% Simple Test Case
+# ############################################################################
 
-
-
-
-
+nodes = [
+    Node("1"), Node("2"), Node("3")
+]
+lines = [
+    Line("L1", "1", "2", 1),
+    Line("L2", "1", "3", 1),
+    Line("L3", "2", "3", 1),
+]
+externals = [
+    External("Fuel", "1", FuelGenerator(
+        P_max=nothing, ρ=0.
+    )),
+    External("Ren", "2", RenewableGenerator(
+        P_max=nothing, γ=vcat(ones(12), zeros(12))
+    )),
+    External("Dem", "3", Demand(
+        d=ones(24) * 100  # Constant 100 MW load
+    )),
+    # External("Store", "3", Storage(
+    #     P_max=nothing, E_max=nothing
+    # )),
+]
+network = Network(externals, nodes, lines)
 
 A = incidence_matrix(network)
 F = power_transfer_distribution_matrix(network)
 @assert isapprox(F * [1; 0; -1], [1/3; 2/3; 1/3])
-
 Ψ = bus_injection_matrix(network)
 
 C, X, Φ_1, Φ_2 = configurable_power_limits(network)
@@ -305,40 +304,22 @@ L = length(network.lines)
 
 C0 = Dict(
     "Fuel" => 20_000,
-    "Ren" => 00_000
+    "Ren" => 00_000,
+    "Store" => 1_000
 )
 C1 = Dict(
     "Fuel" => 5,
-    "Ren" => 0
+    "Ren" => 0,
+    "Store" => 0
 )
 @objective(model, Min,
     sum(C0[c] * p_max[c] for c in C) + sum(C1[c] * sum(u[c, t] for t=1:T) for c in C)
 )
+X
+C
 
 optimize!(model)
-model
 
-
-
-# function extract_params(network::Network, profile::Dict{String, Profile})
-#     N = [n.name for n in nodes]
-# 
-#     # Incidence Matrix
-#     A = incidence_matrix(N, lines)
-# 
-#     return ModelParams(
-#         N,
-#         [e.name for e in externals],
-#         [l.name for l in lines],
-#         A, F
-#     )
-# end
-# 
-# 
-# 
-# p = extract_params(network, profiles)
-# 
-# # %%
-# 
-# 
-# @variable()
+println("Objective value: $(objective_value(model))")
+println("Storage Details: $(value.(p_max))")
+value.(p_max)
