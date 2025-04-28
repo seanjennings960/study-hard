@@ -1,6 +1,7 @@
 module Data
+
 export Network, Node, Line, External, FuelGenerator, RenewableGenerator, Storage,
-data_dir, Profile
+Storage, data_dir, Profile, Demand
 
 using Base.Iterators
 
@@ -67,13 +68,34 @@ end
 function load_profiles(file::String)
     doc = readxml(file)
     items = firstelement(root(doc))
-    return [
+    profiles = [
         Profile(
             prf_node["Name"], prf_node["UID"],
             read_data(prf_node), parse(Float64, prf_node["TimeStep"]))
         for prf_node in eachelement(items)
     ]
+    return Dict([
+        p.name => p
+        for p in profiles
+    ])
 end
+
+
+function profile_map(scenario_file)
+    # Map External name -> profile_name
+    xl_esce = XLSX.readxlsx(scenario_file)
+
+    s = Data.table(xl_esce, "ESCE")
+    mask = .!ismissing.(s[!, "ProfileName"])
+
+    external_name = row -> split(row["Parameter"], ".")[2]
+    return Dict(
+        [external_name(r) => r["ProfileName"]
+         for r in eachrow(s[mask, :])]...
+    )
+end
+
+
 
 
 
@@ -84,37 +106,70 @@ end
 # 
 # ############################################################################
 
-struct FuelGenerator; end
-struct RenewableGenerator; end
-struct Storage; end
+@kwdef struct FuelGenerator
+    P_max::Union{Nothing,Float64}  # Power capacity, or none if it is configurable
+    ρ::Float64  # Minimum power ratio (P_min = ρP_max)
+    convention::Int32=1
+end
+@kwdef struct RenewableGenerator
+    P_max::Union{Nothing,Float64}  # Power capacity, or none if it is configurable
+    γ::Vector{Float64}  # Representing PU availability across time
+    convention::Int32=1
+end
+@kwdef struct Storage;
+    P_max::Union{Nothing,Float64}  # Power capacity, or none if it is configurable
+    E_max::Union{Nothing,Float64}  # Energy capacity, or none if configurable
+    convention::Int32=1
+end
+@kwdef struct Demand;
+    d::Vector{Float64}  # Representing demand at each time in units of power.
+    convention::Int32=-1
+end
 
 
 
-struct External{T<:Union{FuelGenerator, RenewableGenerator, Storage}}
+struct External{T<:Union{FuelGenerator, RenewableGenerator, Storage, Demand}}
     name::String
     node::String
     type::T
 end
 
 
-function load_externals(network)
+function load_externals(network, external_profiles)
     # Load all the existing externals into the model. We're just going to focus
     # on the renewable/storage ones for now...
     externals = []
     e_pv = [External(
-        pv["Name"], pv["NodeName"],  RenewableGenerator()
+        pv["Name"], pv["NodeName"],  RenewableGenerator(
+            P_max=nothing,  # Configurable
+            γ=external_profiles[pv["Name"]].data
+        )
     ) for pv in eachrow(network.pv)]
+
     e_wind = [External(
-        wind["Name"], wind["NodeName"],  RenewableGenerator()
+        wind["Name"], wind["NodeName"],  RenewableGenerator(
+            P_max=nothing,
+            γ=external_profiles[wind["Name"]].data
+        )
     ) for wind in eachrow(network.wind)]
+
     e_storage = [External(
-        s["Name"], s["NodeName"], Storage()
-    ) for s in eachrow(network.storage)
-    ]
+        s["Name"], s["NodeName"], Storage(
+            P_max=nothing, E_max=nothing
+        )
+    ) for s in eachrow(network.storage)]
+
+    e_demand = [External(
+        demand["Name"], demand["NodeName"], Demand(
+            d=external_profiles[demand["Name"]].data
+        )
+    ) for demand in eachrow(network.demands)]
+
 
     append!(externals, e_pv)
     append!(externals, e_wind)
     append!(externals, e_storage)
+    append!(externals, e_demand)
     # Ignoring fuel generators for now.
 
     return externals
@@ -125,14 +180,14 @@ end
 # and which nodes it connects.
 struct Line
     name::String
-    to::String
     from::String
+    to::String
     B::Float64  # Susceptance
 end
 
 function load_lines(network::EncoordNetwork)
     return [Line(
-        l["Name"], l["ToName"], l["FromName"], 1/l["XXDEF [pu] = 0"]
+        l["Name"], l["FromName"], l["ToName"], 1/l["XXDEF [pu] = 0"]
     ) for l in Iterators.flatten(
         (eachrow(network.lines), eachrow(network.transformers))
     )]
@@ -155,20 +210,28 @@ struct Network
 end
 
 
+function load_network_scenario(enet_file, profile_file, scenario_file)
+    xl_enet = XLSX.readxlsx(enet_file)
 
 
-function load_network(file)
-    xl = XLSX.readxlsx(file)
+    # Map external_names -> profile name
+    prof_map = profile_map(scenario_file)  
+    # Map of profile names -> profiles
+    profiles = load_profiles(profile_file)
+    external_profiles = Dict(
+        [external_name => profiles[profile_name]
+         for (external_name, profile_name) in pairs(prof_map)]
+    )
 
-    sheets = XLSX.sheetnames(xl)
-    println("Sheets in data.xlsx: ", sheets)
+    # sheets = XLSX.sheetnames(xl)
+    # println("Sheets in data.xlsx: ", sheets)
 
     n =  EncoordNetwork(
-        [table(xl, name)
+        [table(xl_enet, name)
         for name in ["ENO", "LI", "TRF", "EDEM", "ESTR",
                      "WIND", "PV", "FUEL", "FGEN"]]...
     ) 
-    externals = load_externals(n)
+    externals = load_externals(n, external_profiles)
     lines = load_lines(n)
     nodes = load_nodes(n)
     return Network(externals, nodes, lines)
@@ -176,3 +239,22 @@ end
 
 
 end
+
+
+# using XLSX
+# 
+# enet_file = joinpath(data_dir, "enet39.xlsx")
+# scenario_file = joinpath(data_dir, "scenario_events.xlsx")
+# profile_file = joinpath(data_dir, "full_year_profs.prfl")
+# # 
+# # length(prof_map)
+# # length(profiles)
+# # 
+# # for (ext, prof) in pairs(prof_map)
+# #     println("External $ext | Profile $prof)")
+# #     println("has profile data: $(haskey(profiles, prof))")
+# # end
+# # 
+# 
+# n = Data.load_network_scenario(enet_file, profile_file, scenario_file)
+# 
