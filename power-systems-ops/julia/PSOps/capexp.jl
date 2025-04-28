@@ -1,10 +1,9 @@
-
-include("data.jl")
+using Revise
+includet("data.jl")
 using .Data
 using JuMP
 import HiGHS
 using DataFrames
-using LinearAlgebra
 using SparseArrays
 
 
@@ -20,207 +19,6 @@ network = Data.load_network_scenario(enet_file, profile_file, scenario_file)
 println("Number of externals: $(length(network.externals))")
 println("Number of nodes: $(length(network.nodes))")
 println("Number of lines: $(length(network.lines))")
-
-
-# %%
-
-
-
-
-function incidence_matrix(network::Data.Network)
-    N = [n.name for n in network.nodes]
-
-    n_N = length(N)
-    n_L = length(network.lines)
-    A = spzeros(n_L, n_N)
-    for (i, l) in enumerate(network.lines)
-        j = findfirst(n -> n == l.to, N)
-        A[i, j] = -1
-        k = findfirst(n -> n == l.from, N)
-        A[i, k] = 1
-    end
-    return A
-end
-
-function power_transfer_distribution_matrix(network::Network)
-    A = incidence_matrix(network)
-    B = Diagonal([l.B for l in network.lines])
-    return B * A * pinv(Matrix(transpose(A) * B * A))
-end
-
-function bus_injection_matrix(network::Network)
-    N = [n.name for n in network.nodes]
-    n_N = length(network.nodes)
-    n_X = length(x_names(network.externals))
-    Ψ = spzeros(n_N, n_X)
-    for (x, ext) in enumerate(network.externals)
-        n = findfirst(node_name -> node_name == ext.node, N)
-        Ψ[n, x] = ext.type.convention
-        if isa(ext.type, Storage)
-            # Handle storage specially, for the time being...
-            Ψ[n, x+1] = -ext.type.convention
-        end
-    end
-    return Ψ
-end
-
-
-function is_configurable(external::External{T}) where T<:Union{FuelGenerator, RenewableGenerator}
-    return isnothing(external.type.P_max)
-end
-
-function is_configurable(external::External{Storage})
-    P_config = isnothing(external.type.P_max)
-    E_config = isnothing(external.type.E_max)
-    @assert sum([P_config, E_config]) != 1 "Storage's P_max and E_max cannot be configured individually."
-    return P_config || E_config
-end
-
-function is_configurable(_::External{Demand})
-    return false
-end
-
-function upper_config_limit(_::External{T}, n_T) where T<:Union{FuelGenerator, Storage}
-    return ones(n_T)
-end
-
-function upper_config_limit(external::External{RenewableGenerator}, n_T)
-    return external.type.γ
-end
-
-function lower_config_limit(external::External{FuelGenerator}, n_T)
-    return [external.type.ρ for _ in 1:n_T]
-end
-
-function lower_config_limit(_::External{T}, n_T) where T<:Union{RenewableGenerator, Storage}
-    return zeros(n_T)
-end
-
-function n_timesteps(network::Network)
-    i = findfirst(e -> isa(e.type, Demand), network.externals)
-    # We're just going to assume all timesteps are the same, for now..
-    return length(network.externals[i].type.d)
-end
-
-function all_names(external::External{T}) where T<:Union{RenewableGenerator, FuelGenerator, Demand}
-    return [external.name]
-end
-
-function all_names(external::External{T}) where T<:Storage
-    return [external.name * "_ch", external.name * "_dch"]
-end
-
-
-function x_names(externals::Vector{External})
-    names = [
-        all_names(external) for external in externals
-    ]
-    return [n for n in Iterators.flatten(names)]
-end
-
-
-function configurable_power_limits(network)
-    X = x_names(network.externals)
-    C = [
-        external.name
-        for external in network.externals
-        if is_configurable(external)
-    ]
-
-    n_X = length(X)
-    n_C = length(C)
-    n_T = n_timesteps(network)
-
-    Φ_1 = [spzeros(n_T, n_C) for _ in 1:n_X]
-    Φ_2 = [spzeros(n_T, n_C) for _ in 1:n_X]
-
-
-    for (x, x_name) in enumerate(X)
-
-        if endswith(x_name, "_ch")
-            true_name = x_name[1:end-3]
-        elseif endswith(x_name, "_dch")
-            true_name = x_name[1:end-4]
-        else
-            true_name = x_name
-        end
-
-        println("True name: $true_name")
-        i = findfirst(ext -> ext.name == true_name, network.externals)
-        external = network.externals[i]
-        if !is_configurable(external)
-            continue
-        end
-
-        j = findfirst(name -> name == true_name, C)
-
-        println(external)
-        lower = lower_config_limit(external, n_T)
-        upper = upper_config_limit(external, n_T)
-        Φ_1[x][:, j] = lower
-        Φ_2[x][:, j] = upper
-    end
-
-    return (
-        C, X, Φ_1, Φ_2
-    )
-end
-
-function fixed_power_limits(network::Network)
-    n_T = n_timesteps(network)
-    p_lower = vcat(
-        [transpose(lower_power_limit(external, n_T)) for external in network.externals]...
-    )
-    p_upper = vcat(
-        [transpose(upper_power_limit(external, n_T)) for external in network.externals]...
-    )
-    return p_lower, p_upper
-end
-
-function lower_power_limit(_::External{RenewableGenerator}, n_T)
-    return zeros(n_T)
-end
-
-function lower_power_limit(_::External{Storage}, n_T)
-    return zeros(n_T, 2)
-end
-
-function lower_power_limit(external::External{Demand}, n_T)
-    return external.type.d
-end
-
-function lower_power_limit(external::External{FuelGenerator}, n_T)
-    if is_configurable(external)
-        return zeros(n_T)
-    end
-    e = external
-    return e.ρ * e.P_max * ones(n_T)
-end
-
-function upper_power_limit(external::External{Demand}, n_T)
-    return external.type.d
-end
-
-function upper_power_limit(external::External{FuelGenerator}, n_T)
-    if is_configurable(external)
-        return zeros(n_T)
-    end
-    return external.P_max * ones(n_T)
-end
-
-function upper_power_limit(external::External{Storage}, n_T)
-    if is_configurable(external)
-        return zeros(n_T, 2)
-    end
-    return external.P_max * ones(n_T, 2)
-end
-
-function upper_power_limit(external::External{RenewableGenerator}, n_T)
-    if is_configurable(external)
-        return zeros(n_T)
-    end
-    return external.type.P_max * external.type.γ
-end
 
 
 # ############################################################################
@@ -245,25 +43,30 @@ externals = [
     External("Dem", "3", Demand(
         d=ones(24) * 100  # Constant 100 MW load
     )),
-    # External("Store", "3", Storage(
-    #     P_max=nothing, E_max=nothing
-    # )),
+    External("Store", "3", Storage(
+        P_max=nothing, E_max=nothing
+    )),
 ]
 network = Network(externals, nodes, lines)
 
+# %% Matrices and whatnot
 A = incidence_matrix(network)
 F = power_transfer_distribution_matrix(network)
 @assert isapprox(F * [1; 0; -1], [1/3; 2/3; 1/3])
 Ψ = bus_injection_matrix(network)
 
-C, X, Φ_1, Φ_2 = configurable_power_limits(network)
+C, Φ_1, Φ_2, Φ_4 = configurable_power_limits(network)
+
+Φ_4["Store"]
+
+# %% Sets and some housekeeping...
 
 
 T = 24
 N = [n.name for n in network.nodes]
-n_N = length(N)
+X = [x.name for x in network.externals]
 
-p_lower, p_upper = fixed_power_limits(network)
+n_N = length(N)
 
 function dictify(v::AbstractMatrix, X)
     return Dict(
@@ -276,14 +79,17 @@ function dictify(v::Vector, X)
     )
 end
 
+p_lower, p_upper = fixed_power_limits(network)
 p_lower = dictify(p_lower, X)
 p_upper = dictify(p_upper, X)
-Φ_1 = dictify(Φ_1, X)
-Φ_2 = dictify(Φ_2, X)
-
-
 p_L_rating = 200
 
+
+
+
+########################
+# %% Model: DCOPF
+########################
 model = Model(HiGHS.Optimizer)
 @variable(model, p[N, 1:T])
 @variable(model, u[X, 1:T])
@@ -297,10 +103,66 @@ model = Model(HiGHS.Optimizer)
 @constraint(model, [x=X],
     u[x, 1:T] .<= p_upper[x] + Φ_2[x] * [p_max[c] for c in C] 
 )
-L = length(network.lines)
-@constraint(model, [t=1:T], -p_L_rating * ones(L) <= F * p[N, t])
-@constraint(model, [t=1:T],  F * p[N, t] <= p_L_rating * ones(L))
 
+########################
+# %% Line Constraints 
+########################
+n_L = length(network.lines)
+@constraint(model, [t=1:T], -p_L_rating * ones(n_L) <= F * p[N, t])
+@constraint(model, [t=1:T],  F * p[N, t] <= p_L_rating * ones(n_L))
+
+########################
+# %% Battery Constraints 
+########################
+
+batteries = [e for e in network.externals if isa(e.type, Storage)]
+B = [b.name for b in batteries]
+C_E = [b.name for b in batteries if is_configurable(b)]
+
+@variable(model, e[B, 1:T] >= 0)
+@variable(model, e_max[C_E] >= 0)
+
+# Configuration matrix
+Φ_3 = spzeros(length(B), length(C_E))
+for (j, configurable) in enumerate(C_E)
+    i = findfirst(n -> n == configurable, B)
+    Φ_3[i, j] = 1
+end
+E_fixed = [
+    is_configurable(b) ? 0. : b.E_max
+    for b in batteries
+]
+
+D = spzeros(T-1, T)
+for t in 1:T-1
+    D[t, t] = -1
+    D[t, t+1] = 1
+end
+
+η_c = 0.96
+η_d = 0.96
+
+
+@variable(model, p_charge[B, 1:T])
+@variable(model, p_discharge[B, 1:T] >= 0)
+@constraint(model, c1[b in B],
+    e[b, 1:T] .<= E_fixed .+ Φ_3 * [e_max[c] for c in C_E])
+@constraint(model, [b=B],
+    D * [e[b, t] for t in 1:T]  .== 
+        η_c * p_charge[b, 1:end-1] .- 1/η_d * p_discharge[b, 1:end-1]
+)
+@constraint(model, [b=B], u[b, 1:T] .== p_discharge[b, 1:T] .- p_charge[b, 1:T])
+
+p
+p_upper
+p_upper_b = hcat([transpose(p_upper[b]) for b in B]...)
+keys(p_upper_b)
+Φ_4["Store"]
+@constraint(model, [b=B], p_charge[b, :] .<= p_upper[b] + Φ_4[b] * [p_max[c] for c in C])
+
+
+
+# %% The cost of getting shit done.
 
 C0 = Dict(
     "Fuel" => 20_000,
@@ -312,14 +174,17 @@ C1 = Dict(
     "Ren" => 0,
     "Store" => 0
 )
+C0_E = Dict(
+    "Store" => 1_000
+)
 @objective(model, Min,
     sum(C0[c] * p_max[c] for c in C) + sum(C1[c] * sum(u[c, t] for t=1:T) for c in C)
+    + sum(C0_E[b] * e_max[b] for b in B)
 )
-X
-C
 
 optimize!(model)
 
 println("Objective value: $(objective_value(model))")
 println("Storage Details: $(value.(p_max))")
 value.(p_max)
+value.(e_max)
