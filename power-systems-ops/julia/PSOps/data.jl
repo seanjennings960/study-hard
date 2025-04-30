@@ -1,13 +1,17 @@
 module Data
 
+
 export Network,
+n_timesteps, configurable_externals, configurable_energy_devices,
 Node, Line, External,
 is_configurable,
 FuelGenerator, RenewableGenerator, Storage, Demand,
-data_dir, 
+data_dir,
 # Operators
 incidence_matrix, power_transfer_distribution_matrix, bus_injection_matrix,
-load_network_scenario, fixed_power_limits, configurable_power_limits
+energy_configuration_matrix,
+load_network_scenario, load_operation_costs, fixed_power_limits, configurable_power_limits,
+differential_op
 
 using Base.Iterators
 
@@ -108,10 +112,10 @@ end
 
 
 # ############################################################################
-# Parse Network into Built-in types -- so we know what we're using 
+# Parse Network into Built-in types -- so we know what we're using
 # The three major concepts within my DCOPT framework are Externals (should
 # really just be called generators...), Network=(Generators, Nodes, Lines)
-# 
+#
 # ############################################################################
 
 @kwdef struct FuelGenerator
@@ -336,14 +340,23 @@ function fixed_power_limits(network::Network)
 end
 
 
-function configurable_power_limits(network)
-    X = [x.name for x in network.externals]
-    C = [
+function configurable_externals(network)
+    return [
         external.name
         for external in network.externals
         if is_configurable(external)
     ]
+end
 
+function configurable_energy_devices(network)
+    batteries = [e for e in network.externals if isa(e.type, Storage)]
+    B = [b.name for b in batteries]
+    return [b.name for b in batteries if is_configurable(b)]
+end
+
+function configurable_power_limits(network)
+    X = [x.name for x in network.externals]
+    C = configurable_externals(network)
     n_C = length(C)
     n_T = n_timesteps(network)
     B = [x.name for x in network.externals if isa(x.type, Storage)]
@@ -372,6 +385,19 @@ function configurable_power_limits(network)
     end
 
     return (C, Φ_1, Φ_2, Φ_4)
+end
+
+function energy_configuration_matrix(network::Network)
+    batteries = [e for e in network.externals if isa(e.type, Storage)]
+    B = [b.name for b in batteries]
+    C_E = [b.name for b in batteries if is_configurable(b)]
+    # Configuration matrix
+    Φ_3 = spzeros(length(B), length(C_E))
+    for (j, configurable) in enumerate(C_E)
+        i = findfirst(n -> n == configurable, B)
+        Φ_3[i, j] = 1
+    end
+    return Φ_3
 end
 
 function bus_injection_matrix(network::Network)
@@ -404,7 +430,7 @@ end
 function power_transfer_distribution_matrix(network::Network)
     A = incidence_matrix(network)
     B = Diagonal([l.B for l in network.lines])
-    # Remember: The impedance matrix 
+    # Remember: The impedance matrix
     # Y = A^T B A
     # always has an eigenvalue of 0 corresponding to
     # the vector of ones.
@@ -413,12 +439,39 @@ end
 
 
 
-function load_network_scenario(enet_file, profile_file, scenario_file)
+
+######################################################################################
+# Useful mathematical operators
+######################################################################################
+function differential_op(T)
+    D = spzeros(T-1, T)
+    for t in 1:T-1
+        D[t, t] = -1
+        D[t, t+1] = 1
+    end
+    return D
+end
+
+
+######################################################################################
+# Load the whole network scenario shebang
+######################################################################################
+
+function load_raw_network(enet_file)
     xl_enet = XLSX.readxlsx(enet_file)
+    return  EncoordNetwork(
+        [table(xl_enet, name)
+        for name in ["ENO", "LI", "TRF", "EDEM", "ESTR",
+                     "WIND", "PV", "FUEL", "FGEN"]]...
+    )
+end
+
+function load_network_scenario(enet_file, profile_file, scenario_file)
+    n = load_raw_network(enet_file)
 
 
     # Map external_names -> profile name
-    prof_map = profile_map(scenario_file)  
+    prof_map = profile_map(scenario_file)
     # Map of profile names -> profiles
     profiles = load_profiles(profile_file)
     external_profiles = Dict(
@@ -429,15 +482,28 @@ function load_network_scenario(enet_file, profile_file, scenario_file)
     # sheets = XLSX.sheetnames(xl)
     # println("Sheets in data.xlsx: ", sheets)
 
-    n =  EncoordNetwork(
-        [table(xl_enet, name)
-        for name in ["ENO", "LI", "TRF", "EDEM", "ESTR",
-                     "WIND", "PV", "FUEL", "FGEN"]]...
-    ) 
     externals = load_externals(n, external_profiles)
     lines = load_lines(n)
     nodes = load_nodes(n)
     return Network(externals, nodes, lines)
+end
+
+function load_operation_costs(enet_file)
+    network = Data.load_raw_network(enet_file)
+    C1 = Dict()
+    for gen in eachrow(network.fuel_gen)
+        C1[gen["Name"]] = gen["C1DEF [\$/MWh] = 0"]
+    end
+    for gen in eachrow(network.wind)
+        C1[gen["Name"]] = 0
+    end
+    for gen in eachrow(network.pv)
+        C1[gen["Name"]] = 0
+    end
+    for gen in eachrow(network.storage)
+        C1[gen["Name"]] = 0
+    end
+    return C1
 end
 
 
@@ -445,19 +511,21 @@ end
 
 
 # using XLSX
-# 
+#
 # enet_file = joinpath(data_dir, "enet39.xlsx")
 # scenario_file = joinpath(data_dir, "scenario_events.xlsx")
 # profile_file = joinpath(data_dir, "full_year_profs.prfl")
-# # 
-# # length(prof_map)
-# # length(profiles)
-# # 
+#
+# network = Data.load_raw_network(enet_file)
+# network.fuel_gen
+#
+# C0 = Dict()
+# #
 # # for (ext, prof) in pairs(prof_map)
 # #     println("External $ext | Profile $prof)")
 # #     println("has profile data: $(haskey(profiles, prof))")
 # # end
-# # 
-# 
+# #
+#
 # n = Data.load_network_scenario(enet_file, profile_file, scenario_file)
-# 
+#
