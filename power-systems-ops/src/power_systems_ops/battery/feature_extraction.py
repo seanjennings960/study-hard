@@ -23,7 +23,7 @@ def df_capacity(df: pd.DataFrame) -> pd.DataFrame:
 
 def capacity(df: pd.DataFrame) -> list:
     """
-    Evaluate capacity of measurement in df with step_type = [21,22]
+    Return capacity of measurement (in units Ah).
 
     :param df: pd.DataFrame: df with step_type = [21,22]
     :return: {'Q_mean': float, 'Q_ch': float, 'Q_dch': float, 'q_ch': np.ndarray, 'q_dch': np.ndarray}
@@ -43,6 +43,7 @@ def capacity(df: pd.DataFrame) -> list:
     q_kapa_dch = q_calc(df[(df.step_type == 22) & (df.c_cur < 0)])
 
     if len(q_kapa_ch) >= 1:
+        # Converts here from A*s -> A*hr
         capa_ch = (q_kapa_ch[-1] - q_kapa_ch[0])/3600
     else:
         capa_ch = np.nan
