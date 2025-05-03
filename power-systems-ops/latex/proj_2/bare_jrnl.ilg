@@ -1,0 +1,17 @@
+This is makeindex, version 2.17 [TeX Live 2024] (kpathsea + Thai support).
+Scanning style file /usr/local/texlive/2024/texmf-dist/makeindex/nomencl/nomencl.ist........
+** Input style error (file = /usr/local/texlive/2024/texmf-dist/makeindex/nomencl/nomencl.ist, line = 36):
+   -- Unknown specifier lethead_prefix.
+** Input style error (file = /usr/local/texlive/2024/texmf-dist/makeindex/nomencl/nomencl.ist, line = 37):
+   -- Unknown specifier lethead_suffix.
+** Input style error (file = /usr/local/texlive/2024/texmf-dist/makeindex/nomencl/nomencl.ist, line = 38):
+   -- Unknown specifier lethead_flag.
+....done (12 attributes redefined, 3 ignored).
+Scanning input file bare_jrnl.nlo....
+!! Input index error (file = bare_jrnl.nlo, line = 20):
+   -- Extra `|' at position 21 of first argument.
+done (26 entries accepted, 1 rejected).
+Sorting entries....done (120 comparisons).
+Generating output file bare_jrnl.nls....done (32 lines written, 0 warnings).
+Output written in bare_jrnl.nls.
+Transcript written in bare_jrnl.ilg.

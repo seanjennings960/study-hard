@@ -1,0 +1,32 @@
+
+\begin{thenomenclature} 
+\nomgroup{A}
+  \item [{$\B$}]\begingroup Set of all BESS externals\nomeqref {0}\nompageref{1}
+  \item [{$\bar{E}_x$}]\begingroup Energy capacity (MWh) for external $x\in\X$\nomeqref {0}\nompageref{1}
+  \item [{$\bar{P}_x$}]\begingroup Power capacity (MW) for external $x\in\X$\nomeqref {0}\nompageref{1}
+  \item [{$\C_E$}]\begingroup Subset of externals with configurable energy capacities\nomeqref {0}\nompageref{1}
+  \item [{$\C_P$}]\begingroup Subset of externals with configurable power capacities\nomeqref {0}\nompageref{1}
+  \item [{$\eta_c \in [0, 1]$}]\begingroup BESS charge efficiency\nomeqref {0}\nompageref{1}
+  \item [{$\eta_d \in [0, 1]$}]\begingroup BESS discharge efficiency\nomeqref {0}\nompageref{1}
+  \item [{$\gamma_{x, t}$}]\begingroup Capacity factor of external $x\in\X$ at time $t\in\T$\nomeqref {0}\nompageref{1}
+  \item [{$\L$}]\begingroup Set of Transmission Lines\nomeqref {0}\nompageref{1}
+  \item [{$\mathcal{F}$}]\begingroup Power Distribution Transfer Matrix\nomeqref {0}\nompageref{1}
+  \item [{$\N$}]\begingroup Set of buses in network\nomeqref {0}\nompageref{1}
+  \item [{$\Phi_1 \in \R^{\sizeX \times \sizeC}$}]\begingroup Capacity Map: power lower bound\nomeqref {0}\nompageref{1}
+  \item [{$\Phi_2 \in \R^{\sizeX \times \sizeC}$}]\begingroup Capacity Map: power upper bound\nomeqref {0}\nompageref{1}
+  \item [{$\Phi_3 \in \R^{\sizeX \times \sizeC}$}]\begingroup Capacity Map: energy lower bound\nomeqref {0}\nompageref{1}
+  \item [{$\T$}]\begingroup Set of timesteps\nomeqref {0}\nompageref{1}
+  \item [{$\X$}]\begingroup Set of externals\nomeqref {0}\nompageref{1}
+  \item [{$D$}]\begingroup Differential Operator\nomeqref {0}\nompageref{1}
+  \item [{$p_{\ell,t}$}]\begingroup Power flow (MW) on line $\ell \in \L$ at time $t\in\T$\nomeqref {0}\nompageref{1}
+  \item [{$p_{n,t}$}]\begingroup Total (real) power (MW) injected at node $n \in \N$\nomeqref {0}\nompageref{1}
+  \item [{$p_{x,t}$}]\begingroup (Real) power (MW) injected by external $x \in \X$ at time $t\in\T$\nomeqref {0}\nompageref{1}
+\nomgroup{B}
+  \item [{$C_{0,E,x}$}]\begingroup Capital Cost per unit of installed energy capacity (\$/MWh) for external $x\in\X$\nomeqref {0}\nompageref{1}
+  \item [{$C_{0,P,x}$}]\begingroup Capital Cost per unit of installed power capacity (\$/MW) for external $x\in\X$\nomeqref {0}\nompageref{1}
+  \item [{$C_{1,E,x}$}]\begingroup Variable cost per unit of energy stored (\$/MWh) for external $x\in\X$\nomeqref {0}\nompageref{1}
+  \item [{$C_{1,P,x}$}]\begingroup Variable cost per unit of power generation (\$/MW) for external $x\in\X$\nomeqref {0}\nompageref{1}
+  \item [{$f$}]\begingroup Total (annualized) system cost\nomeqref {0}\nompageref{1}
+  \item [{$T_x$}]\begingroup Expected lifetime of external $x$\nomeqref {0}\nompageref{1}
+
+\end{thenomenclature}
