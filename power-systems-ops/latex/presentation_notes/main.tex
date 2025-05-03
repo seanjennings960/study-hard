@@ -1,0 +1,82 @@
+\documentclass{homework}
+% \usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{subfig}
+\usepackage{float}
+
+\class{ECEN 5427}
+\title{Just some notes}
+\author{Sean Jennings}
+\date{}
+
+\begin{document}
+\maketitle
+
+\renewcommand{\L}{\mathcal{L}}
+\renewcommand{\X}{\mathcal{X}}
+\newcommand{\T}{\mathcal{T}}
+\renewcommand{\N}{\mathcal{N}}
+\newcommand{\B}{\mathcal{B}}
+
+\section{DCOPF}
+\begin{align*}
+\min_{p_{\X, \T}} f(p_{\X, \T}) \\
+    \quad 0 = \sum_{n\in\N} p_{n, t}    &\qquad \text{(power balance)} \\
+    \quad p_{\N, t} = \Psi p_{X, t}  &\qquad \text{(bus injections)} \\
+    \quad \underbar{P}_{\X, t} \leq  p_{X, t}  \leq  \bar{P}_{\X, t}  &\qquad
+        \text{(loading conditions)} \\
+    \quad -\bar{P}_\L \leq \mathcal{F} p_{\N, t} \leq \bar{P}_\L
+        &\qquad \text{(symmetric line constraints)} \\
+&\qquad \qquad(\forall t \in \T)
+\end{align*}
+
+\section{DCOPF with Planning}
+\begin{align*}
+\min_{p_{\X, \T}, \bar{P}_\X, \bar{E}_\B} f(p_{\X, \T}, \bar{P}_\X, \bar{E}_\X) \\
+    \quad 0 = \sum_{n\in\N} p_{n, t}    &\qquad \text{(power balance)} \\
+    \quad p_{\N, t} = \Psi p_{X, t}  &\qquad \text{(bus injections)} \\
+    \quad \underbar{P}_{\X, t} \leq  p_{X, t}  \leq  \bar{P}_{\X, t}  &\qquad
+        \text{(loading conditions)} \\
+    \quad -\bar{P}_\L \leq \mathcal{F} p_{\N, t} \leq \bar{P}_\L
+        &\qquad \text{(symmetric line constraints)} \\
+&\qquad \qquad(\forall t \in \T)
+\end{align*}
+
+\section{Fixed Lifetime}
+\begin{align*}
+    f_x(p_{\T}, \bar{P}, \bar{E}) = \frac{1}{T_L}\biggl((C_0(\bar{P}) + C_{0,E}(\bar{E})\biggr) + C_1 \sum_{t\in\T} p_t
+\end{align*}
+\begin{equation*}
+    T_L = \frac{1}{\beta}
+\end{equation*}
+\section{Degradation}
+\begin{equation*}
+    T_L = \frac{1}{\beta(e_\T, p_\T)}
+\end{equation*}
+\begin{align*}
+    f^*_x(p_{\T}, \bar{P}, \bar{E}) = \beta(e_\T, p_\T)(C_0(\bar{P}) + C_{0,E}(\bar{E}))
+\end{align*}
+
+\section{Lagragian}
+\begin{align*}
+    &\min_x f(x) \\
+    &\text{subject to:} \\
+    &\qquad \text{(DCOPF constraints)} \\
+    &\qquad \sum_{x\in\X} \epsilon_x \leq \epsilon_{max}
+\end{align*}
+
+\begin{align*}
+    \L(\lambda) = &\min_x f(x) + \lambda \sum_{x\in\X} \epsilon_x \\
+\end{align*}
+
+
+\begin{align*}
+    \lambda^* = \text{arg}\max_\lambda \L(\lambda)
+\end{align*}
+
+\begin{align*}
+    \lambda^* = g(\epsilon_{max})
+\end{align*}
+
+\end{document}
