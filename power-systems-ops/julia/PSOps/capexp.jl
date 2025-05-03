@@ -26,7 +26,7 @@ end
 
 
 # ############################################################################
-# %% Simple Test Case
+# %% Capacity Expansion JuMP Modeling code
 # ############################################################################
 
 struct LinearCost
@@ -51,7 +51,6 @@ function capacity_expansion(network::Network, cost::LinearCost)
     p_lower, p_upper = fixed_power_limits(network)
     p_lower = dictify(p_lower, X)
     p_upper = dictify(p_upper, X)
-    p_L_rating = 200
 
     ########################
     # %% Model: DCOPF
@@ -73,6 +72,7 @@ function capacity_expansion(network::Network, cost::LinearCost)
     ########################
     # %% Line Constraints
     ########################
+    p_L_rating = 700  # MW     FIXME: Assuming constant limit for all lines!
     n_L = length(network.lines)
     @constraint(model, [t=1:T], -p_L_rating * ones(n_L) <= F * p[N, t])
     @constraint(model, [t=1:T],  F * p[N, t] <= p_L_rating * ones(n_L))
@@ -100,9 +100,9 @@ function capacity_expansion(network::Network, cost::LinearCost)
     @variable(model, p_charge[B, 1:T])
     @variable(model, p_discharge[B, 1:T] >= 0)
 
-    println("Φ_3: ", size(Φ_3))
-    println("C_E: ", length(C_E))
-    println("E_fixed: ", length(E_fixed))
+    # println("Φ_3: ", size(Φ_3))
+    # println("C_E: ", length(C_E))
+    # println("E_fixed: ", length(E_fixed))
 
     @constraint(model, c1[t in 1:T],
         e[B, t] .<= E_fixed .+ Φ_3 * [e_max[c] for c in C_E])
@@ -126,16 +126,20 @@ function capacity_expansion(network::Network, cost::LinearCost)
     C0 = cost.C0
     C1 = cost.C1
     C0_E = cost.C0_E
-    total_power_capital = sum(C0[c] * p_max[c] for c in C)
-    total_power_operational = sum(C1[c] * sum(u[c, t] for t=1:T) for c in C)
-    total_energy_capital = sum(C0_E[b] * e_max[b] for b in B)
-    # %% The cost of getting shit done.
+    total_power_capital = sum(C0[c] * p_max[c] for c in C) * 1000 # $ / kW * MW * (1000kW/MW) == $
+    total_power_operational = sum(C1[c] * sum(u[c, t] for t=1:T) for c in C)  # $/MWh * MWh == $ FIXME: Assuming 1 hr Δ_t
+    total_energy_capital = sum(C0_E[b] * e_max[b] for b in B) * 1000 # $ / kWh * MWh * (1000kWh / MWh) == $
     @objective(model, Min,
         total_power_capital + total_power_operational
         + total_energy_capital
     )
     return model
 end
+
+
+# ############################################################################
+# %% Simple Test Case
+# ############################################################################
 
 
 nodes = [
@@ -199,8 +203,8 @@ summarize(network, model)
 # ############################################################################
 
 enet_file = joinpath(data_dir, "enet39.xlsx")
-scenario_file = joinpath(data_dir, "scenario_events.xlsx")
-profile_file = joinpath(data_dir, "full_year_profs.prfl")
+scenario_file = joinpath(data_dir, "peak_demand_week_esce.xlsx")
+profile_file = joinpath(data_dir, "peak_demand_week.prfl")
 network = Data.load_network_scenario(enet_file, profile_file, scenario_file)
 println("Number of externals: $(length(network.externals))")
 println("Number of nodes: $(length(network.nodes))")
@@ -232,7 +236,7 @@ function external_by_name(network, name)
 end
 
 # ############################################################################
-# %% Set up technologies and cost
+# %% Cost from Technologies Initialization
 # ############################################################################
 
 using Parameters
@@ -245,7 +249,7 @@ using Parameters
     nox::Float64=0. #  lb/MMBtu
     so2::Float64=0. #  lb/MMBtu
     co2::Float64=0. #  lb/MMBtu
-    lifetime::Float64
+    lifetime::Float64   # Years
 end
 
 techs = Dict(
@@ -291,22 +295,32 @@ function load_costs(network::Network, techs::Dict{String, Technology})
         # FIXME: hard-coding the bess cost here!
         name => 240 for name in C_E   # $/kWh
     )
-    return LinearCost(
-        C0,
-        C1,
-        C0_E
-    )
+    return LinearCost(C0, C1, C0_E)
 
 end
 
 costs = load_costs(network, techs)
 
-# %%
+# ############################################################################
+# %% Instantiate Capacity Expansion model
+# ############################################################################
 
 
 model = capacity_expansion(network, costs)
 
-# %% okay... we have a model without too much trouble... hahaha
+# ############################################################################
+# %% Run Optimization
+# ############################################################################
 
 # Wooooo, it works. Now we, need to see if it's doing something reasonable.
 optimize!(model)
+
+
+# ############################################################################
+# Analysis of results
+# %% Okay, we have it optimizing for the smaller problem. Let's analyze
+# the results...
+# ############################################################################
+
+
+
