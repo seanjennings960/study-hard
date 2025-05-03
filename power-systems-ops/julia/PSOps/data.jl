@@ -121,17 +121,20 @@ end
 @kwdef struct FuelGenerator
     P_max::Union{Nothing,Float64}  # Power capacity, or none if it is configurable
     ρ::Float64  # Minimum power ratio (P_min = ρP_max)
+    tech::String
     convention::Int32=1
 end
 @kwdef struct RenewableGenerator
     P_max::Union{Nothing,Float64}  # Power capacity, or none if it is configurable
     γ::Vector{Float64}  # Representing PU availability across time
+    tech::String
     convention::Int32=1
 end
 @kwdef struct Storage;
     P_max::Union{Nothing,Float64}  # Power capacity, or none if it is configurable
     E_max::Union{Nothing,Float64}  # Energy capacity, or none if configurable
     convention::Int32=1
+    tech::String="bess"
 end
 @kwdef struct Demand;
     d::Vector{Float64}  # Representing demand at each time in units of power.
@@ -146,6 +149,12 @@ struct External{T<:Union{FuelGenerator, RenewableGenerator, Storage, Demand}}
     type::T
 end
 
+FUEL_NAME_MAP = Dict(
+    "URANIUM" => "nuclear",
+    "NATURAL_GAS" => "gas_cc",
+    "COAL" => "coal"
+)
+
 
 function load_externals(network, external_profiles)
     # Load all the existing externals into the model. We're just going to focus
@@ -154,35 +163,45 @@ function load_externals(network, external_profiles)
     e_pv = [External(
         pv["Name"], pv["NodeName"],  RenewableGenerator(
             P_max=nothing,  # Configurable
-            γ=external_profiles[pv["Name"]].data
+            γ=external_profiles[pv["Name"]].data,
+            tech="solar"
         )
     ) for pv in eachrow(network.pv)]
 
     e_wind = [External(
         wind["Name"], wind["NodeName"],  RenewableGenerator(
             P_max=nothing,
-            γ=external_profiles[wind["Name"]].data
+            γ=external_profiles[wind["Name"]].data,
+            tech="wind"
         )
     ) for wind in eachrow(network.wind)]
 
     e_storage = [External(
-        s["Name"], s["NodeName"], Storage(
+        s["Name"] * "_STORAGE", s["Name"], Storage(
             P_max=nothing, E_max=nothing
         )
-    ) for s in eachrow(network.storage)]
+    ) for s in eachrow(network.nodes)]
 
     e_demand = [External(
-        demand["Name"], demand["NodeName"], Demand(
+            demand["Name"], demand["NodeName"], Demand(
             d=external_profiles[demand["Name"]].data
         )
     ) for demand in eachrow(network.demands)]
+
+    e_fgen = [External(
+        fgen["Name"], fgen["NodeName"], FuelGenerator(
+            P_max=nothing,
+            ρ=(fgen["FuelName"] == "URANIUM") ? 1 : 0,  # Assume nuclear is always on, other have no minimum
+            tech=FUEL_NAME_MAP[fgen["FuelName"]]
+        )
+    ) for fgen in eachrow(network.fuel_gen)]
 
 
     append!(externals, e_pv)
     append!(externals, e_wind)
     append!(externals, e_storage)
     append!(externals, e_demand)
-    # Ignoring fuel generators for now.
+    append!(externals, e_fgen)
 
     return externals
 end

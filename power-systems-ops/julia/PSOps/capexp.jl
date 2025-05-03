@@ -99,14 +99,29 @@ function capacity_expansion(network::Network, cost::LinearCost)
     @variable(model, e_max[C_E] >= 0)
     @variable(model, p_charge[B, 1:T])
     @variable(model, p_discharge[B, 1:T] >= 0)
-    @constraint(model, c1[b in B],
-        e[b, 1:T] .<= E_fixed .+ Φ_3 * [e_max[c] for c in C_E])
+
+    println("Φ_3: ", size(Φ_3))
+    println("C_E: ", length(C_E))
+    println("E_fixed: ", length(E_fixed))
+
+    @constraint(model, c1[t in 1:T],
+        e[B, t] .<= E_fixed .+ Φ_3 * [e_max[c] for c in C_E])
     @constraint(model, [b=B],
         D * [e[b, t] for t in 1:T]  .==
             η_c * p_charge[b, 1:end-1] .- 1/η_d * p_discharge[b, 1:end-1]
     )
     @constraint(model, [b=B], u[b, 1:T] .== p_discharge[b, 1:T] .- p_charge[b, 1:T])
     @constraint(model, [b=B], p_charge[b, :] .<= p_upper[b] + Φ_4[b] * [p_max[c] for c in C])
+
+    ########################
+    # Emissions Limit
+    ########################
+
+
+
+    ########################
+    # Objective
+    ########################
 
     C0 = cost.C0
     C1 = cost.C1
@@ -133,10 +148,10 @@ lines = [
 ]
 externals = [
     External("Fuel", "1", FuelGenerator(
-        P_max=nothing, ρ=0.
+        P_max=nothing, ρ=0., tech="unused"
     )),
     External("Ren", "2", RenewableGenerator(
-        P_max=nothing, γ=vcat(ones(12), zeros(12))
+        P_max=nothing, γ=vcat(ones(12), zeros(12)), tech="unused"
     )),
     External("Dem", "3", Demand(
         d=ones(24) * 100  # Constant 100 MW load
@@ -193,7 +208,31 @@ println("Number of lines: $(length(network.lines))")
 
 
 # ############################################################################
-# %% run that mofo
+# %% Let's check that fuel generators loaded ok
+# ############################################################################
+for external in network.externals
+    println("External $(external.name): $(typeof(external.type))")
+    if isa(external.type, FuelGenerator)
+        println("ρ=$(external.type.ρ)")
+        println("tech=$(external.type.tech)")
+    end
+    if isa(external.type, RenewableGenerator)
+        println("tech=$(external.type.tech)")
+    end
+end
+
+
+# ############################################################################
+# %% Externals by name
+# ############################################################################
+
+function external_by_name(network, name)
+    i = findfirst(e -> e.name == name, network.externals)
+    return network.externals[i]
+end
+
+# ############################################################################
+# %% Set up technologies and cost
 # ############################################################################
 
 using Parameters
@@ -206,62 +245,67 @@ using Parameters
     nox::Float64=0. #  lb/MMBtu
     so2::Float64=0. #  lb/MMBtu
     co2::Float64=0. #  lb/MMBtu
+    lifetime::Float64
 end
-
-# @kwdef struct Technologies;
-#     solar::Technology
-#     nuclear::Technology
-#     gas_cc::Technology
-#     gas_ct::Technology
-#     bess::Technology
-#     wind::Technology
-#     coal::Technology
-# end
 
 techs = Dict(
     # source: https://www.eia.gov/analysis/studies/powerplants/capitalcost/pdf/capital_cost_AEO2025.pdf
-    "solar" =>          Technology(1_502., 20.23, 0.00, 0., 0., 0.),  # single axis tracking
-    "nuclear" =>        Technology(8_936., 121.99, 3.19, 0., 0., 0.,),  # (SMR)
-    "gas_cc" =>         Technology(868., 12.12, 3.41, 0.0075, 0.00, 117),  #
-    "gas_ct" =>         Technology(836., 6.87, 1.24, 0.0075, 0., 117),    # Startup: 23,100
-    "bess" =>           Technology(1_744., 40.00, 0.0, 0., 0., 0.), # 436/kWh
-    "wind" =>           Technology(1_386., 38.55, 0., 0., 0., 0.),
-    "coal" =>           Technology(4_103., 61.60, 6.40, 0.06, 0.09, 206)  # Greenfield no carbon cap
+    "solar" =>          Technology(1_502., 20.23, 0.00, 0., 0., 0., 25.),  # single axis tracking
+    "nuclear" =>        Technology(8_936., 121.99, 3.19, 0., 0., 0., 50.),  # (SMR)
+    "gas_cc" =>         Technology(868., 12.12, 3.41, 0.0075, 0.00, 117, 35.),  #
+    "gas_ct" =>         Technology(836., 6.87, 1.24, 0.0075, 0., 117, 35.),    # Startup: 23,100
+    "bess" =>           Technology(785., 40.00, 0.0, 0., 0., 0., 20.),    # (combined cost: 1,744$/kW == 436/kWh for 4hr battery -- EIA)
+                                                                            # 55% of 4hr battery cost is energy (Fu, et al 2018)
+                                                                            # Thus, cost of power-related components is
+                                                                            #   [45% * 1744 = 785$/kW]
+                                                                            # and cost of energy-related components is
+                                                                            #   [55% * 436 = 240$/kWh]
+                                                                            # Total is:
+                                                                            #   [785$/kW + 4 hr * 240$/kWh == 1745$/kW]
+                                                                            # This was of tabulating allows us to scale energy
+                                                                            # and storage independently and also ensures that costs
+                                                                            # are all based on estimates from the same year.
+    "wind" =>           Technology(1_386., 38.55, 0., 0., 0., 0., 25.),
+    "coal" =>           Technology(4_103., 61.60, 6.40, 0.06, 0.09, 206, 40.)  # Greenfield no carbon cap
 )
 
-# tech_to_external_type = Dict(
-#     "solar" => RenewableGenerator,
-#     "nuclear" => FuelGenerator,
-#     "gas_cc" => FuelGenerator,
-#     "gas_ct" => FuelGenerator,
-#     "bess" => Storage,
-#     "wind" => RenewableGenerator,
-#     "coal" => FuelGenerator
-# )
+function load_costs(network::Network, techs::Dict{String, Technology})
+
+    C = configurable_externals(network)
+    C_E = configurable_energy_devices(network)
+
+    tech_map = Dict(
+        name => techs[external_by_name(network, name).type.tech]
+        for name in C
+    )
+
+    C0 = Dict(
+        name => tech.capital_cost / tech.lifetime + tech.fixed_om
+        for (name, tech) in pairs(tech_map)
+    )
+    C1 = Dict(
+        name => tech.variable_om
+        for (name, tech) in pairs(tech_map)
+    )
+    C0_E = Dict(
+        # FIXME: hard-coding the bess cost here!
+        name => 240 for name in C_E   # $/kWh
+    )
+    return LinearCost(
+        C0,
+        C1,
+        C0_E
+    )
+
+end
+
+costs = load_costs(network, techs)
 
 # %%
 
 
-C = configurable_externals(network)
-C_E = configurable_energy_devices(network)
+model = capacity_expansion(network, costs)
 
-# FIXME: using old costs!!
-C1 = load_operation_costs(enet_file)
-C0 = Dict(
-    name => 0 for name in C
-)
-C0_E = Dict(
-    name => 0 for name in C_E
-)
-cost = LinearCost(
-    C0,
-    C1,
-    C0_E
-)
-model = capacity_expansion(network, cost)
-
-# %%
-C_E
 # %% okay... we have a model without too much trouble... hahaha
 
 # Wooooo, it works. Now we, need to see if it's doing something reasonable.
