@@ -11,7 +11,7 @@ data_dir,
 incidence_matrix, power_transfer_distribution_matrix, bus_injection_matrix,
 energy_configuration_matrix,
 load_network_scenario, load_profiles, load_operation_costs, fixed_power_limits, configurable_power_limits,
-differential_op, save_network
+differential_op, save_network,
 # External interface (it's kinda weird that you have to export all of these individually,
 # unlike methods of a Python Object)
 upper_config_limit, upper_power_limit, lower_config_limit, lower_power_limit
@@ -86,9 +86,10 @@ function save_network(net::EncoordNetwork,
 
     # --- 3. Open the copy in read‑write mode and dump each DataFrame ----
     XLSX.openxlsx(outfile_xlsx, mode = "rw") do xf
+        present = Set(XLSX.sheetnames(xf))
         for (sheet_name, df) in sheetmap
             # get existing sheet or create it
-            ws = haskey(xf, sheet_name) ? xf[sheet_name] :
+            ws = sheet_name in present ? xf[sheet_name] :
                                           XLSX.addsheet!(xf, sheet_name)
 
             # Tables.columns(df) gives a Vector of column vectors
@@ -98,7 +99,7 @@ function save_network(net::EncoordNetwork,
                 Tables.columns(df),
                 Tables.columnnames(df);
                 anchor_cell = XLSX.CellRef("A1"),   # start at A1
-                overwrite   = true                  # nuke previous contents
+                # overwrite   = true                  # nuke previous contents
             )                                       # :contentReference[oaicite:1]{index=1}
         end
     end
@@ -601,21 +602,22 @@ end
 
 
 # using XLSX
-#
+# using .Data
+# 
 # enet_file = joinpath(data_dir, "enet39.xlsx")
 # scenario_file = joinpath(data_dir, "scenario_events.xlsx")
 # profile_file = joinpath(data_dir, "full_year_profs.prfl")
-#
+# 
 # network = Data.load_raw_network(enet_file)
+# network.pv[!, Symbol("PMAXDEF [MW] = ∞")] .= 10
+# println(network.pv)
+# 
+# write_file = joinpath(data_dir, "enet39_best.xlsx")
+# println("Writing to $write_file")
+# save_network(network, enet_file, write_file)
+# println("Successfully wrote file.")
 # network.fuel_gen
-#
-# C0 = Dict()
-# #
-# # for (ext, prof) in pairs(prof_map)
-# #     println("External $ext | Profile $prof)")
-# #     println("has profile data: $(haskey(profiles, prof))")
-# # end
-# #
-#
+# 
+
 # n = Data.load_network_scenario(enet_file, profile_file, scenario_file)
-#
+# 
