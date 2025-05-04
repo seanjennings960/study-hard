@@ -51,6 +51,8 @@ function capacity_expansion(network::Network, cost::LinearCost)
     p_lower, p_upper = fixed_power_limits(network)
     p_lower = dictify(p_lower, X)
     p_upper = dictify(p_upper, X)
+    println("power_lower: $(p_lower)")
+    println("power_upper: $(p_upper)")
 
     ########################
     # %% Model: DCOPF
@@ -60,12 +62,12 @@ function capacity_expansion(network::Network, cost::LinearCost)
     @variable(model, u[X, 1:T])
     @variable(model, p_max[C] >= 0)
 
-    @constraint(model, [t=1:T], sum(p[N, t]) == 0)  # Power balance
-    @constraint(model, [t=1:T], Ψ * [u[x, t] for x in X] .== p[N, t])
-    @constraint(model, [x=X],
+    @constraint(model, c_power_balance[t=1:T], sum(p[N, t]) == 0)  # Power balance
+    @constraint(model, c_bus_injection[t=1:T], Ψ * [u[x, t] for x in X] .== p[N, t])
+    @constraint(model, c_loadability_lower[x=X],
         p_lower[x] + Φ_1[x] * [p_max[c] for c in C] .<= u[x, 1:T]
     )
-    @constraint(model, [x=X],
+    @constraint(model, c_loadability_upper[x=X],
         u[x, 1:T] .<= p_upper[x] + Φ_2[x] * [p_max[c] for c in C]
     )
 
@@ -106,6 +108,13 @@ function capacity_expansion(network::Network, cost::LinearCost)
 
     @constraint(model, c1[t in 1:T],
         e[B, t] .<= E_fixed .+ Φ_3 * [e_max[c] for c in C_E])
+
+    @constraint(model, c_energy_boundary[b in B],
+        e[b, 1] <= e[b, T])  # Should have at least as much energy at the end as beginning.
+
+
+    @constraint(model, c_energy_limit[t in 1:T],
+        e[B, t] .<= E_fixed .+ Φ_3 * [e_max[c] for c in C_E])
     @constraint(model, [b=B],
         D * [e[b, t] for t in 1:T]  .==
             η_c * p_charge[b, 1:end-1] .- 1/η_d * p_discharge[b, 1:end-1]
@@ -126,9 +135,12 @@ function capacity_expansion(network::Network, cost::LinearCost)
     C0 = cost.C0
     C1 = cost.C1
     C0_E = cost.C0_E
-    total_power_capital = sum(C0[c] * p_max[c] for c in C) * 1000 # $ / kW * MW * (1000kW/MW) == $
-    total_power_operational = sum(C1[c] * sum(u[c, t] for t=1:T) for c in C)  # $/MWh * MWh == $ FIXME: Assuming 1 hr Δ_t
-    total_energy_capital = sum(C0_E[b] * e_max[b] for b in B) * 1000 # $ / kWh * MWh * (1000kWh / MWh) == $
+    total_power_capital = sum(C0[c] * p_max[c] for c in C) * 1000 # $ / kW /year * MW * (1000kW/MW) == $
+    total_power_operational_pre = sum(C1[c] * sum(u[c, t] for t=1:T) for c in C) * 8760 / T # $/MWh/(T hr) * MWh * (8760 hr / year)== $ FIXME: Assuming 1 hr Δ_t
+    # HACK: multiple by some factor to scale operational vs capital costs -- gives a lever in comparing
+    # short-term vs. long term costs
+    total_power_operational = 100 * total_power_operational_pre
+    total_energy_capital = sum(C0_E[b] * e_max[b] for b in B) * 1000 # $ / kWh/year * MWh * (1000kWh / MWh) == $/year
     @objective(model, Min,
         total_power_capital + total_power_operational
         + total_energy_capital
@@ -155,7 +167,7 @@ externals = [
         P_max=nothing, ρ=0., tech="unused"
     )),
     External("Ren", "2", RenewableGenerator(
-        P_max=nothing, γ=vcat(ones(12), zeros(12)), tech="unused"
+        P_max=nothing, γ=100 * vcat(ones(12), zeros(12)), tech="unused"
     )),
     External("Dem", "3", Demand(
         d=ones(24) * 100  # Constant 100 MW load
@@ -269,6 +281,7 @@ techs = Dict(
                                                                             # This was of tabulating allows us to scale energy
                                                                             # and storage independently and also ensures that costs
                                                                             # are all based on estimates from the same year.
+    # "bess" =>           Technology(0., 0.00, 0.0, 0., 0., 0., 20.),    # Zero cost BESS....
     "wind" =>           Technology(1_386., 38.55, 0., 0., 0., 0., 25.),
     "coal" =>           Technology(4_103., 61.60, 6.40, 0.06, 0.09, 206, 40.)  # Greenfield no carbon cap
 )
@@ -286,15 +299,16 @@ function load_costs(network::Network, techs::Dict{String, Technology})
     C0 = Dict(
         name => tech.capital_cost / tech.lifetime + tech.fixed_om
         for (name, tech) in pairs(tech_map)
-    )
+    )   # $/kW/year
     C1 = Dict(
         name => tech.variable_om
         for (name, tech) in pairs(tech_map)
-    )
+    )  # $/MWh
     C0_E = Dict(
         # FIXME: hard-coding the bess cost here!
-        name => 240 for name in C_E   # $/kWh
-    )
+        # name => 240 for name in C_E   # $/kWh
+        name => 0 for name in C_E   # $/kWh
+    )  # $/kWh/year
     return LinearCost(C0, C1, C0_E)
 
 end
@@ -321,6 +335,42 @@ optimize!(model)
 # %% Okay, we have it optimizing for the smaller problem. Let's analyze
 # the results...
 # ############################################################################
+
+println("External | Tech | Power Capacity (MW)")
+for name in configurable_externals(network)
+    external = external_by_name(network, name)
+    cap = value(model[:p_max][name])
+    println("$(name) | $(external.type.tech) | $(cap)")
+end
+
+# %%
+
+t_index = 150
+println("External | Tech | Dispatch at t=$(t_index) Capacity (MW)")
+for name in configurable_externals(network)
+    external = external_by_name(network, name)
+    dispatch = value(model[:u][name, t_index])
+    println("$(name) | $(external.type.tech) | $(dispatch)")
+end
+
+
+
+# ############################################################################
+# %% For some reason, the loadability limits are not making it through...
+# Let's investigate.
+# ############################################################################
+
+
+ext = external_by_name(network, "PROVIDENCE_DEMAND")
+profs = load_profiles(profile_file)
+
+upper_power_limit(ext, 1)[2]
+lower, upper = fixed_power_limits(network)
+keys(profs)
+profs["EDEM_PROVIDENCE_DEMAND_PSET"]
+
+
+
 
 
 

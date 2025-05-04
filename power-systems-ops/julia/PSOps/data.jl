@@ -10,8 +10,12 @@ data_dir,
 # Operators
 incidence_matrix, power_transfer_distribution_matrix, bus_injection_matrix,
 energy_configuration_matrix,
-load_network_scenario, load_operation_costs, fixed_power_limits, configurable_power_limits,
-differential_op
+load_network_scenario, load_profiles, load_operation_costs, fixed_power_limits, configurable_power_limits,
+differential_op, save_network
+# External interface (it's kinda weird that you have to export all of these individually,
+# unlike methods of a Python Object)
+upper_config_limit, upper_power_limit, lower_config_limit, lower_power_limit
+
 
 using Base.Iterators
 
@@ -45,6 +49,61 @@ function table(xlsx_file, sheet_name)
         keep_empty_rows=false,
         infer_eltypes=true
     ))
+end
+
+
+
+"""
+    save_network(net::EncoordNetwork,
+                 template_xlsx::AbstractString,
+                 outfile_xlsx::AbstractString)
+
+Copy `template_xlsx` to `outfile_xlsx` and overwrite/insert the
+worksheets that belong to the EncoordNetwork fields (`ENO`, `LI`, `TRF`, …)
+with the data contained in `net`.
+
+Returns the path of the written file.
+"""
+function save_network(net::EncoordNetwork,
+                      template_xlsx::AbstractString,
+                      outfile_xlsx::AbstractString)
+
+    # --- 1. copy the template so we keep formatting, hidden sheets, etc. ----
+    cp(template_xlsx, outfile_xlsx; force = true)
+
+    # --- 2. Map sheet‑names → DataFrames -------------------------------
+    sheetmap = Dict(
+        "ENO"  => net.nodes,
+        "LI"   => net.lines,
+        "TRF"  => net.transformers,
+        "EDEM" => net.demands,
+        "ESTR" => net.storage,
+        "WIND" => net.wind,
+        "PV"   => net.pv,
+        "FUEL" => net.fuel,
+        "FGEN" => net.fuel_gen,
+    )
+
+    # --- 3. Open the copy in read‑write mode and dump each DataFrame ----
+    XLSX.openxlsx(outfile_xlsx, mode = "rw") do xf
+        for (sheet_name, df) in sheetmap
+            # get existing sheet or create it
+            ws = haskey(xf, sheet_name) ? xf[sheet_name] :
+                                          XLSX.addsheet!(xf, sheet_name)
+
+            # Tables.columns(df) gives a Vector of column vectors
+            # Tables.columnnames(df) gives the headers
+            XLSX.writetable!(
+                ws,
+                Tables.columns(df),
+                Tables.columnnames(df);
+                anchor_cell = XLSX.CellRef("A1"),   # start at A1
+                overwrite   = true                  # nuke previous contents
+            )                                       # :contentReference[oaicite:1]{index=1}
+        end
+    end
+
+    return outfile_xlsx
 end
 
 
@@ -155,8 +214,14 @@ FUEL_NAME_MAP = Dict(
     "COAL" => "coal"
 )
 
+@kwdef struct TechMap
+    solar::String
+    wind::String
+    storage::String
+end
 
-function load_externals(network, external_profiles)
+
+function load_externals(network, external_profiles, tech_map::TechMap)
     # Load all the existing externals into the model. We're just going to focus
     # on the renewable/storage ones for now...
     externals = []
@@ -164,7 +229,7 @@ function load_externals(network, external_profiles)
         pv["Name"], pv["NodeName"],  RenewableGenerator(
             P_max=nothing,  # Configurable
             γ=external_profiles[pv["Name"]].data,
-            tech="solar"
+            tech=tech_map.solar
         )
     ) for pv in eachrow(network.pv)]
 
@@ -172,13 +237,14 @@ function load_externals(network, external_profiles)
         wind["Name"], wind["NodeName"],  RenewableGenerator(
             P_max=nothing,
             γ=external_profiles[wind["Name"]].data,
-            tech="wind"
+            tech=tech_map.wind
         )
     ) for wind in eachrow(network.wind)]
 
     e_storage = [External(
         s["Name"] * "_STORAGE", s["Name"], Storage(
-            P_max=nothing, E_max=nothing
+            P_max=nothing, E_max=nothing,
+            tech=tech_map.storage
         )
     ) for s in eachrow(network.nodes)]
 
@@ -244,7 +310,7 @@ function upper_config_limit(_::External{T}, n_T) where T<:Union{FuelGenerator, S
 end
 
 function upper_config_limit(external::External{RenewableGenerator}, n_T)
-    return external.type.γ
+    return external.type.γ / 100 # Convert % to fraction
 end
 
 function lower_config_limit(external::External{FuelGenerator}, n_T)
@@ -265,7 +331,7 @@ function lower_power_limit(_::External{RenewableGenerator}, n_T)
 end
 
 function lower_power_limit(_::External{Storage}, n_T)
-    return zeros(n_T, 2)
+    return zeros(n_T)
 end
 
 function lower_power_limit(external::External{Demand}, n_T)
@@ -293,16 +359,16 @@ end
 
 function upper_power_limit(external::External{Storage}, n_T)
     if is_configurable(external)
-        return zeros(n_T, 2)
+        return zeros(n_T)
     end
-    return external.P_max * ones(n_T, 2)
+    return external.P_max * ones(n_T)
 end
 
 function upper_power_limit(external::External{RenewableGenerator}, n_T)
     if is_configurable(external)
         return zeros(n_T)
     end
-    return external.type.P_max * external.type.γ
+    return external.type.P_max * external.type.γ  / 100  # Convert percentage to fraction.
 end
 
 
@@ -485,7 +551,12 @@ function load_raw_network(enet_file)
     )
 end
 
-function load_network_scenario(enet_file, profile_file, scenario_file)
+DEFAULT_TECHS = TechMap(
+    solar="solar",
+    wind="wind",
+    storage="bess",
+)
+function load_network_scenario(enet_file, profile_file, scenario_file, tech_map::TechMap=DEFAULT_TECHS)
     n = load_raw_network(enet_file)
 
 
@@ -501,7 +572,7 @@ function load_network_scenario(enet_file, profile_file, scenario_file)
     # sheets = XLSX.sheetnames(xl)
     # println("Sheets in data.xlsx: ", sheets)
 
-    externals = load_externals(n, external_profiles)
+    externals = load_externals(n, external_profiles, tech_map)
     lines = load_lines(n)
     nodes = load_nodes(n)
     return Network(externals, nodes, lines)
