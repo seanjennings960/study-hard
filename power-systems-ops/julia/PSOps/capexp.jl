@@ -379,22 +379,6 @@ end
 
 
 # ############################################################################
-# %% For some reason, the loadability limits are not making it through...
-# Let's investigate.
-# ############################################################################
-
-
-ext = external_by_name(network, "PROVIDENCE_DEMAND")
-profs = load_profiles(profile_file)
-
-upper_power_limit(ext, 1)[2]
-lower, upper = fixed_power_limits(network)
-keys(profs)
-profs["EDEM_PROVIDENCE_DEMAND_PSET"]
-
-
-
-# ############################################################################
 # %% Save Model to .enet
 # ############################################################################
 
@@ -467,7 +451,7 @@ end
 
 new_network = update_storage(encoord_net, new_storage)
 # new_storage[:, "PDMAXDEF [MW] = ∞"]
-write_file = joinpath(data_dir, "enet39_best.xlsx")
+write_file = joinpath(data_dir, "enet39_pu.xlsx")
 save_network(new_network, enet_file, write_file)
 
 
