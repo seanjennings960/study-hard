@@ -10,7 +10,7 @@ data_dir,
 # Operators
 incidence_matrix, power_transfer_distribution_matrix, bus_injection_matrix,
 energy_configuration_matrix,
-load_network_scenario, load_profiles, load_operation_costs, fixed_power_limits, configurable_power_limits,
+load_network_scenario, load_raw_network, EncoordNetwork, load_profiles, load_operation_costs, fixed_power_limits, configurable_power_limits,
 differential_op, save_network,
 # External interface (it's kinda weird that you have to export all of these individually,
 # unlike methods of a Python Object)
@@ -251,7 +251,7 @@ function load_externals(network, external_profiles, tech_map::TechMap)
 
     e_demand = [External(
             demand["Name"], demand["NodeName"], Demand(
-            d=external_profiles[demand["Name"]].data
+            d=external_profiles[demand["Name"]].data * demand["PSETDEF [MW] = 0"]
         )
     ) for demand in eachrow(network.demands)]
 
@@ -311,7 +311,7 @@ function upper_config_limit(_::External{T}, n_T) where T<:Union{FuelGenerator, S
 end
 
 function upper_config_limit(external::External{RenewableGenerator}, n_T)
-    return external.type.γ / 100 # Convert % to fraction
+    return external.type.γ
 end
 
 function lower_config_limit(external::External{FuelGenerator}, n_T)
