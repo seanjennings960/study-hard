@@ -36,8 +36,38 @@ struct LinearCost
     # C1_E::Dict{String, Float64}  # External name -> Marginal cost of energy
 end
 
+function emissions_by_tech(tech)
+    if tech == "coal"
+        return 0.916
+    elseif tech == "gas_cc"
+        return 0.43
+    else
+        return 0
+    end
+end
 
-function capacity_expansion(network::Network, cost::LinearCost)
+function emissions_factor(network)
+    return [
+        isa(e.type, Demand) ? 0 : emissions_by_tech(e.type.tech)
+        for e in network.externals
+    ]
+    return emissions_factor
+end
+
+
+function emissions(network, model)
+    ϵ_E = emissions_factor(network)
+    X = [e.name for e in network.externals]
+    T = n_timesteps(network)
+    e1 = sum(sum(ϵ * model[:u][x, t] for (x, ϵ) in zip(X, ϵ_E)) for t in 1:T)
+    
+    # e2 = sum(e1 for t in 1:T)
+    return e1
+
+end
+
+
+function capacity_expansion(network::Network, cost::LinearCost, ϵ_max::Union{Nothing, Float64}=nothing)
 
     # %% Matrices and whatnot
     F = power_transfer_distribution_matrix(network)
@@ -51,8 +81,6 @@ function capacity_expansion(network::Network, cost::LinearCost)
     p_lower, p_upper = fixed_power_limits(network)
     p_lower = dictify(p_lower, X)
     p_upper = dictify(p_upper, X)
-    println("power_lower: $(p_lower)")
-    println("power_upper: $(p_upper)")
 
     ########################
     # %% Model: DCOPF
@@ -125,6 +153,10 @@ function capacity_expansion(network::Network, cost::LinearCost)
     ########################
     # Emissions Limit
     ########################
+    ϵ = emissions(network, model)
+    if !isnothing(ϵ_max)
+        @constraint(model, c_emissions, ϵ <= ϵ_max)
+    end
 
 
 
@@ -136,10 +168,11 @@ function capacity_expansion(network::Network, cost::LinearCost)
     C1 = cost.C1
     C0_E = cost.C0_E
     total_power_capital = sum(C0[c] * p_max[c] for c in C) * 1000 # $ / kW /year * MW * (1000kW/MW) == $
-    total_power_operational_pre = sum(C1[c] * sum(u[c, t] for t=1:T) for c in C) * 8760 / T # $/MWh/(T hr) * MWh * (8760 hr / year)== $ FIXME: Assuming 1 hr Δ_t
+    total_power_operational = sum(C1[c] * sum(u[c, t] for t=1:T) for c in C) * 8760 / T # $/MWh/(T hr) * MWh * (8760 hr / year)== $ FIXME: Assuming 1 hr Δ_t
     # HACK: multiple by some factor to scale operational vs capital costs -- gives a lever in comparing
     # short-term vs. long term costs
-    total_power_operational = 100 * total_power_operational_pre
+    # total_power_operational_pre = sum(C1[c] * sum(u[c, t] for t=1:T) for c in C) * 8760 / T # $/MWh/(T hr) * MWh * (8760 hr / year)== $ FIXME: Assuming 1 hr Δ_t
+    # total_power_operational = 100 * total_power_operational_pre
     total_energy_capital = sum(C0_E[b] * e_max[b] for b in B) * 1000 # $ / kWh/year * MWh * (1000kWh / MWh) == $/year
     @objective(model, Min,
         total_power_capital + total_power_operational
@@ -320,7 +353,8 @@ costs = load_costs(network, techs)
 # ############################################################################
 
 
-model = capacity_expansion(network, costs)
+ϵ_max = 0.1
+model = capacity_expansion(network, costs, ϵ_max)
 
 # ############################################################################
 # %% Run Optimization
@@ -328,6 +362,84 @@ model = capacity_expansion(network, costs)
 
 # Wooooo, it works. Now we, need to see if it's doing something reasonable.
 optimize!(model)
+
+# %%
+
+dual(model[:c_emissions])
+# ############################################################################
+# %% Run emissions pareto
+# ############################################################################
+
+# ϵ_max_0 = 210_000.
+ϵ_max = [1_000_000_000., 210_000., 100_000., 50_000., 10_000., 5_000., 1_000., 100., 0.]
+models = []
+
+for ϵ_max_0 in ϵ_max
+    println("#################################################################")
+    println("# Solving with emissions = $ϵ_max_0")
+    println("#################################################################")
+    model = capacity_expansion(network, costs, ϵ_max_0)
+    optimize!(model)
+    # λ = dual(model[:c_emissions])
+    # σ = dual_objective_value(model)
+    push!(models, model)
+    # push!(ϵ_max, ϵ_max_0)
+
+    # This doesn't work... :<>
+    # ϵ_max_0 = ϵ_max_0 + σ / λ
+end
+
+
+# ########################
+# %% Plot Pareto Graph
+# ########################
+using Plots
+# gr()
+plotlyjs()
+
+ϵ_max_log = copy(ϵ_max)
+ϵ_max_log[1] = 420_000  # Hard-code the previously found unconstrained emission level
+ϵ_max_log[end] = 0.0001
+system_cost = [objective_value(model) for model in models]
+dual_cost = [dual(model[:c_emissions]) for model in models]
+println("system cost:")
+println(system_cost)
+println(ϵ_max)
+# plot(ϵ_max_log, system_cost;
+x = ϵ_max_log
+y = system_cost
+p = plot(x, y;
+    # xscale = :log10,
+    # yscale= :log10,
+    xlabel = "Emissions level (tonnes CO_2 / week)",
+    ylabel = "Total system cost (\$)",
+    label = "Total system cost",
+    legend=:top, 
+)
+ylims!(p, 0, 1.75e9)
+
+scatter!(p, x, y;
+         label      = "Problem evaluations",
+         markershape = :diamond,
+         markersize  = 4,
+         markercolor = :red,
+         markerstrokecolor = :black)
+
+# x = ϵ_max_log
+# y = -dual_cost
+# yaxis2 = twinx()
+# p = plot!(yaxis2, x, y;
+#     color=:orange,
+#     linestyle=:dash,
+#     label = "Carbon Price",
+#     ylabel = "Carbon Price (λ_ϵ) (\$ / tonne CO2)",
+# )
+
+# plot(ϵ_max[2:end], system_cost[2:end];
+#     xlabel = "Emissions level (tonnes CO_2 / week)",
+#     ylabel = "Total system cost (\$)",
+# )
+
 
 
 # ############################################################################
@@ -374,6 +486,24 @@ for name in configurable_energy_devices(network)
     duration = e_cap / cap
     println("$(name) | $(external.type.tech) | $(cap) | $(e_cap) | $(duration)")
 end
+
+
+# #######################
+# %% Emissions computation
+# #######################
+
+
+emish = emissions(network, model)
+println(value(emish))
+
+
+
+# 
+
+# sum(model[:u][x, :] for x in X)
+
+
+
 
 
 
