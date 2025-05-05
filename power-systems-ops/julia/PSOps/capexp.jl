@@ -130,17 +130,11 @@ function capacity_expansion(network::Network, cost::LinearCost, ϵ_max::Union{No
     @variable(model, p_charge[B, 1:T])
     @variable(model, p_discharge[B, 1:T] >= 0)
 
-    # println("Φ_3: ", size(Φ_3))
-    # println("C_E: ", length(C_E))
-    # println("E_fixed: ", length(E_fixed))
-
     @constraint(model, c1[t in 1:T],
         e[B, t] .<= E_fixed .+ Φ_3 * [e_max[c] for c in C_E])
 
     @constraint(model, c_energy_boundary[b in B],
         e[b, 1] <= e[b, T])  # Should have at least as much energy at the end as beginning.
-
-
     @constraint(model, c_energy_limit[t in 1:T],
         e[B, t] .<= E_fixed .+ Φ_3 * [e_max[c] for c in C_E])
     @constraint(model, [b=B],
