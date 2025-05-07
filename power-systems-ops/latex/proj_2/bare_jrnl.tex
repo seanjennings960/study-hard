@@ -17,6 +17,7 @@
 \newcommand{\R}{\mathbb{R}}
 \renewcommand{\L}{\mathcal{L}}
 \newcommand{\X}{\mathcal{X}}
+\newcommand{\E}{\mathcal{E}}
 \newcommand{\T}{\mathcal{T}}
 \newcommand{\N}{\mathcal{N}}
 \newcommand{\B}{\mathcal{B}}
@@ -34,15 +35,15 @@
 
 \author{Sean~Jennings}
 
-\markboth{ECEN 5427 -- Spring 2025}{}
+\markboth{APPM 5630 -- Spring 2025}{}
 
 \maketitle
 
-\begin{abstract}
-
-This is a draft. Expect a more complete version by Friday, May 2 at 8pm.
-
-\end{abstract}
+% \begin{abstract}
+% 
+% This is a draft. Expect a more complete version by Friday, May 2 at 8pm.
+% 
+% \end{abstract}
 
 
 
@@ -189,7 +190,7 @@ These assumptions allow us to use represent the real power $p_{\ell}$ flowing th
 real-valued quantity.  \footnote{
   Considering the full unbalanced AC power flow case makes the problem significantly more
   challenging computationally, since the ACOPF problem is non-convex. However, there has been recent success in
-  improving the tractability. add ref \ref{}
+  improving the tractability.\cite{vito_learning_2024}
 } The line power $p_{\L, t}$ at time $t$ is related to the the nodal injections $p_{\N,t}$ by the power transfer
 distribution matrix (PTDM) (denoted by $\mathcal{F}$):
 \begin{equation}
@@ -240,149 +241,214 @@ We now have the sufficient prerequisites to unequivalently define the DCOPF prob
 
 
 \subsection{DCOPF: Planning Formulation}
-Incomplete...
+The problem can be expanded by minimizing not just over the operational
+dispatch, but also over the maximum power capacity $\bar{P}_\X$
+and maximum energy capacity $\bar{E}_\X$ of the externals.
+
+The "Capacity Planning" formulation of DCOPF is given by
+\begin{align*}
+\min_{p_{\X, \T}, \bar{P}_{\X}, \bar{E}_{\X}} f(p_{\X, \T}, \bar{P}_\X, \bar{E}_\X)  &\qquad\qquad (P2)\\
+    \qquad \text{subject to:}  \\
+    \qquad \text{Constraints of }P1
+    % \quad 0 = \sum_{n\in\N} p_{n, t}    &\qquad \text{(power balance)} \\
+    % \quad p_{\N, t} = \Psi p_{X, t}  &\qquad \text{(bus injections)} \\
+    % \quad \underbar{P}_{\X, t} \leq  p_{X, t}  \leq  \bar{P}_{\X, t}  &\qquad
+    %     \text{(loading conditions)} \\
+    % \quad -\bar{P}_\L \leq \mathcal{F} p_{\N, t} \leq \bar{P}_\L
+    %     &\qquad \text{(symmetric line constraints)} \\
+\end{align*}
 
 
-\subsection{Externals}
-Incomplete...
+\subsection{External Constraints}
+
+Different devices (generation or load) have different operating characteristics.
+For our purposes, we'll define four distinct external "types", i.e. each external
+$x\in\X$ comes from one of the sets
+\begin{align*}
+  \text{Demand}(\R^T) \cup \text{Renewable}(\R^T) \cup \text{Fuel}(\R, [0, 1]) & \\
+  \cup \text{Storage}(\R, \R)&.
+\end{align*}
+
+We write $x=\text{Demand}(d_\T) \in \text{Demand}(\R^T)$ to represent a inflexible demand 
+with real power demand profile $d_\T$, meaning at each $t \in \T$ the power output
+$p_{x, t} == d_t \forall t$. The external
+$x=\text{Renewable}(\gamma_\T) \in \text{Renewable}(\R^T)$ is a renewable generator
+which has intermittent availability: each $\gamma_t$ represents the availability of
+the generator at time $t\in\T$ as a fraction of its nameplate capacity.
+$x=\text{Fuel}(\bar{P}, \rho) \in \text{Fuel}(\R, [0, 1])$ is fuel-based generator
+with maximum power output $\bar{P}$ and minimum power output the fraction
+$\rho\bar{P}$. The external $x=\text{Storage}(\bar{P}, \bar{E}) \in \text{Storage}{\R, \R}$,
+is an energy storage device with power capacity $\bar{P}$ and energy capacity $\bar{E}$.
+
+The following operational constraints (lower and upper bounds) are associated with
+each external $x \in X$, based on its type. 
+\begin{align*}
+  (\underbar{P}_{x, t}, \bar{P}_{x, t}) = \biggl\{
+    \begin{array}{ll}
+      (d_t, d_t) &\qquad \text{if } x=\text{Demand}(d_t)\\
+      (0, \gamma_t \bar{P}) &\qquad \text{if } x=\text{Renewable}(\gamma_t)\\
+      (\rho \bar{P}, \bar{P}) &\qquad \text{if } x=\text{Fuel}(\bar{P}, \rho)\\
+      (-\bar{P}, \bar{P}) &\qquad \text{if } x=\text{Storage}(\bar{P}, \bar{E})
+    \end{array}
+  \biggr.
+\end{align*}
+
+Additionally, an energy storage external $x=\text{Storage}(\bar{P}, \bar{E})$
+has constraints
+\begin{align*}
+  0 \leq e_{x, \T} \leq \bar{E}_x & \quad \text{(Energy Capacity)}\\
+  D e_{x, \T} = \eta_c p_{x, \T}^{+} - \frac{1}{\eta_d} p_{x, \T}^{-}
+    &\quad \text{(Differential)}\\
+  p_{x, \T} = p_{x, \T}^{+} - p_{x, \T}^{-} &\quad \text{(Total power)}\\
+  0 \leq p_{x, \T}^{+} \leq \bar{P} &\quad \text{(Charge power limit)}\\
+  0 \leq p_{x, \T}^{-} \leq \bar{P} &\quad \text{(Discharge power limit)} \\
+  p_{x, \T}^{-} \cdot p_{x, \T}^{+} = 0  &\quad \text{(Complementarity)}
+\end{align*}
+
+where $e_{x, \T}, p_{x, \T}^{+}$, and $p_{x, \T}^{-}$ are additional
+variables representing the state of energy of the storage device (in MWh) over time,
+the charge power over time, and the discharge power over time, respectively.
+Note that the second equation uses the differential operator. This indicates
+that the energy capacity is the derivative of power with amount of energy
+lost to non-unit charge and discharge efficiencies $\eta_c$ and $\eta_d$.
+
+
+\subsection{Emissions Constraints}
+
+For each external $x\in\X$, we associate an carbon emissions rate $\epsilon_x$ per
+unit of energy generation, in units of metric tonnes of CO$_2$ per MWh. Given a
+total system-wide emission level $\bar{\epsilon}$, we can add the constraint
+\begin{equation*}
+  \epsilon(p_{x, t}) = \sum_{x\in\X} \epsilon_x \sum_{t\in\T} p_{x, t} \Delta_t \leq \bar{\epsilon}
+\end{equation*}
+to problem $P2$ to obtain a new problem $P2-\bar{\epsilon}$.
+
+Imposing such a constraint encourges systems which utilize renewable generation
+sources such as wind and solar, as well as zero-carbon non-renewable technologies
+like nuclear.
+
 \subsection{Cost Functions}
 \label{sec:cost-funcs}
-Incomplete...
+We'll use the linear cost function
+\begin{align*}
+  f(p_{\X, \T}, \bar{P}_\X, \bar{E}_\X) = \sum_{x\in\X}
+    C_{0, x, P} \bar{P}_x + C_{1, x, P} \sum_{t\in\T} {p_{x, t}} \Delta_t \\
+    + \sum_{x\in\B} C_{0, x, E} \bar{E_x}
+\end{align*}
 
+where $C_{0, x, P}, C_{1, x, P}$, and $C_{0, x, E}$ is the capital cost per
+unit of power capacity (\$/MW), marginal cost per unit of power generation (\$/MWh),
+and capital cost per unit of energy capacity (\$/MW) for external $x$. These
+costs are in general dependent on the technology leveraged.
 
+% We pull
+% capital costs from high-level estimates from the EIA and divide into energy
+% and storage 
+
+% \section{Emissions Constraints versus Carbon Tax and Value of Energy}
+% % Interpretation of dual variable 
+% Interpreting the problem problem formulatation from section \ref{sec:problem}
+% through the lens of optimization theory provides some interesting
+% insight into the cost of eliminating carbon from the energy grid.
+% 
+% The dual variable $\lambda_\epsilon$ associated with the emissions constraint gives 
+% the (local) sensitivity of the total system cost with respect to changes in the emissions constraint.
+% Since our cost function represents some economic value, this dual variable signifies the 
+% level of carbon tax that would be required (in our idealized DCOPF world) to achieve a certain level of emissions,
+% given the fixed parameters of the electrical network in question.
+% 
+% Similar interpretations can be given to the dual variables associated with energy capacities $e_{x, t} - \bar{E}_x \leq 0$.
+% Of course, this represents a different constraint at each timestep. This set of dual variables (summed over time?) should indicate
+% the value that an increase in storage capacity would provide to the system. 
 
 
 \section{Methods}
-The mathematical formulation of section \ref{sec:problem} was implemented in using Julia and JuMP.
-To test for correctness, the author manually ran a number of test cases on a simple 3-bus system, with
-and without storage.
 
-To assess computational scalability, the author wrote code to import encoord's ENET39 model into
-Julia. The topology of the 39-bus network is not (yet) modified.
+We implement the above proposed model on a IEEE 39-bus test system using the Julia programming language and Julia Mathematical Programming
+library (JuMP). Values for linear cost coefficients (capital and operational) are assessed from EIA data\cite{noauthor_capital_2024} and we breakdown
+capital costs of BESS technology on per energy unit basis by using the same ratio from \cite{fu_2018_2018} while updating the magnitude
+to match EIA's 2023 estimates. 
 
-Research was performed into BESS-pecific operational constraints and cost data has been import from EIA.
-Further test on more specific/realistic test cases is in progress.
+We assume 
+\begin{enumerate}
+  \item solar, wind, and nuclear generation are available on a select number of nodes,
+  \item energy storage can be built anywhere,
+  \item the operational time period is the week of peak demand.
+\end{enumerate} 
+
+and then solve problem $P2-\bar{\epsilon}$ across a range of carbon emission limits.
+
+We load the resulting capacity figures $\P_\X$ and $\E_\X$ loaded into encoord's commericial power flow
+software (SAint) to validate. 
+
+Figures \ref{fig:1} and \ref{fig:2} show some results for the case with $\bar{\epsilon} = 0$. 
 
 \section{Results}
-The solution to 3-bus system abides by all operational constraints. The 39-bus system results remain to
-be processed, but the algorithm runs in approximately 1 second (with linear costs).
+
+We find 99.9\% of load is served, which indicates that we fail to account for a few losses, but
+overall reproduce the behavior of the commercial software well.
+
+\begin{center}
+  \includegraphics[width=0.9\linewidth]{Images/dispatch_stack.png}
+  \captionof{figure}{Dispatch stack showing mix of generation resources (mostly a combination of solar and energy storage is utilized
+  showing the economic viability
+  )}
+  \label{fig:1}
+\end{center}
+
+
+\begin{center}
+  \includegraphics[width=0.9\linewidth]{Images/dispatch_stack.png}
+  \captionof{figure}{Dispatch stack showing mix of generation resources (mostly a combination of solar and energy storage is utilized
+  showing the economic viability
+  )}
+  \label{fig:1}
+\end{center}
+
+\begin{center}
+  \includegraphics[width=0.9\linewidth]{Images/PV_cap.png}
+  \captionof{figure}{Installed solar capacity per node (larger green dots indicate more capacity). The optimization result allocates
+    relatively similar amounts of energy storage at each node with solar generation, and then smaller amounts elsewhere.
+    }
+  \label{fig:2}
+\end{center}
+
+\section{Discussion}
 
 \section{Conclusion}
-The main results are the theoretical problem formulation from section \ref{sec:problem}. They
+The the theoretical problem formulation from section \ref{sec:problem} shows
 show initial promise towards a unified understanding of energy storage, demand response, and
-the other modern grid conceptions. The author is excited to further discuss the implications with
-other power systems experts.
+the other modern grid conceptions. Numerical results demonstrate its viability.
+% \subsection{Externals}
+% Incomplete...
+% \subsection{Cost Functions}
+% Incomplete...
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{battery_deg.bib}
+
+
+
+% \section{Methods}
+% The mathematical formulation of section \ref{sec:problem} was implemented in using Julia and JuMP.
+% To test for correctness, the author manually ran a number of test cases on a simple 3-bus system, with
+% and without storage.
+% 
+% To assess computational scalability, the author wrote code to import encoord's ENET39 model into
+% Julia. The topology of the 39-bus network is not (yet) modified.
+% 
+% Research was performed into BESS-pecific operational constraints and cost data has been import from EIA.
+% Further test on more specific/realistic test cases is in progress.
+% 
+% \section{Results}
+% The solution to 3-bus system abides by all operational constraints. The 39-bus system results remain to
+% be processed, but the algorithm runs in approximately 1 second (with linear costs).
+% 
 
 
 \end{document}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-% \appendices
-% \section{Proof of the First Zonklar Equation}
-% Appendix one text goes here.
-% 
-% % you can choose not to have a title for an appendix
-% % if you want by leaving the argument blank
-% \section{}
-% Appendix two text goes here.
-% 
-% 
-% % use section* for acknowledgment
-% \section*{Acknowledgment}
-% 
-% 
-% The authors would like to thank...
-% 
-% 
-% % Can use something like this to put references on a page
-% % by themselves when using endfloat and the captionsoff option.
-% \ifCLASSOPTIONcaptionsoff
-%   \newpage
-% \fi
-
-
-
-% trigger a \newpage just before the given reference
-% number - used to balance the columns on the last page
-% adjust value as needed - may need to be readjusted if
-% the document is modified later
-%\IEEEtriggeratref{8}
-% The "triggered" command can be changed if desired:
-%\IEEEtriggercmd{\enlargethispage{-5in}}
-
-% references section
-
-% can use a bibliography generated by BibTeX as a .bbl file
-% BibTeX documentation can be easily obtained at:
-% http://mirror.ctan.org/biblio/bibtex/contrib/doc/
-% The IEEEtran BibTeX style support page is at:
-% http://www.michaelshell.org/tex/ieeetran/bibtex/
-%\bibliographystyle{IEEEtran}
-% argument is your BibTeX string definitions and bibliography database(s)
-%\bibliography{IEEEabrv,../bib/paper}
-%
-% <OR> manually copy in the resultant .bbl file
-% set second argument of \begin to the number of references
-% (used to reserve space for the reference number labels box)
-% \begin{thebibliography}{1}
-% 
-% \bibitem{IEEEhowto:kopka}
-% H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
-%   0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
-% 
-% \end{thebibliography}
-
-% biography section
-% 
-% If you have an EPS/PDF photo (graphicx package needed) extra braces are
-% needed around the contents of the optional argument to biography to prevent
-% the LaTeX parser from getting confused when it sees the complicated
-% \includegraphics command within an optional argument. (You could create
-% your own custom macro containing the \includegraphics command to make things
-% simpler here.)
-%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{mshell}}]{Michael Shell}
-% or if you just want to reserve a space for a photo:
-
-% \begin{IEEEbiography}{Michael Shell}
-% Biography text here.
-% \end{IEEEbiography}
-% 
-% % if you will not have a photo at all:
-% \begin{IEEEbiographynophoto}{John Doe}
-% Biography text here.
-% \end{IEEEbiographynophoto}
-% 
-% % insert where needed to balance the two columns on the last page with
-% % biographies
-% %\newpage
-% 
-% \begin{IEEEbiographynophoto}{Jane Doe}
-% Biography text here.
-% \end{IEEEbiographynophoto}
-
-% You can push biographies down or up by placing
-% a \vfill before or after them. The appropriate
-% use of \vfill depends on what kind of text is
-% on the last page and whether or not the columns
-% are being equalized.
-
-%\vfill
-
-% Can be used to pull up biographies so that the bottom of the last one
-% is flush with the other column.
-%\enlargethispage{-5in}
 
 
 
