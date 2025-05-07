@@ -214,7 +214,6 @@ end
 
 function configurable_energy_devices(network)
     batteries = [e for e in network.externals if isa(e.type, Storage)]
-    B = [b.name for b in batteries]
     return [b.name for b in batteries if is_configurable(b)]
 end
 

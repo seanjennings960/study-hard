@@ -13,8 +13,6 @@ using EzXML
 using DataFrames
 
 
-data_dir = "/Users/sean/code/study-hard/power-systems-ops/data/encoord"
-
 struct EncoordNetwork
     # Direct from Encoord
     nodes::DataFrame

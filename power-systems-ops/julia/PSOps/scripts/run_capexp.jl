@@ -6,6 +6,7 @@ using JuMP
 
 # %%
 
+data_dir = "/Users/sean/code/study-hard/power-systems-ops/data/encoord"
 
 techs = Dict(
     # source: https://www.eia.gov/analysis/studies/powerplants/capitalcost/pdf/capital_cost_AEO2025.pdf
@@ -132,23 +133,17 @@ end
 # %% Plot Pareto Graph
 # ########################
 using Plots
-# gr()
-plotlyjs()
+gr()
+# plotlyjs()
 
 ϵ_max_log = copy(ϵ_max)
 ϵ_max_log[1] = 420_000  # Hard-code the previously found unconstrained emission level
 ϵ_max_log[end] = 0.0001
 system_cost = [objective_value(model) for model in models]
 dual_cost = [dual(model[:c_emissions]) for model in models]
-println("system cost:")
-println(system_cost)
-println(ϵ_max)
-# plot(ϵ_max_log, system_cost;
 x = ϵ_max_log
 y = system_cost
 p = plot(x, y;
-    # xscale = :log10,
-    # yscale= :log10,
     xlabel = "Emissions level (tonnes CO_2 / week)",
     ylabel = "Total system cost (\$)",
     label = "Total system cost",
@@ -163,23 +158,261 @@ scatter!(p, x, y;
          markercolor = :red,
          markerstrokecolor = :black)
 
-# x = ϵ_max_log
-# y = -dual_cost
-# yaxis2 = twinx()
-# p = plot!(yaxis2, x, y;
-#     color=:orange,
-#     linestyle=:dash,
-#     label = "Carbon Price",
-#     ylabel = "Carbon Price (λ_ϵ) (\$ / tonne CO2)",
-# )
-
+x = ϵ_max_log
+y = -dual_cost
+yaxis2 = twinx()
+plot!(yaxis2, x, y;
+    color=:orange,
+    linestyle=:dash,
+    label = "Carbon Price",
+    ylabel = "Carbon Price (λ_ϵ) (\$ / tonne CO2)",
+)
+# 
 # plot(ϵ_max[2:end], system_cost[2:end];
 #     xlabel = "Emissions level (tonnes CO_2 / week)",
 #     ylabel = "Total system cost (\$)",
 # )
 
+# ############################################################################
+# %% Generation Mix + Nameplate Capacity Mix
+# ############################################################################
+function group_by_tech(network::Network)
+    groups = Dict()
+    for e in network.externals
+        if isa(e.type, Demand)
+            # Skip demands cause they don't have an associated tech:
+            # FIXME: just give demand a tech?
+            continue
+        end
+            tech = e.type.tech
+        if tech in keys(groups)
+            push!(groups[tech], e)
+        else
+            groups[tech] = [e]
+        end
+    end
+    return groups
+end
 
 
+function total_design_capacity(externals::Vector{<:External}, model)
+    return sum(model[:p_max][e.name] for e in externals)
+end
+
+function total_design_energy_capacity(externals::Vector{<:External}, model)
+    return sum(model[:e_max][e.name] for e in externals)
+end
+
+
+model = models[1]
+g = group_by_tech(network)
+
+nameplate_power = [
+    Dict(
+        tech => value(total_design_capacity(externals, model))
+        for (tech, externals) in pairs(g)
+    ) for model in models
+]
+
+ϵ_all = [value(emissions(network, model)) for model in models]
+
+# %% VegaLite
+using VegaLite
+
+# df = DataFrame(Dict(
+#     "Power" => [350, 100, 200, 100, 280, 150, 120, 120],
+#     "emissions" => [3, 3, 2, 2, 1, 1, 1, 1],
+#     "tech" => ["solar", "wind", "solar", "wind", "wind", "solar", "nuclear", "wind"]
+# ))
+
+function power_generation(external, model)
+    u = value.(model[:u][external.name, :])
+    return sum(max.(u, 0))
+end
+
+function iter_devices(network, models)
+    # TODO: This would really be cleaner as a @join using Query.jl.
+    generators = collect(filter(e -> !isa(e.type, Demand), network.externals))
+    ems = [round(value(emissions(network, model) * 52 / 1e6), sigdigits=3) for model in models]
+    ems = vec([em for (_, em) in Iterators.product(generators, ems)])
+    tech = vec([g.type.tech for (g, _) in Iterators.product(generators, models)])
+    name = vec([g.name for (g, _) in Iterators.product(generators, models)])
+    nameplate_power = vec([value(model[:p_max][g.name])
+                for (g, model) in Iterators.product(generators, models)])
+    power_generated = vec([power_generation(g, model)
+                for (g, model) in Iterators.product(generators, models)])
+    
+
+    return DataFrame(Dict(
+        :emissions=> ems,
+        :tech => tech,
+        :nameplate_power => nameplate_power,
+        :power_generated => power_generated,
+        :name => name
+    ))
+end
+
+
+df = iter_devices(network, models)
+# %%
+
+using Query
+
+df |>
+@filter(_.nameplate_power > 0.01) |>
+@vlplot(
+    :bar,
+    x={
+        "emissions:n",
+        # scale={type="log"}
+        title="Emissions (Million Tonnes CO2/year)"
+    },
+    y={
+        :nameplate_power,
+        title="Nameplate Power (MW)"
+    },
+    color=:tech,
+    width=400,
+    height=600
+) 
+# %%
+
+df |>
+@filter(_.power_generated > 0.01) |>
+@vlplot(
+    :bar,
+    x={
+        "emissions:n",
+        # scale={type="log"}
+        title="Emissions (Million Tonnes CO2/year)"
+    },
+    y={
+        :power_generated,
+        title="Power Generated (MWh)"
+    },
+    color=:tech,
+    width=400,
+    height=600
+)
+
+
+# ############################################################################
+# %%  Dispatch plot
+# ############################################################################
+
+# using Statistics
+# 
+# by_model = groupby(df, :emissions)
+# single_model = subset(by_model, :emissions => max => >(20))
+
+
+function fill_between(x::AbstractVector, Y::AbstractMatrix, labels::Vector{String}; p=nothing, kwargs...)
+    M, N = size(Y)
+    @assert length(x) == N "length(x) ($(length(x))) must match size(Y,2) ($N)"
+    @assert length(labels) == M-1 "length(labels) ($(length(labels))) must match size(Y,1)-1 ($(M-1))"
+
+    if isnothing(p)
+        p = plot() # start with an empty plot
+    end
+    # draw a filled band between row i and row i+1 of Y
+
+    for i in 1:M-1
+        plot!(p, x, Y[i, :];
+        fillrange=Y[i+1, :],
+        label=labels[i],
+        kwargs...)
+    end
+    return p
+end
+
+
+function plot_dispatch(dispatch::Dict{String, Vector}, plot_order::Vector{String}, labels::Vector{String}; p=nothing)
+    # plot_order = ["solar", "wind", "nuclear", "coal", "gas-cc"]
+    # Pull the values out of the power dispatch variable of the base case model.
+    stack = hcat([Array(dispatch[t]) for t in plot_order]...)
+    n_T = size(stack, 1)
+    # 
+    stack = hcat(zeros(n_T, 1), stack)
+    stack = transpose(stack)
+    # println("Size: $(size(stack))")
+
+
+    # stack = vcat(zeros(1, size(stack,2)), stack)  # Add a first row of zeros from which the fill starts.
+    # stack /= 1000 # Convert MW -> GW
+
+    p = fill_between(1:n_T, cumsum(stack, dims=1), labels, p=p)
+    plot!(p;
+        xlabel="Hour in Day",
+        ylabel="Power output (GW)",
+        grid = :both,
+        minorgridy=true,
+        minorticks=10,
+        minorgridalpha=1
+    )
+    return p
+end
+
+
+function dispatch_by_tech(network, model)
+    techs = unique([e.type.tech for e in network.externals if !isa(e.type, Demand)])
+    dispatch_pos = Dict{String, Vector}()
+    dispatch_neg = Dict{String, Vector}()
+    for tech in techs
+        X = [e.name for e in network.externals if !isa(e.type, Demand) && e.type.tech == tech]
+        u = model[:u]
+        d = Array(value.(sum(u[x, :] for x in X)))
+        d_pos = max.(d, 0)
+        d_neg = min.(d, 0)
+        if tech == "bess"
+            println(d_pos .* d_neg)
+        end
+        if any(d_pos .> 0)
+            dispatch_pos[tech] = d_pos
+        end
+        if any(d_neg .< 0)
+            dispatch_neg[tech] = d_neg
+        end
+    end
+    return dispatch_pos, dispatch_neg
+end
+
+
+
+dispatch_pos, dispatch_neg = dispatch_by_tech(network, models[end])
+plot_order = collect(keys(dispatch_pos))
+labels = [
+    k == "bess" ? "bess (discharge)" : k
+    for k in plot_order
+]
+p = plot_dispatch(dispatch_pos, plot_order, labels)
+plot_order = collect(keys(dispatch_neg))
+labels = [
+    k == "bess" ? "bess (charge)" : k
+    for k in plot_order
+]
+
+
+plot_dispatch(dispatch_neg, plot_order, labels, p=p)
+
+demands = hcat([e.type.d for e in network.externals if isa(e.type, Demand)]...)
+println(size(demands))
+total_demand = sum(demands, dims=2)
+
+n_T = n_timesteps(network)
+plot!(
+    p,
+    1:n_T, total_demand;
+    label="Demand",
+    linewidth=5,
+    alpha=1
+)
+
+
+# %%
+dispatch_neg["bess"] .* dispatch_pos["bess"]
+
+# %%
+plot_dispatch(dispatch_pos, ["gas_cc"], ["gas_cc"])
 # ############################################################################
 # Analysis of results
 # %% Okay, we have it optimizing for the smaller problem. Let's analyze
