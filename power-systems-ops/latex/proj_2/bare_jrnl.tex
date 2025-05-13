@@ -318,9 +318,10 @@ lost to non-unit charge and discharge efficiencies $\eta_c$ and $\eta_d$.
 For each external $x\in\X$, we associate an carbon emissions rate $\epsilon_x$ per
 unit of energy generation, in units of metric tonnes of CO$_2$ per MWh. Given a
 total system-wide emission level $\bar{\epsilon}$, we can add the constraint
-\begin{equation*}
-  \epsilon(p_{x, t}) = \sum_{x\in\X} \epsilon_x \sum_{t\in\T} p_{x, t} \Delta_t \leq \bar{\epsilon}
-\end{equation*}
+\begin{equation}
+  \epsilon(p_{\X, \T}) = \sum_{x\in\X} \epsilon_x \sum_{t\in\T} p_{x, t} \Delta_t \leq \bar{\epsilon}
+  \label{eq:emissions}
+\end{equation}
 to problem $P2$ to obtain a new problem $P2-\bar{\epsilon}$.
 
 Imposing such a constraint encourges systems which utilize renewable generation
@@ -330,71 +331,93 @@ like nuclear.
 \subsection{Cost Functions}
 \label{sec:cost-funcs}
 We'll use the linear cost function
-\begin{align*}
+\begin{align}
   f(p_{\X, \T}, \bar{P}_\X, \bar{E}_\X) = \sum_{x\in\X}
     C_{0, x, P} \bar{P}_x + C_{1, x, P} \sum_{t\in\T} {p_{x, t}} \Delta_t \\
     + \sum_{x\in\B} C_{0, x, E} \bar{E_x}
-\end{align*}
+    \label{eq:cost_func}
+\end{align}
 
 where $C_{0, x, P}, C_{1, x, P}$, and $C_{0, x, E}$ is the capital cost per
 unit of power capacity (\$/MW), marginal cost per unit of power generation (\$/MWh),
 and capital cost per unit of energy capacity (\$/MW) for external $x$. These
 costs are in general dependent on the technology leveraged.
 
-% We pull
-% capital costs from high-level estimates from the EIA and divide into energy
-% and storage 
-
-% \section{Emissions Constraints versus Carbon Tax and Value of Energy}
-% % Interpretation of dual variable 
-% Interpreting the problem problem formulatation from section \ref{sec:problem}
-% through the lens of optimization theory provides some interesting
-% insight into the cost of eliminating carbon from the energy grid.
-% 
-% The dual variable $\lambda_\epsilon$ associated with the emissions constraint gives 
-% the (local) sensitivity of the total system cost with respect to changes in the emissions constraint.
-% Since our cost function represents some economic value, this dual variable signifies the 
-% level of carbon tax that would be required (in our idealized DCOPF world) to achieve a certain level of emissions,
-% given the fixed parameters of the electrical network in question.
-% 
-% Similar interpretations can be given to the dual variables associated with energy capacities $e_{x, t} - \bar{E}_x \leq 0$.
-% Of course, this represents a different constraint at each timestep. This set of dual variables (summed over time?) should indicate
-% the value that an increase in storage capacity would provide to the system. 
-
-
 \section{Methods}
 
-We implement the above proposed model on a IEEE 39-bus test system using the Julia programming language and Julia Mathematical Programming
-library (JuMP). Values for linear cost coefficients (capital and operational) are assessed from EIA data\cite{noauthor_capital_2024} and we breakdown
-capital costs of BESS technology on per energy unit basis by using the same ratio from \cite{fu_2018_2018} while updating the magnitude
-to match EIA's 2023 estimates. 
+Leveraging the problem formulation discussed above, we design a set of model inputs with the goal of answering two questions:
+\begin{enumerate}
+  \item If we were to build an electrical grid from scratch, what techonology mix would most cost-efficient and what is the tradeoff between
+    system costs and emissions.
+  \item What role does energy storage in systems with varying levels of renewable technologies and where should it be placed
+    when subject to transmissions constraints?
+\end{enumerate}
+
+
+To answer these questions, we implement the model proposed in section \ref{sec:problem} on a IEEE 39-bus test system using the
+Julia programming language and Julia Mathematical Programming library (JuMP). Values for linear cost coefficients (capital and operational)
+are assessed from EIA data\cite{noauthor_capital_2024} and we breakdown capital costs of BESS technology on per energy unit basis
+by using the same ratio from \cite{fu_2018_2018} while updating the magnitude
+to match EIA's 2023 estimates. Cost estimates are shown in table \ref.
 
 We assume 
 \begin{enumerate}
-  \item solar, wind, and nuclear generation are available on a select number of nodes,
-  \item energy storage can be built anywhere,
-  \item the operational time period is the week of peak demand.
+  \item solar, wind, and nuclear generation are available on a select number of nodes;
+  \item energy storage can be built anywhere;
+  \item the operational time period, renewable profiles, and demand profiles are taken from the "Peak Demand Week" Scenario of
+    SAint 39-bus test system;
 \end{enumerate} 
-
 and then solve problem $P2-\bar{\epsilon}$ across a range of carbon emission limits.
 
-We load the resulting capacity figures $\P_\X$ and $\E_\X$ loaded into encoord's commericial power flow
-software (SAint) to validate. 
-
-Figures \ref{fig:1} and \ref{fig:2} show some results for the case with $\bar{\epsilon} = 0$. 
+To validate that the generated capacity can satisfy demand, we write capacity figures $P_\X$ and $E_\X$ for $\bar{\epsilon}$
+into an XLSX excel file and import this back into SAint. We run the resulting network on same the "Peak Demand Week"
+scenario with a lookahead time of 1 week. We verify that all load is served without violating line or generator limits.
 
 \section{Results}
 
-We find 99.9\% of load is served, which indicates that we fail to account for a few losses, but
-overall reproduce the behavior of the commercial software well.
+The JuMP model takes about 150 seconds to solve problem $P2-\bar{\epsilon}$ for each $\bar{\epsilon}$.
 
-\begin{center}
-  \includegraphics[width=0.9\linewidth]{Images/dispatch_stack.png}
-  \captionof{figure}{Dispatch stack showing mix of generation resources (mostly a combination of solar and energy storage is utilized
-  showing the economic viability
-  )}
-  \label{fig:1}
-\end{center}
+Figures \ref{fig:nameplate-power} and \ref{fig:power-generated} shows the nameplate capacities and total generation, grouped by generation technology, that are determined to
+be optimal for achieve each level emissions. (Note that for energy storage externals (i.e. BESS), the total generation shows only
+the amount of energy discharged.) The right side of the plot with an emissions level of 21.9 million tonnes CO$_2$/year depicts the
+cost-optimal system with no emissions constraints. This system relies primarily on natural gas for generation, with smaller
+contributions from coal and BESS power plants. Wind and solar constitute a very small portion of the generation in this system.
+
+\begin{figure}
+  \includegraphics[width=0.9\linewidth]{Images/nameplate_power.png}
+  \captionof{figure}{Nameplate power for optimal systems across different levels of emissions constraints}
+  \label{fig:nameplate-power}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=0.9\linewidth]{Images/power_generated.png}
+  \captionof{figure}{Power generated by each generationg technology across different levels of emissions constraints}
+  \label{fig:power-generated}
+\end{figure}
+
+As emissions constraints are tighted, the generation mix moves increasingly towards solar and BESS technologies. Coal is phased
+out with the first emissions constraint. Nuclear generation is introduced at emissions levels less than 5.2 million tonnes CO$_2$
+and the capacity level remains consistent even as constraints are tightened.
+
+Figure \ref{fig:emissions-pareto} plots the emissions pareto curve: total (annual) system cost (equation (\ref{eq:cost_func})) versus total
+emissions $\epsilon$ (equation (\ref{eq:emissions})). This plot demonstrates the tradeoff between emissions and total system cost.
+On a twin axis, we plot the value of the dual
+variable associated with the emissions constraint (labeled as "Carbon Tax" for reasons discussed in section \ref{sec:discussion})
+
+
+\begin{figure*}
+  \centering
+  \includegraphics[width=0.9\linewidth]{Images/emissions_pareto.png}
+  \captionof{figure}{Emissions Pareto Curve}
+  \label{fig:emissions-pareto}
+\end{figure*}
+
+Figure \ref{fig:1} shows the dispatch result from loading the zero-emissions model back into SAint.
+SAint reports that 99.9\% of load is served. Figure \ref{fig:2} shows how much solar PV capacity is allocated
+to each node in the network, as well as the line loading percentage during an hour of daytime operation. A plot
+of battery storage allocation is qualitatively very similar to the plot of installed PV capacity, i.e. the 
+largest quantities of BESS storage are co-located on the same nodes as PV capacity.  Line loading percentages
+are close to 100\% for transmission lines which connect nodes with large demand to those with solar generation.
 
 
 \begin{center}
@@ -414,6 +437,29 @@ overall reproduce the behavior of the commercial software well.
 \end{center}
 
 \section{Discussion}
+\label{sec:discussion}
+
+The first noteworthy takeaway from figure \ref{fig:nameplate-power} is that with no emissions constraints, our model concludes that natural gas is the
+most economically viable generation source. The combination of higher capital expenses and intermittency of solar and wind technologies 
+seems to outweigh the benefits of their zero marginal costs. The assumed plant lifetimes of 25 years (shorter than combined cycle natural gas)
+associated with solar and wind (table \ref{}) contributes to this effect. Another contributing factor is that our model does not account
+for the startup and shutdown costs of operating thermal generators, the total cost in the emissions-heavy systems may be underestimated.
+
+
+
+
+The emissions pareto curve of figure \ref{eq:emissions} shows a somewhat surprising result: we find the per-tonne cost of carbon
+is relatively constant until the level of emissions constraints approaches very
+close to zero. From emissions levels of 21.9 million tonnes/year (unconstrained case) down to 0.26 tonnes/year, the cost increases
+a relatively modest amount from 2,650 \$ / million tonnes at 10.9 million tonnes/year up to just more that 4,000 \$/million tonnes
+at 0.26 million tonnes/year. 
+
+The value of this dual variable represents the sensitivity of the total system cost to a small change in the emissions constraint.
+In other words, it represents the derivative of the emissions pareto curve. 
+
+The Pareto Curve is 
+
+
 
 \section{Conclusion}
 The the theoretical problem formulation from section \ref{sec:problem} shows
