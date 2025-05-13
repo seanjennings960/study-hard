@@ -12,3 +12,6 @@ __pycache__/
 *.blg
 
 *.ipynb_checkpoints
+
+# MacOS
+.DS_Store
