@@ -359,8 +359,8 @@ function load_costs(network::Network, techs::Dict{String, Technology})
     )  # $/MWh
     C0_E = Dict(
         # FIXME: hard-coding the bess cost here!
-        # name => 240 for name in C_E   # $/kWh
-        name => 0 for name in C_E   # $/kWh
+        name => 240 for name in C_E   # $/kWh
+        # name => 0 for name in C_E   # $/kWh
     )  # $/kWh/year
     return LinearCost(C0, C1, C0_E)
 

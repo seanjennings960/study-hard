@@ -157,8 +157,7 @@ function capacity_expansion(network::Network, cost::LinearCost, ϵ_max::Union{No
     total_power_operational = sum(C1[c] * sum(u[c, t] for t=1:T) for c in C) * 8760 / T # $/MWh/(T hr) * MWh * (8760 hr / year)== $ FIXME: Assuming 1 hr Δ_t
     # HACK: multiple by some factor to scale operational vs capital costs -- gives a lever in comparing
     # short-term vs. long term costs
-    # total_power_operational_pre = sum(C1[c] * sum(u[c, t] for t=1:T) for c in C) * 8760 / T # $/MWh/(T hr) * MWh * (8760 hr / year)== $ FIXME: Assuming 1 hr Δ_t
-    # total_power_operational = 100 * total_power_operational_pre
+    # total_power_operational = 100 * total_power_operational
     total_energy_capital = sum(C0_E[b] * e_max[b] for b in B) * 1000 # $ / kWh/year * MWh * (1000kWh / MWh) == $/year
     @objective(model, Min,
         total_power_capital + total_power_operational
