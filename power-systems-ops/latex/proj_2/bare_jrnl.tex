@@ -353,7 +353,6 @@ Leveraging the problem formulation discussed above, we design a set of model inp
     when subject to transmissions constraints?
 \end{enumerate}
 
-
 To answer these questions, we implement the model proposed in section \ref{sec:problem} on a IEEE 39-bus test system using the
 Julia programming language and Julia Mathematical Programming library (JuMP). Values for linear cost coefficients (capital and operational)
 are assessed from EIA data\cite{noauthor_capital_2024} and we breakdown capital costs of BESS technology on per energy unit basis
@@ -444,7 +443,6 @@ most economically viable generation source. The combination of higher capital ex
 seems to outweigh the benefits of their zero marginal costs. The assumed plant lifetimes of 25 years (shorter than combined cycle natural gas)
 associated with solar and wind (table \ref{}) contributes to this effect. Another contributing factor is that our model does not account
 for the startup and shutdown costs of operating thermal generators, the total cost in the emissions-heavy systems may be underestimated.
-
 
 
 

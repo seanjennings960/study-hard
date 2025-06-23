@@ -339,7 +339,7 @@ struct LinearCost
     # C1_E::Dict{String, Float64}  # External name -> Marginal cost of energy
 end
 
-function load_costs(network::Network, techs::Dict{String, Technology})
+function load_costs(network::Network, techs::Dict{String, Technology}, c0_E::Float64)
 
     C = configurable_externals(network)
     C_E = configurable_energy_devices(network)
@@ -358,9 +358,8 @@ function load_costs(network::Network, techs::Dict{String, Technology})
         for (name, tech) in pairs(tech_map)
     )  # $/MWh
     C0_E = Dict(
-        # FIXME: hard-coding the bess cost here!
-        name => 240 for name in C_E   # $/kWh
-        # name => 0 for name in C_E   # $/kWh
+        # FIXME: Make cost of energy technology-specific.
+        name => c0_E for name in C_E   # $/kWh
     )  # $/kWh/year
     return LinearCost(C0, C1, C0_E)
 
