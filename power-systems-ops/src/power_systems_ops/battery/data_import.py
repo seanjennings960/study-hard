@@ -43,3 +43,15 @@ def timestamp_to_seconds(timestamp: np.ndarray) -> np.ndarray:
         return None
 
     return seconds
+
+
+
+# Find the file
+
+def find_files(study_dir: Path, stage: int, aging_type: str, tp: str, cell: int):
+    path = study_dir / f"Stage_{stage}"
+    files = list(path.rglob(f"*_{aging_type}{tp:02d}_{cell:02d}_*.csv"))
+    print(f"Matching files: {len(files)}")
+    print(files[0])
+    files.sort()
+    return files
