@@ -39,19 +39,27 @@ def capacity(df: pd.DataFrame) -> list:
     # capa_dch = capa_dch / 3600
 
     # return {'Q_mean': capa_mean, 'Q_ch': capa_ch, 'Q_dch': capa_dch, 'q_ch': q_kapa_ch, 'q_dch': q_kapa_dch}
-    q_kapa_ch = q_calc(df[(df.step_type == 21) & (df.c_cur > 0)])
-    q_kapa_dch = q_calc(df[(df.step_type == 22) & (df.c_cur < 0)])
+    df_ch = df[(df.step_type == 21) & (df.c_cur > 0)]
+    q_kapa_ch = q_calc(df_ch)
+
+    df_dch = df[(df.step_type == 22) & (df.c_cur < 0)]
+    q_kapa_dch = q_calc(df_dch)
 
     if len(q_kapa_ch) >= 1:
         # Converts here from A*s -> A*hr
         capa_ch = (q_kapa_ch[-1] - q_kapa_ch[0])/3600
+        t_charge = df_ch.iloc[0].run_time
     else:
         capa_ch = np.nan
+        t_charge = np.nan
 
     if len(q_kapa_dch) >= 1:
         capa_dch = (q_kapa_dch[0] - q_kapa_dch[-1])/3600
+        t_discharge = df_dch.iloc[0].run_time
     else:
         capa_dch = np.nan
+        t_discharge = np.nan
+
 
 
     # Return nan if neither charge or discharge profile is available...
@@ -59,7 +67,8 @@ def capacity(df: pd.DataFrame) -> list:
         q_mean = np.nan
     else:
         q_mean = np.nanmean([capa_ch, capa_dch])
-    return {'Q_mean': q_mean}
+    return {'Q_mean': q_mean, 'Q_charge': capa_ch, "Q_discharge": capa_dch,
+            't_charge': t_charge, 't_discharge': t_discharge}
 
 
 def q_calc(df: pd.DataFrame) -> np.ndarray:
@@ -378,14 +387,16 @@ def fec_extract(df: pd.DataFrame, capa_ref: float = 4.9) -> float:
     :return: fec
     """
     fec: float
+    run_time_diff = df.run_time.diff()
 
     try:
         q_pos_half = df[df.step_type == 41]
         q_neg_half = df[df.step_type == 42]
 
-        q_val_pos = (q_pos_half.run_time_diff * q_pos_half.c_cur).fillna(0).values
-        q_val_neg = (q_neg_half.run_time_diff * q_neg_half.c_cur).fillna(0).values
+        q_val_pos = (run_time_diff * q_pos_half.c_cur).fillna(0).values
+        q_val_neg = (run_time_diff * q_neg_half.c_cur).fillna(0).values
 
+        # Why are we rounding here???
         fec_pos = abs(sum(q_val_pos)).round(2)
         fec_neg = abs(sum(q_val_neg)).round(2)
 
